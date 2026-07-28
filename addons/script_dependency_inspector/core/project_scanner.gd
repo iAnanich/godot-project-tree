@@ -1,0 +1,489 @@
+@tool
+extends RefCounted
+
+const ADDON_ROOT: String = "res://addons/script_dependency_inspector/"
+const ANALYZER_SCRIPT_PATH: String = ADDON_ROOT + "core/gdscript_analyzer.gd"
+const COMPAT_SCRIPT_PATH: String = ADDON_ROOT + "core/compat.gd"
+
+var logger: RefCounted
+var _analyzer
+var _compat_script: Script
+var _dependency_errors: Array[String] = []
+
+
+func _init() -> void:
+	var analyzer_script = _load_required_script(ANALYZER_SCRIPT_PATH, "source analyzer")
+	_compat_script = _load_required_script(COMPAT_SCRIPT_PATH, "compatibility shim")
+	if analyzer_script != null:
+		_analyzer = analyzer_script.new()
+		if _analyzer == null:
+			_record_dependency_error(
+				"Could not instantiate source analyzer script: %s" % ANALYZER_SCRIPT_PATH
+			)
+
+
+## Recursively scans GDScript files under root_path and resolves each script's
+## direct base using source declarations, the project global-class registry,
+## ClassDB, and optional Script reflection. It never instantiates user scripts.
+func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
+	var resolved_options = _with_defaults(options)
+	var normalized_root = root_path.simplify_path()
+	var result = {
+		"root_path": normalized_root,
+		"scripts": [],
+		"warnings": [],
+		"errors": _dependency_errors.duplicate(),
+		"diagnostics": [],
+		"engine_version": _engine_version_string(),
+	}
+	var root_error = _validate_scan_root(root_path, normalized_root)
+	if not root_error.is_empty():
+		result["errors"].append(root_error)
+		result["diagnostics"].append(
+			{
+				"severity": "error",
+				"code": "invalid_scan_root",
+				"message": root_error,
+				"context": {"root": root_path},
+			}
+		)
+		_log_error(root_error, {"root": root_path, "code": "invalid_scan_root"})
+		_finalize_diagnostics(result)
+		return result
+	if not result["errors"].is_empty():
+		_log_error(
+			"Project scan cannot start because required plugin scripts are unavailable.",
+			{"errors": result["errors"]}
+		)
+		_finalize_diagnostics(result)
+		return result
+
+	var files_result = _collect_script_files(root_path, resolved_options)
+	result["warnings"].append_array(files_result["warnings"])
+	result["errors"].append_array(files_result["errors"])
+	if not result["errors"].is_empty():
+		_log_error(
+			"Project scan could not enumerate its root.",
+			{"root": root_path, "errors": result["errors"]}
+		)
+		_finalize_diagnostics(result)
+		return result
+
+	var records: Array = []
+	var path_index = {}
+	var class_index = {}
+	var global_classes = _global_class_index()
+
+	for script_path_value in files_result["files"]:
+		var script_path = str(script_path_value)
+		var source_result = _read_text_file(
+			script_path, int(resolved_options["maximum_script_bytes"])
+		)
+		if not source_result["ok"]:
+			var read_warning = (
+				"Could not read script %s: %s" % [script_path, source_result["error"]]
+			)
+			result["warnings"].append(read_warning)
+			_log_warning(read_warning)
+			continue
+
+		var analysis: Dictionary = _analyzer.analyze(source_result["text"], script_path)
+		result["warnings"].append_array(analysis.get("warnings", []))
+		var reflection = {}
+		if resolved_options["use_runtime_reflection"]:
+			reflection = _reflect_script(script_path)
+			if not reflection.get("loaded", false):
+				result["warnings"].append(
+					"Godot could not load %s; source-only analysis was used." % script_path
+				)
+
+		var reflected_global_name = str(reflection.get("global_name", ""))
+		if str(analysis["class_name"]).is_empty() and not reflected_global_name.is_empty():
+			analysis["class_name"] = reflected_global_name
+
+		var display_name = str(analysis["class_name"])
+		if display_name.is_empty():
+			display_name = script_path.get_file().get_basename()
+
+		var record = {
+			"id": script_path,
+			"path": script_path,
+			"name": display_name,
+			"class_name": str(analysis["class_name"]),
+			"is_addon": script_path.begins_with("res://addons/"),
+			"analysis": analysis,
+			"reflection": reflection,
+			"direct_base": {"kind": "none", "value": "", "display": ""},
+		}
+		records.append(record)
+		path_index[script_path] = record
+		if not str(record["class_name"]).is_empty():
+			var registered_name = str(record["class_name"])
+			if class_index.has(registered_name):
+				result["warnings"].append(
+					(
+						"Duplicate class_name '%s' in %s and %s."
+						% [registered_name, class_index[registered_name]["path"], script_path]
+					)
+				)
+			else:
+				class_index[registered_name] = record
+
+	for record_value in records:
+		var record: Dictionary = record_value
+		record["direct_base"] = _resolve_direct_base(
+			record, path_index, class_index, global_classes
+		)
+
+	records.sort_custom(
+		func(left: Dictionary, right: Dictionary) -> bool:
+			return str(left["path"]) < str(right["path"])
+	)
+	result["scripts"] = records
+	_log_info(
+		"Project scan completed.",
+		{"root": root_path, "scripts": records.size(), "warnings": result["warnings"].size()}
+	)
+	_finalize_diagnostics(result)
+	return result
+
+
+func _finalize_diagnostics(result: Dictionary) -> void:
+	var diagnostics: Array = result.get("diagnostics", [])
+	var known_messages: Dictionary = {}
+	for diagnostic_value in diagnostics:
+		if diagnostic_value is Dictionary:
+			known_messages[str((diagnostic_value as Dictionary).get("message", ""))] = true
+	for message_value in result.get("warnings", []):
+		var message = str(message_value)
+		if not known_messages.has(message):
+			diagnostics.append(
+				{
+					"severity": "warning",
+					"code": "scan_warning",
+					"message": message,
+					"context": {},
+				}
+			)
+	for message_value in result.get("errors", []):
+		var message = str(message_value)
+		if not known_messages.has(message):
+			diagnostics.append(
+				{
+					"severity": "error",
+					"code": "scan_error",
+					"message": message,
+					"context": {},
+				}
+			)
+	result["diagnostics"] = diagnostics
+
+
+func _validate_scan_root(original_root: String, normalized_root: String) -> String:
+	if original_root.strip_edges().is_empty():
+		return "Scan root is empty; expected a res:// project path."
+	var normalized_separators = original_root.replace("\\", "/")
+	for segment in normalized_separators.split("/", false):
+		if segment == "..":
+			return "Scan root must not contain parent traversal segments: %s" % original_root
+	if normalized_root != "res://" and not normalized_root.begins_with("res://"):
+		return "Scan root must be inside the current project (res://): %s" % original_root
+	return ""
+
+
+func _with_defaults(options: Dictionary) -> Dictionary:
+	var defaults = {
+		"include_addons": true,
+		"use_runtime_reflection": true,
+		"follow_symbolic_links": false,
+		"maximum_scanned_files": 10000,
+		"maximum_scanned_directories": 20000,
+		"maximum_script_bytes": 4194304,
+		"excluded_path_prefixes":
+		PackedStringArray(["res://.godot/", "res://addons/script_dependency_inspector/"]),
+	}
+	for key in options:
+		defaults[key] = options[key]
+	return defaults
+
+
+func _collect_script_files(root_path: String, options: Dictionary) -> Dictionary:
+	var output = {"files": [], "warnings": [], "errors": []}
+	var normalized_root = root_path.simplify_path()
+	var absolute_root = ProjectSettings.globalize_path(normalized_root)
+	if not DirAccess.dir_exists_absolute(absolute_root):
+		output["errors"].append("Scan root does not exist: %s" % normalized_root)
+		return output
+	var pending: Array = [normalized_root]
+	var visited = {}
+	var maximum_files = maxi(1, int(options["maximum_scanned_files"]))
+	var maximum_directories = maxi(1, int(options["maximum_scanned_directories"]))
+	var scanned_directories = 0
+
+	while not pending.is_empty():
+		var current_path = str(pending.pop_back()).simplify_path()
+		if visited.has(current_path):
+			continue
+		visited[current_path] = true
+		if _is_excluded(current_path, options):
+			continue
+
+		scanned_directories += 1
+		if scanned_directories > maximum_directories:
+			output["warnings"].append(
+				"Scan stopped at maximum_scanned_directories=%s." % maximum_directories
+			)
+			break
+
+		var directory = DirAccess.open(current_path)
+		if directory == null:
+			_record_directory_failure(
+				output, current_path, normalized_root, "Cannot open directory: %s" % current_path
+			)
+			continue
+		var begin_error = directory.list_dir_begin()
+		if begin_error != OK:
+			_record_directory_failure(
+				output,
+				current_path,
+				normalized_root,
+				"Cannot enumerate directory: %s (error %s)" % [current_path, begin_error]
+			)
+			continue
+
+		var entry = directory.get_next()
+		while not entry.is_empty():
+			if entry != "." and entry != "..":
+				var entry_path = current_path.path_join(entry).simplify_path()
+				if directory.is_link(entry) and not bool(options["follow_symbolic_links"]):
+					output["warnings"].append(
+						"Skipped symbolic link: %s" % entry_path
+					)
+					entry = directory.get_next()
+					continue
+				if directory.current_is_dir():
+					if not _is_excluded(entry_path + "/", options):
+						pending.append(entry_path)
+				elif (
+					entry_path.get_extension().to_lower() == "gd"
+					and not _is_excluded(entry_path, options)
+				):
+					if options["include_addons"] or not entry_path.begins_with("res://addons/"):
+						output["files"].append(entry_path)
+						if output["files"].size() >= maximum_files:
+							output["warnings"].append(
+								"Scan stopped at maximum_scanned_files=%s." % maximum_files
+							)
+							directory.list_dir_end()
+							output["files"].sort()
+							return output
+			entry = directory.get_next()
+		directory.list_dir_end()
+
+	output["files"].sort()
+	return output
+
+
+func _record_directory_failure(
+	output: Dictionary, path: String, root_path: String, message: String
+) -> void:
+	if path == root_path:
+		output["errors"].append(message)
+	else:
+		output["warnings"].append(message)
+
+
+func _is_excluded(path: String, options: Dictionary) -> bool:
+	var normalized = path.simplify_path().trim_suffix("/")
+	for prefix_value in options["excluded_path_prefixes"]:
+		var normalized_prefix = str(prefix_value).simplify_path().trim_suffix("/")
+		if normalized == normalized_prefix or normalized.begins_with(normalized_prefix + "/"):
+			return true
+	return false
+
+
+func _read_text_file(path: String, maximum_bytes: int) -> Dictionary:
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {"ok": false, "text": "", "error": FileAccess.get_open_error()}
+	var length = file.get_length()
+	if length > maximum_bytes:
+		file.close()
+		return {
+			"ok": false,
+			"text": "",
+			"error": "file is %s bytes; limit is %s" % [length, maximum_bytes]
+		}
+	var text = file.get_as_text()
+	file.close()
+	return {"ok": true, "text": text, "error": OK}
+
+
+func _reflect_script(path: String) -> Dictionary:
+	var resource = ResourceLoader.load(path)
+	if resource == null or not resource is Script:
+		return {"loaded": false}
+	var script = resource as Script
+	var base_script = _compat_script.call("script_base_script", script) as Script
+	return {
+		"loaded": true,
+		"global_name": str(_compat_script.call("script_global_name", script)),
+		"native_base": str(_compat_script.call("script_native_base", script)),
+		"base_script_path": "" if base_script == null else base_script.resource_path,
+	}
+
+
+func _global_class_index() -> Dictionary:
+	var index = {}
+	if not ProjectSettings.has_method("get_global_class_list"):
+		return index
+	for entry_value in ProjectSettings.get_global_class_list():
+		var entry: Dictionary = entry_value
+		var registered_name = str(entry.get("class", ""))
+		if not registered_name.is_empty():
+			index[registered_name] = entry.duplicate(true)
+	return index
+
+
+func _resolve_direct_base(
+	record: Dictionary, path_index: Dictionary, class_index: Dictionary, global_classes: Dictionary
+) -> Dictionary:
+	var reflection: Dictionary = record["reflection"]
+	var analysis: Dictionary = record["analysis"]
+	var resolved: Dictionary = {}
+	var reflected_base_path = str(reflection.get("base_script_path", ""))
+	if not reflected_base_path.is_empty():
+		resolved = _resolve_path_base(
+			reflected_base_path, str(record["path"]), path_index, global_classes
+		)
+	else:
+		var parsed_base: Dictionary = analysis["extends"]
+		match str(parsed_base.get("kind", "none")):
+			"path":
+				resolved = _resolve_path_base(
+					str(parsed_base["value"]), str(record["path"]), path_index, global_classes
+				)
+			"symbol":
+				resolved = _resolve_symbol_base(
+					str(parsed_base["value"]), reflection, path_index, class_index, global_classes
+				)
+			"unresolved":
+				resolved = {
+					"kind": "unresolved",
+					"value": str(parsed_base["value"]),
+					"display": str(parsed_base["value"]),
+				}
+
+	if resolved.is_empty():
+		var native_base = str(reflection.get("native_base", ""))
+		if native_base.is_empty():
+			native_base = "RefCounted"
+		resolved = {"kind": "native", "value": native_base, "display": native_base}
+	return resolved
+
+
+func _resolve_symbol_base(
+	symbol: String,
+	reflection: Dictionary,
+	path_index: Dictionary,
+	class_index: Dictionary,
+	global_classes: Dictionary
+) -> Dictionary:
+	var resolved: Dictionary
+	if class_index.has(symbol):
+		resolved = {
+			"kind": "script",
+			"value": str(class_index[symbol]["path"]),
+			"display": symbol,
+		}
+	elif global_classes.has(symbol):
+		var global_entry: Dictionary = global_classes[symbol]
+		var global_path = str(global_entry.get("path", ""))
+		if path_index.has(global_path):
+			resolved = {"kind": "script", "value": global_path, "display": symbol}
+		else:
+			resolved = {
+				"kind": "external_script",
+				"value": global_path if not global_path.is_empty() else symbol,
+				"display": symbol,
+				"native_base": str(global_entry.get("base", "")),
+			}
+	elif ClassDB.class_exists(symbol):
+		resolved = {"kind": "native", "value": symbol, "display": symbol}
+	else:
+		resolved = {
+			"kind": "unresolved",
+			"value": symbol,
+			"display": symbol,
+			"native_base": str(reflection.get("native_base", "")),
+		}
+	return resolved
+
+
+func _resolve_path_base(
+	base_path: String, owner_path: String, path_index: Dictionary, global_classes: Dictionary
+) -> Dictionary:
+	var normalized = _normalize_dependency_path(base_path, owner_path)
+	if path_index.has(normalized):
+		return {
+			"kind": "script", "value": normalized, "display": str(path_index[normalized]["name"])
+		}
+	var display = normalized.get_file().get_basename()
+	for registered_name in global_classes:
+		var entry: Dictionary = global_classes[registered_name]
+		if str(entry.get("path", "")) == normalized:
+			return {
+				"kind": "external_script",
+				"value": normalized,
+				"display": str(registered_name),
+				"native_base": str(entry.get("base", "")),
+			}
+	return {"kind": "external_script", "value": normalized, "display": display, "native_base": ""}
+
+
+func _normalize_dependency_path(dependency_path: String, owner_path: String) -> String:
+	var value = dependency_path.strip_edges()
+	if value.begins_with("res://") or value.begins_with("user://"):
+		return value.simplify_path()
+	return owner_path.get_base_dir().path_join(value).simplify_path()
+
+
+func _load_required_script(path: String, role: String) -> Script:
+	if not FileAccess.file_exists(path):
+		_record_dependency_error("Missing %s script: %s" % [role, path])
+		return null
+	var resource = ResourceLoader.load(path)
+	if resource == null or not resource is Script:
+		_record_dependency_error("Could not load %s script: %s" % [role, path])
+		return null
+	return resource as Script
+
+
+func _record_dependency_error(message: String) -> void:
+	if not _dependency_errors.has(message):
+		_dependency_errors.append(message)
+	push_error(message)
+
+
+func _engine_version_string() -> String:
+	if _compat_script != null:
+		return str(_compat_script.call("engine_version_string"))
+	var info = Engine.get_version_info()
+	if info.has("string"):
+		return str(info["string"])
+	return "%s.%s.%s" % [info.get("major", 4), info.get("minor", 0), info.get("patch", 0)]
+
+
+func _log_info(message: String, context: Dictionary = {}) -> void:
+	if logger != null and logger.has_method("info"):
+		logger.call("info", message, context)
+
+
+func _log_warning(message: String, context: Dictionary = {}) -> void:
+	if logger != null and logger.has_method("warning"):
+		logger.call("warning", message, context)
+
+
+func _log_error(message: String, context: Dictionary = {}) -> void:
+	if logger != null and logger.has_method("error"):
+		logger.call("error", message, context)

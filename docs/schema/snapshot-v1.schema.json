@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Script Dependency Inspector snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "metadata",
+    "nodes",
+    "edges",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "root_path": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object"
+        },
+        "style": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "member": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arguments": {
+          "type": "string"
+        },
+        "return_type": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "declaration": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "array"
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "exported": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "member_reference": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "property",
+            "signal",
+            "method"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "dependentRequired": {
+        "kind": [
+          "name"
+        ],
+        "name": [
+          "kind"
+        ]
+      },
+      "additionalProperties": true
+    },
+    "member_link": {
+      "type": "object",
+      "required": [
+        "source_member",
+        "target_member",
+        "evidence"
+      ],
+      "properties": {
+        "source_member": {
+          "$ref": "#/$defs/member_reference"
+        },
+        "target_member": {
+          "$ref": "#/$defs/member_reference"
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "properties",
+        "signals",
+        "methods",
+        "inner_classes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "user",
+            "addon",
+            "native",
+            "external"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "class_name": {
+          "type": "string"
+        },
+        "qualified_name": {
+          "type": "string"
+        },
+        "native_base": {
+          "type": "string"
+        },
+        "inheritance_family": {
+          "type": "string"
+        },
+        "has_custom_name": {
+          "type": "boolean"
+        },
+        "base": {
+          "type": "object"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "inner_classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "source",
+        "target",
+        "kind",
+        "member_links"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "extends",
+            "uses",
+            "type_uses"
+          ]
+        },
+        "member_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member_link"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "severity",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

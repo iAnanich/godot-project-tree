@@ -1,0 +1,438 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/script_dependency_inspector/ui/dependency_dock.gd" id="1_dock"]
+
+[node name="DependencyDock" type="VBoxContainer"]
+custom_minimum_size = Vector2(430, 420)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dock")
+
+[node name="Toolbar" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ScanButton" type="Button" parent="Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scan"
+
+[node name="ExportButton" type="Button" parent="Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Export…"
+
+[node name="FormatOption" type="OptionButton" parent="Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatusLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Not scanned"
+text_overrun_behavior = 3
+
+
+[node name="LegendPanel" type="PanelContainer" parent="."]
+layout_mode = 2
+
+[node name="LegendView" type="RichTextLabel" parent="LegendPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "Edge legend not initialized."
+tooltip_text = "Edge colors and rendered direction. Exact graph data is available through JSON export and the Summary tab."
+
+[node name="MainSplit" type="VSplitContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 230
+
+[node name="ControlsTabs" type="TabContainer" parent="MainSplit"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="Content" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 0
+
+[node name="Grid" type="GridContainer" parent="MainSplit/ControlsTabs/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+
+[node name="IncludeAddons" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Include add-ons"
+
+[node name="IncludeNative" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Native bases"
+
+[node name="IncludeExternal" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "External bases"
+
+[node name="IncludeMethods" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Methods"
+
+[node name="IncludeSignals" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Signals"
+
+[node name="IncludeProperties" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Properties"
+
+[node name="IncludeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "load/preload uses"
+
+[node name="IncludeTypeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Type annotation uses"
+
+[node name="IncludeMemberAccessDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Class member uses"
+
+[node name="ShowMemberDependencyEdges" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Member edge anchors"
+
+[node name="MethodSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Method signatures"
+
+[node name="SignalSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Signal signatures"
+
+[node name="PropertyTypes" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Property types"
+
+[node name="ExportColors" type="CheckBox" parent="MainSplit/ControlsTabs/Content/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "Export colors"
+
+[node name="Appearance" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 1
+
+[node name="Grid" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+
+[node name="NodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Minimum script width"
+
+[node name="GraphNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 160.0
+max_value = 600.0
+step = 10.0
+
+[node name="MaxNodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Maximum script width"
+
+[node name="GraphNodeMaxWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 180.0
+max_value = 1000.0
+step = 10.0
+
+[node name="NativeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Native node width"
+
+[node name="NativeNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 100.0
+max_value = 360.0
+step = 10.0
+
+[node name="MaxRowsLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Members per section"
+
+[node name="MaxMembers" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 200.0
+step = 1.0
+
+[node name="MaxHeightLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Member area height"
+
+[node name="MaxMemberHeight" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 80.0
+max_value = 1200.0
+step = 10.0
+
+[node name="SiblingGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Sibling gap"
+
+[node name="SiblingSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 8.0
+max_value = 200.0
+step = 4.0
+
+[node name="LayerGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+text = "Depth-layer gap"
+
+[node name="LayerSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 24.0
+max_value = 400.0
+step = 4.0
+
+[node name="DepthTopToBottom" type="CheckBox" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Depth top-to-bottom"
+
+[node name="AppearanceSpacer" type="Control" parent="MainSplit/ControlsTabs/Appearance/Grid"]
+layout_mode = 2
+
+[node name="Colors" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 2
+
+[node name="Grid" type="GridContainer" parent="MainSplit/ControlsTabs/Colors"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+
+[node name="UserLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "User scripts"
+[node name="UserColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="AddonLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Add-on scripts"
+[node name="AddonColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="NativeLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Native classes"
+[node name="NativeColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="ExternalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "External classes"
+[node name="ExternalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="PropertyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Properties"
+[node name="PropertyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="SignalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Signals"
+[node name="SignalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="MethodLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Methods"
+[node name="MethodColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="MetadataLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Metadata"
+[node name="MetadataColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="InheritanceLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Inheritance edges"
+[node name="InheritanceColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="DependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "load/preload edges"
+[node name="DependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="TypeDependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Type-use edges"
+[node name="TypeDependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+
+[node name="ObjectFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Object family border"
+[node name="ObjectFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="RefCountedFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "RefCounted family border"
+[node name="RefCountedFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="NodeFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Node family border"
+[node name="NodeFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="Node2DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Node2D family border"
+[node name="Node2DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="Node3DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Node3D family border"
+[node name="Node3DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="ControlFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Control family border"
+[node name="ControlFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+[node name="OtherFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/Grid"]
+layout_mode = 2
+text = "Other family border"
+[node name="OtherFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+
+
+[node name="Summary" type="MarginContainer" parent="MainSplit/ControlsTabs"]
+layout_mode = 2
+metadata/_tab_index = 3
+
+[node name="SummaryView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Summary"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = true
+text = "Scan the project to populate this non-visual graph summary."
+
+[node name="Log" type="MarginContainer" parent="MainSplit/ControlsTabs"]
+layout_mode = 2
+metadata/_tab_index = 4
+
+[node name="LogView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Log"]
+unique_name_in_owner = true
+layout_mode = 2
+fit_content = false
+scroll_active = true
+
+[node name="GraphEdit" type="GraphEdit" parent="MainSplit"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+show_zoom_label = true
+minimap_enabled = true
+right_disconnects = false
+connection_lines_thickness = 3.0
+zoom = 0.7
+
+[node name="FileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Export script dependency graph"
+size = Vector2i(900, 600)
+access = 2
+file_mode = 4

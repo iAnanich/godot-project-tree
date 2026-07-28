@@ -1,0 +1,1197 @@
+{
+	"diagnostics": [],
+	"edges": [
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://CanvasItem",
+			"target": "native://Node"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://CanvasLayer",
+			"target": "native://Node"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Control",
+			"target": "native://CanvasItem"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://MainLoop",
+			"target": "native://Object"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Node2D",
+			"target": "native://CanvasItem"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Node3D",
+			"target": "native://Node"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Node",
+			"target": "native://Object"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://RefCounted",
+			"target": "native://Object"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Resource",
+			"target": "native://RefCounted"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://SceneTree",
+			"target": "native://MainLoop"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "native://Script",
+			"target": "native://Resource"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://addons/example_dependency_framework/combat_entity.gd",
+			"target": "native://Node"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/actors/base_actor.gd",
+			"target": "res://addons/example_dependency_framework/combat_entity.gd"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/actors/enemy_actor.gd",
+			"target": "res://examples/showcase/actors/base_actor.gd"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/actors/player_actor.gd",
+			"target": "res://examples/showcase/actors/base_actor.gd"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/controllers/battle_controller.gd",
+			"target": "native://Node"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/data/weapon_profile.gd",
+			"target": "native://Resource"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/runtime/showcase_main_loop.gd",
+			"target": "native://SceneTree"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/services/damage_service.gd",
+			"target": "native://RefCounted"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/services/targeting_service.gd",
+			"target": "native://RefCounted"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/views/battle_hud.gd",
+			"target": "native://CanvasLayer"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/views/battle_panel.gd",
+			"target": "native://Control"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/world/ambient_marker.gd",
+			"target": "native://Node2D"
+		},
+		{
+			"kind": "extends",
+			"member_links": [],
+			"source": "res://examples/showcase/world/arena_anchor.gd",
+			"target": "native://Node3D"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "property_type",
+					"source_member": {
+						"kind": "property",
+						"name": "weapon_profile"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/base_actor.gd",
+			"target": "res://examples/showcase/data/weapon_profile.gd"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "method_return_type",
+					"source_member": {
+						"kind": "method",
+						"name": "create_default_profile"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/enemy_actor.gd",
+			"target": "native://Resource"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "property_type",
+					"source_member": {
+						"kind": "property",
+						"name": "weapon_profile_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/enemy_actor.gd",
+			"target": "native://Script"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "property_type",
+					"source_member": {
+						"kind": "property",
+						"name": "damage_service_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/player_actor.gd",
+			"target": "native://Script"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "method_argument_type",
+					"source_member": {
+						"kind": "method",
+						"name": "finish_battle"
+					},
+					"target_member": {}
+				},
+				{
+					"evidence": "signal_argument_type",
+					"source_member": {
+						"kind": "signal",
+						"name": "battle_finished"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/controllers/battle_controller.gd",
+			"target": "res://examples/showcase/actors/base_actor.gd"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "method_argument_type",
+					"source_member": {
+						"kind": "method",
+						"name": "calculate_damage"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/services/damage_service.gd",
+			"target": "res://examples/showcase/data/weapon_profile.gd"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "method_argument_type",
+					"source_member": {
+						"kind": "method",
+						"name": "choose_target"
+					},
+					"target_member": {}
+				},
+				{
+					"evidence": "method_return_type",
+					"source_member": {
+						"kind": "method",
+						"name": "choose_target"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/services/targeting_service.gd",
+			"target": "res://examples/showcase/actors/base_actor.gd"
+		},
+		{
+			"kind": "type_uses",
+			"member_links": [
+				{
+					"evidence": "property_type",
+					"source_member": {
+						"kind": "property",
+						"name": "controller_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/views/battle_hud.gd",
+			"target": "native://Script"
+		},
+		{
+			"kind": "uses",
+			"member_links": [
+				{
+					"evidence": "class_member_access",
+					"source_member": {
+						"kind": "method",
+						"name": "attack_power"
+					},
+					"target_member": {
+						"kind": "method",
+						"name": "calculate_damage"
+					}
+				}
+			],
+			"source": "res://examples/showcase/actors/base_actor.gd",
+			"target": "res://examples/showcase/services/damage_service.gd"
+		},
+		{
+			"kind": "uses",
+			"member_links": [
+				{
+					"evidence": "load",
+					"source_member": {
+						"kind": "property",
+						"name": "weapon_profile_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/enemy_actor.gd",
+			"target": "res://examples/showcase/data/weapon_profile.gd"
+		},
+		{
+			"kind": "uses",
+			"member_links": [
+				{
+					"evidence": "preload",
+					"source_member": {
+						"kind": "property",
+						"name": "damage_service_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/actors/player_actor.gd",
+			"target": "res://examples/showcase/services/damage_service.gd"
+		},
+		{
+			"kind": "uses",
+			"member_links": [
+				{
+					"evidence": "preload",
+					"source_member": {
+						"kind": "property",
+						"name": "controller_script"
+					},
+					"target_member": {}
+				}
+			],
+			"source": "res://examples/showcase/views/battle_hud.gd",
+			"target": "res://examples/showcase/controllers/battle_controller.gd"
+		}
+	],
+	"errors": [],
+	"metadata": {
+		"engine_version": "4.7-stable (official)",
+		"options": {
+			"include_external_bases": true,
+			"include_member_access_dependencies": true,
+			"include_methods": true,
+			"include_native_bases": true,
+			"include_properties": true,
+			"include_resource_dependencies": true,
+			"include_signals": true,
+			"include_type_dependencies": true,
+			"show_member_dependency_edges": true,
+			"show_method_signatures": false,
+			"show_property_types": false,
+			"show_signal_signatures": false
+		},
+		"root_path": "res://",
+		"style": {
+			"addon_script_color": "8e6c9f",
+			"external_class_color": "9b7653",
+			"native_class_color": "65737e",
+			"user_script_color": "4f7cac"
+		}
+	},
+	"nodes": [
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://CanvasItem",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "CanvasItem",
+			"native_base": "CanvasItem",
+			"path": "",
+			"properties": [],
+			"qualified_name": "CanvasItem",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://CanvasLayer",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "CanvasLayer",
+			"native_base": "CanvasLayer",
+			"path": "",
+			"properties": [],
+			"qualified_name": "CanvasLayer",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Control",
+			"inheritance_family": "control",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Control",
+			"native_base": "Control",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Control",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://MainLoop",
+			"inheritance_family": "object",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "MainLoop",
+			"native_base": "MainLoop",
+			"path": "",
+			"properties": [],
+			"qualified_name": "MainLoop",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Node",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Node",
+			"native_base": "Node",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Node",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Node2D",
+			"inheritance_family": "node_2d",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Node2D",
+			"native_base": "Node2D",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Node2D",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Node3D",
+			"inheritance_family": "node_3d",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Node3D",
+			"native_base": "Node3D",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Node3D",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Object",
+			"inheritance_family": "object",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Object",
+			"native_base": "Object",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Object",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://RefCounted",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "RefCounted",
+			"native_base": "RefCounted",
+			"path": "",
+			"properties": [],
+			"qualified_name": "RefCounted",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Resource",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Resource",
+			"native_base": "Resource",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Resource",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://SceneTree",
+			"inheritance_family": "object",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "SceneTree",
+			"native_base": "SceneTree",
+			"path": "",
+			"properties": [],
+			"qualified_name": "SceneTree",
+			"signals": []
+		},
+		{
+			"base": {},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "native://Script",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "native",
+			"methods": [],
+			"name": "Script",
+			"native_base": "Script",
+			"path": "",
+			"properties": [],
+			"qualified_name": "Script",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "Node",
+				"kind": "native",
+				"value": "Node"
+			},
+			"class_name": "ShowcaseCombatEntity",
+			"has_custom_name": true,
+			"id": "res://addons/example_dependency_framework/combat_entity.gd",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "addon",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "amount: int",
+					"name": "receive_damage",
+					"return_type": "void",
+					"signature": "func receive_damage(amount: int) -> void",
+					"static": false
+				},
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "is_alive",
+					"return_type": "bool",
+					"signature": "func is_alive() -> bool",
+					"static": false
+				}
+			],
+			"name": "ShowcaseCombatEntity",
+			"native_base": "Node",
+			"path": "res://addons/example_dependency_framework/combat_entity.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var maximum_health: int = 100",
+					"exported": true,
+					"name": "maximum_health",
+					"static": false,
+					"type": "int"
+				},
+				{
+					"annotations": [],
+					"declaration": "var current_health: int = 100",
+					"exported": false,
+					"name": "current_health",
+					"static": false,
+					"type": "int"
+				}
+			],
+			"qualified_name": "ShowcaseCombatEntity",
+			"signals": [
+				{
+					"arguments": "current: int, maximum: int",
+					"name": "health_changed",
+					"signature": "signal health_changed(current: int, maximum: int)"
+				},
+				{
+					"arguments": "",
+					"name": "defeated",
+					"signature": "signal defeated"
+				}
+			]
+		},
+		{
+			"base": {
+				"display": "ShowcaseCombatEntity",
+				"kind": "script",
+				"value": "res://addons/example_dependency_framework/combat_entity.gd"
+			},
+			"class_name": "ShowcaseBaseActor",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/actors/base_actor.gd",
+			"inheritance_family": "node",
+			"inner_classes": [
+				{
+					"name": "RuntimeState"
+				}
+			],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "action_name: String",
+					"name": "request_action",
+					"return_type": "void",
+					"signature": "func request_action(action_name: String) -> void",
+					"static": false
+				},
+				{
+					"annotations": [],
+					"arguments": "critical: bool = false",
+					"name": "attack_power",
+					"return_type": "int",
+					"signature": "func attack_power(critical: bool = false) -> int",
+					"static": false
+				}
+			],
+			"name": "ShowcaseBaseActor",
+			"native_base": "Node",
+			"path": "res://examples/showcase/actors/base_actor.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var actor_label: String = \"Actor\"",
+					"exported": true,
+					"name": "actor_label",
+					"static": false,
+					"type": "String"
+				},
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var weapon_profile: ShowcaseWeaponProfile",
+					"exported": true,
+					"name": "weapon_profile",
+					"static": false,
+					"type": "ShowcaseWeaponProfile"
+				},
+				{
+					"annotations": [],
+					"declaration": "var last_action: String = \"\"",
+					"exported": false,
+					"name": "last_action",
+					"static": false,
+					"type": "String"
+				}
+			],
+			"qualified_name": "ShowcaseBaseActor",
+			"signals": [
+				{
+					"arguments": "action_name: String",
+					"name": "action_requested",
+					"signature": "signal action_requested(action_name: String)"
+				}
+			]
+		},
+		{
+			"base": {
+				"display": "ShowcaseBaseActor",
+				"kind": "script",
+				"value": "res://examples/showcase/actors/base_actor.gd"
+			},
+			"class_name": "ShowcaseEnemyActor",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/actors/enemy_actor.gd",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "choose_action",
+					"return_type": "String",
+					"signature": "func choose_action() -> String",
+					"static": false
+				},
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "create_default_profile",
+					"return_type": "Resource",
+					"signature": "func create_default_profile() -> Resource",
+					"static": false
+				}
+			],
+			"name": "ShowcaseEnemyActor",
+			"native_base": "Node",
+			"path": "res://examples/showcase/actors/enemy_actor.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var aggression: float = 0.5",
+					"exported": true,
+					"name": "aggression",
+					"static": false,
+					"type": "float"
+				},
+				{
+					"annotations": [],
+					"declaration": "var weapon_profile_script: Script = load(\"res://examples/showcase/data/weapon_profile.gd\")",
+					"exported": false,
+					"name": "weapon_profile_script",
+					"static": false,
+					"type": "Script"
+				}
+			],
+			"qualified_name": "ShowcaseEnemyActor",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "ShowcaseBaseActor",
+				"kind": "script",
+				"value": "res://examples/showcase/actors/base_actor.gd"
+			},
+			"class_name": "ShowcasePlayerActor",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/actors/player_actor.gd",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "request_primary_attack",
+					"return_type": "void",
+					"signature": "func request_primary_attack() -> void",
+					"static": false
+				},
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "preview_damage",
+					"return_type": "int",
+					"signature": "func preview_damage() -> int",
+					"static": false
+				}
+			],
+			"name": "ShowcasePlayerActor",
+			"native_base": "Node",
+			"path": "res://examples/showcase/actors/player_actor.gd",
+			"properties": [
+				{
+					"annotations": [],
+					"declaration": "var damage_service_script: Script = preload(\"res://examples/showcase/services/damage_service.gd\")",
+					"exported": false,
+					"name": "damage_service_script",
+					"static": false,
+					"type": "Script"
+				}
+			],
+			"qualified_name": "ShowcasePlayerActor",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "Node",
+				"kind": "native",
+				"value": "Node"
+			},
+			"class_name": "ShowcaseBattleController",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/controllers/battle_controller.gd",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "start_battle",
+					"return_type": "void",
+					"signature": "func start_battle() -> void",
+					"static": false
+				},
+				{
+					"annotations": [],
+					"arguments": "winner: ShowcaseBaseActor",
+					"name": "finish_battle",
+					"return_type": "void",
+					"signature": "func finish_battle(winner: ShowcaseBaseActor) -> void",
+					"static": false
+				}
+			],
+			"name": "ShowcaseBattleController",
+			"native_base": "Node",
+			"path": "res://examples/showcase/controllers/battle_controller.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var player_path: NodePath",
+					"exported": true,
+					"name": "player_path",
+					"static": false,
+					"type": "NodePath"
+				},
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var enemy_path: NodePath",
+					"exported": true,
+					"name": "enemy_path",
+					"static": false,
+					"type": "NodePath"
+				},
+				{
+					"annotations": [],
+					"declaration": "var turn_index: int = 0",
+					"exported": false,
+					"name": "turn_index",
+					"static": false,
+					"type": "int"
+				}
+			],
+			"qualified_name": "ShowcaseBattleController",
+			"signals": [
+				{
+					"arguments": "",
+					"name": "battle_started",
+					"signature": "signal battle_started"
+				},
+				{
+					"arguments": "winner: ShowcaseBaseActor",
+					"name": "battle_finished",
+					"signature": "signal battle_finished(winner: ShowcaseBaseActor)"
+				}
+			]
+		},
+		{
+			"base": {
+				"display": "Resource",
+				"kind": "native",
+				"value": "Resource"
+			},
+			"class_name": "ShowcaseWeaponProfile",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/data/weapon_profile.gd",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [],
+			"name": "ShowcaseWeaponProfile",
+			"native_base": "Resource",
+			"path": "res://examples/showcase/data/weapon_profile.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var display_name: String = \"Training Sword\"",
+					"exported": true,
+					"name": "display_name",
+					"static": false,
+					"type": "String"
+				},
+				{
+					"annotations": [
+						"@export_range(0, 1000, 1)"
+					],
+					"declaration": "var base_damage: int = 12",
+					"exported": true,
+					"name": "base_damage",
+					"static": false,
+					"type": "int"
+				},
+				{
+					"annotations": [
+						"@export_range(0.0, 5.0, 0.05)"
+					],
+					"declaration": "var critical_multiplier: float = 1.5",
+					"exported": true,
+					"name": "critical_multiplier",
+					"static": false,
+					"type": "float"
+				}
+			],
+			"qualified_name": "ShowcaseWeaponProfile",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "SceneTree",
+				"kind": "native",
+				"value": "SceneTree"
+			},
+			"class_name": "ShowcaseMainLoop",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/runtime/showcase_main_loop.gd",
+			"inheritance_family": "object",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "_initialize",
+					"return_type": "void",
+					"signature": "func _initialize() -> void",
+					"static": false
+				}
+			],
+			"name": "ShowcaseMainLoop",
+			"native_base": "SceneTree",
+			"path": "res://examples/showcase/runtime/showcase_main_loop.gd",
+			"properties": [],
+			"qualified_name": "ShowcaseMainLoop",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "RefCounted",
+				"kind": "native",
+				"value": "RefCounted"
+			},
+			"class_name": "ShowcaseDamageService",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/services/damage_service.gd",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "profile: ShowcaseWeaponProfile, critical: bool = false",
+					"name": "calculate_damage",
+					"return_type": "int",
+					"signature": "static func calculate_damage(profile: ShowcaseWeaponProfile, critical: bool = false) -> int",
+					"static": true
+				}
+			],
+			"name": "ShowcaseDamageService",
+			"native_base": "RefCounted",
+			"path": "res://examples/showcase/services/damage_service.gd",
+			"properties": [],
+			"qualified_name": "ShowcaseDamageService",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "RefCounted",
+				"kind": "native",
+				"value": "RefCounted"
+			},
+			"class_name": "ShowcaseTargetingService",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/services/targeting_service.gd",
+			"inheritance_family": "ref_counted",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "candidates: Array[ShowcaseBaseActor]",
+					"name": "choose_target",
+					"return_type": "ShowcaseBaseActor",
+					"signature": "static func choose_target(candidates: Array[ShowcaseBaseActor]) -> ShowcaseBaseActor",
+					"static": true
+				}
+			],
+			"name": "ShowcaseTargetingService",
+			"native_base": "RefCounted",
+			"path": "res://examples/showcase/services/targeting_service.gd",
+			"properties": [],
+			"qualified_name": "ShowcaseTargetingService",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "CanvasLayer",
+				"kind": "native",
+				"value": "CanvasLayer"
+			},
+			"class_name": "ShowcaseBattleHud",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/views/battle_hud.gd",
+			"inheritance_family": "node",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "controller_type_name",
+					"return_type": "String",
+					"signature": "func controller_type_name() -> String",
+					"static": false
+				}
+			],
+			"name": "ShowcaseBattleHud",
+			"native_base": "CanvasLayer",
+			"path": "res://examples/showcase/views/battle_hud.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var status_label_path: NodePath",
+					"exported": true,
+					"name": "status_label_path",
+					"static": false,
+					"type": "NodePath"
+				},
+				{
+					"annotations": [],
+					"declaration": "var controller_script: Script = preload(\"res://examples/showcase/controllers/battle_controller.gd\")",
+					"exported": false,
+					"name": "controller_script",
+					"static": false,
+					"type": "Script"
+				}
+			],
+			"qualified_name": "ShowcaseBattleHud",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "Control",
+				"kind": "native",
+				"value": "Control"
+			},
+			"class_name": "ShowcaseBattlePanel",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/views/battle_panel.gd",
+			"inheritance_family": "control",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "value: String",
+					"name": "set_headline",
+					"return_type": "void",
+					"signature": "func set_headline(value: String) -> void",
+					"static": false
+				}
+			],
+			"name": "ShowcaseBattlePanel",
+			"native_base": "Control",
+			"path": "res://examples/showcase/views/battle_panel.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var headline: String = \"Battle status\"",
+					"exported": true,
+					"name": "headline",
+					"static": false,
+					"type": "String"
+				}
+			],
+			"qualified_name": "ShowcaseBattlePanel",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "Node2D",
+				"kind": "native",
+				"value": "Node2D"
+			},
+			"class_name": "",
+			"has_custom_name": false,
+			"id": "res://examples/showcase/world/ambient_marker.gd",
+			"inheritance_family": "node_2d",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "marker_position",
+					"return_type": "Vector2",
+					"signature": "func marker_position() -> Vector2",
+					"static": false
+				}
+			],
+			"name": "ambient_marker",
+			"native_base": "Node2D",
+			"path": "res://examples/showcase/world/ambient_marker.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var marker_radius: float = 24.0",
+					"exported": true,
+					"name": "marker_radius",
+					"static": false,
+					"type": "float"
+				}
+			],
+			"qualified_name": "ambient_marker",
+			"signals": []
+		},
+		{
+			"base": {
+				"display": "Node3D",
+				"kind": "native",
+				"value": "Node3D"
+			},
+			"class_name": "ShowcaseArenaAnchor3D",
+			"has_custom_name": true,
+			"id": "res://examples/showcase/world/arena_anchor.gd",
+			"inheritance_family": "node_3d",
+			"inner_classes": [],
+			"kind": "user",
+			"methods": [
+				{
+					"annotations": [],
+					"arguments": "",
+					"name": "world_transform",
+					"return_type": "Transform3D",
+					"signature": "func world_transform() -> Transform3D",
+					"static": false
+				}
+			],
+			"name": "ShowcaseArenaAnchor3D",
+			"native_base": "Node3D",
+			"path": "res://examples/showcase/world/arena_anchor.gd",
+			"properties": [
+				{
+					"annotations": [
+						"@export"
+					],
+					"declaration": "var anchor_id: StringName = &\"arena_origin\"",
+					"exported": true,
+					"name": "anchor_id",
+					"static": false,
+					"type": "StringName"
+				}
+			],
+			"qualified_name": "ShowcaseArenaAnchor3D",
+			"signals": []
+		}
+	],
+	"schema_version": 1,
+	"warnings": []
+}

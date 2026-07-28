@@ -1,0 +1,159 @@
+classDiagram
+direction LR
+class C_0["CanvasItem"] {
+}
+class C_1["CanvasLayer"] {
+}
+class C_2["Control"] {
+}
+class C_3["MainLoop"] {
+}
+class C_4["Node"] {
+}
+class C_5["Node2D"] {
+}
+class C_6["Node3D"] {
+}
+class C_7["Object"] {
+}
+class C_8["RefCounted"] {
+}
+class C_9["Resource"] {
+}
+class C_10["SceneTree"] {
+}
+class C_11["Script"] {
+}
+class C_12["ShowcaseCombatEntity"] {
+  +maximum_health
+  +current_health
+  +signal health_changed
+  +signal defeated
+  +receive_damage
+  +is_alive
+}
+class C_13["ShowcaseBaseActor"] {
+  +actor_label
+  +weapon_profile
+  +last_action
+  +signal action_requested
+  +request_action
+  +attack_power
+}
+class C_14["ShowcaseEnemyActor"] {
+  +aggression
+  +weapon_profile_script
+  +choose_action
+  +create_default_profile
+}
+class C_15["ShowcasePlayerActor"] {
+  +damage_service_script
+  +request_primary_attack
+  +preview_damage
+}
+class C_16["ShowcaseBattleController"] {
+  +player_path
+  +enemy_path
+  +turn_index
+  +signal battle_started
+  +signal battle_finished
+  +start_battle
+  +finish_battle
+}
+class C_17["ShowcaseWeaponProfile"] {
+  +display_name
+  +base_damage
+  +critical_multiplier
+}
+class C_18["ShowcaseMainLoop"] {
+  +_initialize
+}
+class C_19["ShowcaseDamageService"] {
+  +calculate_damage$
+}
+class C_20["ShowcaseTargetingService"] {
+  +choose_target$
+}
+class C_21["ShowcaseBattleHud"] {
+  +status_label_path
+  +controller_script
+  +controller_type_name
+}
+class C_22["ShowcaseBattlePanel"] {
+  +headline
+  +set_headline
+}
+class C_23["ambient_marker"] {
+  +marker_radius
+  +marker_position
+}
+class C_24["ShowcaseArenaAnchor3D"] {
+  +anchor_id
+  +world_transform
+}
+C_0 --|> C_4
+C_1 --|> C_4
+C_2 --|> C_0
+C_3 --|> C_7
+C_5 --|> C_0
+C_6 --|> C_4
+C_4 --|> C_7
+C_8 --|> C_7
+C_9 --|> C_8
+C_10 --|> C_3
+C_11 --|> C_9
+C_12 --|> C_4
+C_13 --|> C_12
+C_14 --|> C_13
+C_15 --|> C_13
+C_16 --|> C_4
+C_17 --|> C_9
+C_18 --|> C_10
+C_19 --|> C_8
+C_20 --|> C_8
+C_21 --|> C_1
+C_22 --|> C_2
+C_23 --|> C_5
+C_24 --|> C_6
+C_13 ..> C_17 : weapon_profile type
+C_14 ..> C_9 : create_default_profile() type
+C_14 ..> C_11 : weapon_profile_script type
+C_15 ..> C_11 : damage_service_script type
+C_16 ..> C_13 : finish_battle() type
+C_16 ..> C_13 : battle_finished() type
+C_19 ..> C_17 : calculate_damage() type
+C_20 ..> C_13 : choose_target() type
+C_21 ..> C_11 : controller_script type
+C_13 ..> C_19 : attack_power() to calculate_damage() uses
+C_14 ..> C_17 : weapon_profile_script uses
+C_15 ..> C_19 : damage_service_script uses
+C_21 ..> C_16 : controller_script uses
+classDef user fill:#4f7cac,stroke:#222,color:#fff
+classDef addon fill:#8e6c9f,stroke:#222,color:#fff
+classDef native fill:#65737e,stroke:#222,color:#fff
+classDef external fill:#9b7653,stroke:#222,color:#fff
+cssClass "C_0" native
+cssClass "C_1" native
+cssClass "C_2" native
+cssClass "C_3" native
+cssClass "C_4" native
+cssClass "C_5" native
+cssClass "C_6" native
+cssClass "C_7" native
+cssClass "C_8" native
+cssClass "C_9" native
+cssClass "C_10" native
+cssClass "C_11" native
+cssClass "C_12" addon
+cssClass "C_13" user
+cssClass "C_14" user
+cssClass "C_15" user
+cssClass "C_16" user
+cssClass "C_17" user
+cssClass "C_18" user
+cssClass "C_19" user
+cssClass "C_20" user
+cssClass "C_21" user
+cssClass "C_22" user
+cssClass "C_23" user
+cssClass "C_24" user

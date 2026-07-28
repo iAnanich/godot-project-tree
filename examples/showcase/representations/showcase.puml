@@ -1,0 +1,133 @@
+@startuml
+left to right direction
+hide empty members
+skinparam classAttributeIconSize 0
+class "CanvasItem" as C_0 #65737e {
+}
+class "CanvasLayer" as C_1 #65737e {
+}
+class "Control" as C_2 #65737e {
+}
+class "MainLoop" as C_3 #65737e {
+}
+class "Node" as C_4 #65737e {
+}
+class "Node2D" as C_5 #65737e {
+}
+class "Node3D" as C_6 #65737e {
+}
+class "Object" as C_7 #65737e {
+}
+class "RefCounted" as C_8 #65737e {
+}
+class "Resource" as C_9 #65737e {
+}
+class "SceneTree" as C_10 #65737e {
+}
+class "Script" as C_11 #65737e {
+}
+class "ShowcaseCombatEntity" as C_12 #8e6c9f {
+  +maximum_health
+  +current_health
+  +signal health_changed
+  +signal defeated
+  +receive_damage
+  +is_alive
+}
+class "ShowcaseBaseActor" as C_13 #4f7cac {
+  +actor_label
+  +weapon_profile
+  +last_action
+  +signal action_requested
+  +request_action
+  +attack_power
+}
+class "ShowcaseEnemyActor" as C_14 #4f7cac {
+  +aggression
+  +weapon_profile_script
+  +choose_action
+  +create_default_profile
+}
+class "ShowcasePlayerActor" as C_15 #4f7cac {
+  +damage_service_script
+  +request_primary_attack
+  +preview_damage
+}
+class "ShowcaseBattleController" as C_16 #4f7cac {
+  +player_path
+  +enemy_path
+  +turn_index
+  +signal battle_started
+  +signal battle_finished
+  +start_battle
+  +finish_battle
+}
+class "ShowcaseWeaponProfile" as C_17 #4f7cac {
+  +display_name
+  +base_damage
+  +critical_multiplier
+}
+class "ShowcaseMainLoop" as C_18 #4f7cac {
+  +_initialize
+}
+class "ShowcaseDamageService" as C_19 #4f7cac {
+  +{static} calculate_damage
+}
+class "ShowcaseTargetingService" as C_20 #4f7cac {
+  +{static} choose_target
+}
+class "ShowcaseBattleHud" as C_21 #4f7cac {
+  +status_label_path
+  +controller_script
+  +controller_type_name
+}
+class "ShowcaseBattlePanel" as C_22 #4f7cac {
+  +headline
+  +set_headline
+}
+class "ambient_marker" as C_23 #4f7cac {
+  +marker_radius
+  +marker_position
+}
+class "ShowcaseArenaAnchor3D" as C_24 #4f7cac {
+  +anchor_id
+  +world_transform
+}
+C_0 --|> C_4
+C_1 --|> C_4
+C_2 --|> C_0
+C_3 --|> C_7
+C_5 --|> C_0
+C_6 --|> C_4
+C_4 --|> C_7
+C_8 --|> C_7
+C_9 --|> C_8
+C_10 --|> C_3
+C_11 --|> C_9
+C_12 --|> C_4
+C_13 --|> C_12
+C_14 --|> C_13
+C_15 --|> C_13
+C_16 --|> C_4
+C_17 --|> C_9
+C_18 --|> C_10
+C_19 --|> C_8
+C_20 --|> C_8
+C_21 --|> C_1
+C_22 --|> C_2
+C_23 --|> C_5
+C_24 --|> C_6
+C_13::weapon_profile ..> C_17 : type
+C_14::create_default_profile ..> C_9 : type
+C_14::weapon_profile_script ..> C_11 : type
+C_15::damage_service_script ..> C_11 : type
+C_16::finish_battle ..> C_13 : type
+C_16::"signal battle_finished" ..> C_13 : type
+C_19::calculate_damage ..> C_17 : type
+C_20::choose_target ..> C_13 : type
+C_21::controller_script ..> C_11 : type
+C_13::attack_power ..> C_19::calculate_damage : uses
+C_14::weapon_profile_script ..> C_17 : uses
+C_15::damage_service_script ..> C_19 : uses
+C_21::controller_script ..> C_16 : uses
+@enduml
