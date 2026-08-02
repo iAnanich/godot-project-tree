@@ -4,3 +4,6 @@
 
 # Git addon
 addons/godot-it-plugin/
+
+# zipped addons
+addons/*.zip
