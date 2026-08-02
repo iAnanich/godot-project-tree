@@ -150,9 +150,17 @@
 			"member_links": [
 				{
 					"evidence": "property_type",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "weapon_profile"
+						"name": "weapon_profile",
+						"source_location": {
+							"column": 1,
+							"line": 8
+						}
 					},
 					"target_member": {}
 				}
@@ -165,9 +173,17 @@
 			"member_links": [
 				{
 					"evidence": "method_return_type",
+					"source_location": {
+						"column": 1,
+						"line": 13
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "create_default_profile"
+						"name": "create_default_profile",
+						"source_location": {
+							"column": 1,
+							"line": 13
+						}
 					},
 					"target_member": {}
 				}
@@ -180,9 +196,17 @@
 			"member_links": [
 				{
 					"evidence": "property_type",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "weapon_profile_script"
+						"name": "weapon_profile_script",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -195,9 +219,17 @@
 			"member_links": [
 				{
 					"evidence": "property_type",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "damage_service_script"
+						"name": "damage_service_script",
+						"source_location": {
+							"column": 1,
+							"line": 5
+						}
 					},
 					"target_member": {}
 				}
@@ -210,17 +242,33 @@
 			"member_links": [
 				{
 					"evidence": "method_argument_type",
+					"source_location": {
+						"column": 1,
+						"line": 18
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "finish_battle"
+						"name": "finish_battle",
+						"source_location": {
+							"column": 1,
+							"line": 18
+						}
 					},
 					"target_member": {}
 				},
 				{
 					"evidence": "signal_argument_type",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "signal",
-						"name": "battle_finished"
+						"name": "battle_finished",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -233,9 +281,17 @@
 			"member_links": [
 				{
 					"evidence": "method_argument_type",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "calculate_damage"
+						"name": "calculate_damage",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -248,17 +304,33 @@
 			"member_links": [
 				{
 					"evidence": "method_argument_type",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "choose_target"
+						"name": "choose_target",
+						"source_location": {
+							"column": 1,
+							"line": 5
+						}
 					},
 					"target_member": {}
 				},
 				{
 					"evidence": "method_return_type",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "choose_target"
+						"name": "choose_target",
+						"source_location": {
+							"column": 1,
+							"line": 5
+						}
 					},
 					"target_member": {}
 				}
@@ -271,9 +343,17 @@
 			"member_links": [
 				{
 					"evidence": "property_type",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "controller_script"
+						"name": "controller_script",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -286,13 +366,25 @@
 			"member_links": [
 				{
 					"evidence": "class_member_access",
+					"source_location": {
+						"column": 9,
+						"line": 18
+					},
 					"source_member": {
 						"kind": "method",
-						"name": "attack_power"
+						"name": "attack_power",
+						"source_location": {
+							"column": 1,
+							"line": 17
+						}
 					},
 					"target_member": {
 						"kind": "method",
-						"name": "calculate_damage"
+						"name": "calculate_damage",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					}
 				}
 			],
@@ -304,9 +396,17 @@
 			"member_links": [
 				{
 					"evidence": "load",
+					"source_location": {
+						"column": 37,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "weapon_profile_script"
+						"name": "weapon_profile_script",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -319,9 +419,17 @@
 			"member_links": [
 				{
 					"evidence": "preload",
+					"source_location": {
+						"column": 37,
+						"line": 5
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "damage_service_script"
+						"name": "damage_service_script",
+						"source_location": {
+							"column": 1,
+							"line": 5
+						}
 					},
 					"target_member": {}
 				}
@@ -334,9 +442,17 @@
 			"member_links": [
 				{
 					"evidence": "preload",
+					"source_location": {
+						"column": 33,
+						"line": 6
+					},
 					"source_member": {
 						"kind": "property",
-						"name": "controller_script"
+						"name": "controller_script",
+						"source_location": {
+							"column": 1,
+							"line": 6
+						}
 					},
 					"target_member": {}
 				}
@@ -364,10 +480,10 @@
 		},
 		"root_path": "res://",
 		"style": {
-			"addon_script_color": "8e6c9f",
-			"external_class_color": "9b7653",
-			"native_class_color": "65737e",
-			"user_script_color": "4f7cac"
+			"addon_script_color": "8f4f79",
+			"external_class_color": "9a6500",
+			"native_class_color": "59616d",
+			"user_script_color": "005a8d"
 		}
 	},
 	"nodes": [
@@ -564,6 +680,7 @@
 			"signals": []
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "Node",
 				"kind": "native",
@@ -582,6 +699,10 @@
 					"name": "receive_damage",
 					"return_type": "void",
 					"signature": "func receive_damage(amount: int) -> void",
+					"source_location": {
+						"column": 1,
+						"line": 12
+					},
 					"static": false
 				},
 				{
@@ -590,6 +711,10 @@
 					"name": "is_alive",
 					"return_type": "bool",
 					"signature": "func is_alive() -> bool",
+					"source_location": {
+						"column": 1,
+						"line": 19
+					},
 					"static": false
 				}
 			],
@@ -604,6 +729,10 @@
 					"declaration": "var maximum_health: int = 100",
 					"exported": true,
 					"name": "maximum_health",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false,
 					"type": "int"
 				},
@@ -612,25 +741,43 @@
 					"declaration": "var current_health: int = 100",
 					"exported": false,
 					"name": "current_health",
+					"source_location": {
+						"column": 1,
+						"line": 9
+					},
 					"static": false,
 					"type": "int"
 				}
 			],
 			"qualified_name": "ShowcaseCombatEntity",
+			"scene_usages": [],
 			"signals": [
 				{
 					"arguments": "current: int, maximum: int",
 					"name": "health_changed",
-					"signature": "signal health_changed(current: int, maximum: int)"
+					"signature": "signal health_changed(current: int, maximum: int)",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					}
 				},
 				{
 					"arguments": "",
 					"name": "defeated",
-					"signature": "signal defeated"
+					"signature": "signal defeated",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					}
 				}
-			]
+			],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "ShowcaseCombatEntity",
 				"kind": "script",
@@ -642,7 +789,11 @@
 			"inheritance_family": "node",
 			"inner_classes": [
 				{
-					"name": "RuntimeState"
+					"name": "RuntimeState",
+					"source_location": {
+						"column": 1,
+						"line": 21
+					}
 				}
 			],
 			"kind": "user",
@@ -653,6 +804,10 @@
 					"name": "request_action",
 					"return_type": "void",
 					"signature": "func request_action(action_name: String) -> void",
+					"source_location": {
+						"column": 1,
+						"line": 12
+					},
 					"static": false
 				},
 				{
@@ -661,6 +816,10 @@
 					"name": "attack_power",
 					"return_type": "int",
 					"signature": "func attack_power(critical: bool = false) -> int",
+					"source_location": {
+						"column": 1,
+						"line": 17
+					},
 					"static": false
 				}
 			],
@@ -675,6 +834,10 @@
 					"declaration": "var actor_label: String = \"Actor\"",
 					"exported": true,
 					"name": "actor_label",
+					"source_location": {
+						"column": 1,
+						"line": 7
+					},
 					"static": false,
 					"type": "String"
 				},
@@ -685,6 +848,10 @@
 					"declaration": "var weapon_profile: ShowcaseWeaponProfile",
 					"exported": true,
 					"name": "weapon_profile",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false,
 					"type": "ShowcaseWeaponProfile"
 				},
@@ -693,20 +860,34 @@
 					"declaration": "var last_action: String = \"\"",
 					"exported": false,
 					"name": "last_action",
+					"source_location": {
+						"column": 1,
+						"line": 9
+					},
 					"static": false,
 					"type": "String"
 				}
 			],
 			"qualified_name": "ShowcaseBaseActor",
+			"scene_usages": [],
 			"signals": [
 				{
 					"arguments": "action_name: String",
 					"name": "action_requested",
-					"signature": "signal action_requested(action_name: String)"
+					"signature": "signal action_requested(action_name: String)",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					}
 				}
-			]
+			],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "ShowcaseBaseActor",
 				"kind": "script",
@@ -725,6 +906,10 @@
 					"name": "choose_action",
 					"return_type": "String",
 					"signature": "func choose_action() -> String",
+					"source_location": {
+						"column": 1,
+						"line": 9
+					},
 					"static": false
 				},
 				{
@@ -733,6 +918,10 @@
 					"name": "create_default_profile",
 					"return_type": "Resource",
 					"signature": "func create_default_profile() -> Resource",
+					"source_location": {
+						"column": 1,
+						"line": 13
+					},
 					"static": false
 				}
 			],
@@ -747,6 +936,10 @@
 					"declaration": "var aggression: float = 0.5",
 					"exported": true,
 					"name": "aggression",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "float"
 				},
@@ -755,14 +948,24 @@
 					"declaration": "var weapon_profile_script: Script = load(\"res://examples/showcase/data/weapon_profile.gd\")",
 					"exported": false,
 					"name": "weapon_profile_script",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"static": false,
 					"type": "Script"
 				}
 			],
 			"qualified_name": "ShowcaseEnemyActor",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "ShowcaseBaseActor",
 				"kind": "script",
@@ -781,6 +984,10 @@
 					"name": "request_primary_attack",
 					"return_type": "void",
 					"signature": "func request_primary_attack() -> void",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false
 				},
 				{
@@ -789,6 +996,10 @@
 					"name": "preview_damage",
 					"return_type": "int",
 					"signature": "func preview_damage() -> int",
+					"source_location": {
+						"column": 1,
+						"line": 12
+					},
 					"static": false
 				}
 			],
@@ -801,14 +1012,27 @@
 					"declaration": "var damage_service_script: Script = preload(\"res://examples/showcase/services/damage_service.gd\")",
 					"exported": false,
 					"name": "damage_service_script",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "Script"
 				}
 			],
 			"qualified_name": "ShowcasePlayerActor",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {
+				"name": "BattleCoordinator",
+				"singleton": true
+			},
 			"base": {
 				"display": "Node",
 				"kind": "native",
@@ -827,6 +1051,10 @@
 					"name": "start_battle",
 					"return_type": "void",
 					"signature": "func start_battle() -> void",
+					"source_location": {
+						"column": 1,
+						"line": 13
+					},
 					"static": false
 				},
 				{
@@ -835,6 +1063,10 @@
 					"name": "finish_battle",
 					"return_type": "void",
 					"signature": "func finish_battle(winner: ShowcaseBaseActor) -> void",
+					"source_location": {
+						"column": 1,
+						"line": 18
+					},
 					"static": false
 				}
 			],
@@ -849,6 +1081,10 @@
 					"declaration": "var player_path: NodePath",
 					"exported": true,
 					"name": "player_path",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false,
 					"type": "NodePath"
 				},
@@ -859,6 +1095,10 @@
 					"declaration": "var enemy_path: NodePath",
 					"exported": true,
 					"name": "enemy_path",
+					"source_location": {
+						"column": 1,
+						"line": 9
+					},
 					"static": false,
 					"type": "NodePath"
 				},
@@ -867,25 +1107,52 @@
 					"declaration": "var turn_index: int = 0",
 					"exported": false,
 					"name": "turn_index",
+					"source_location": {
+						"column": 1,
+						"line": 10
+					},
 					"static": false,
 					"type": "int"
 				}
 			],
 			"qualified_name": "ShowcaseBattleController",
+			"scene_usages": [
+				{
+					"column": 1,
+					"evidence": "tscn_node_script_attachment",
+					"line": 6,
+					"node_path": "BattleDemo",
+					"scene_path": "res://examples/showcase/scenes/battle_demo.tscn",
+					"script_path": "res://examples/showcase/controllers/battle_controller.gd"
+				}
+			],
 			"signals": [
 				{
 					"arguments": "",
 					"name": "battle_started",
-					"signature": "signal battle_started"
+					"signature": "signal battle_started",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					}
 				},
 				{
 					"arguments": "winner: ShowcaseBaseActor",
 					"name": "battle_finished",
-					"signature": "signal battle_finished(winner: ShowcaseBaseActor)"
+					"signature": "signal battle_finished(winner: ShowcaseBaseActor)",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					}
 				}
-			]
+			],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "Resource",
 				"kind": "native",
@@ -909,6 +1176,10 @@
 					"declaration": "var display_name: String = \"Training Sword\"",
 					"exported": true,
 					"name": "display_name",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "String"
 				},
@@ -919,6 +1190,10 @@
 					"declaration": "var base_damage: int = 12",
 					"exported": true,
 					"name": "base_damage",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"static": false,
 					"type": "int"
 				},
@@ -929,14 +1204,24 @@
 					"declaration": "var critical_multiplier: float = 1.5",
 					"exported": true,
 					"name": "critical_multiplier",
+					"source_location": {
+						"column": 1,
+						"line": 7
+					},
 					"static": false,
 					"type": "float"
 				}
 			],
 			"qualified_name": "ShowcaseWeaponProfile",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "SceneTree",
 				"kind": "native",
@@ -955,6 +1240,10 @@
 					"name": "_initialize",
 					"return_type": "void",
 					"signature": "func _initialize() -> void",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false
 				}
 			],
@@ -963,9 +1252,15 @@
 			"path": "res://examples/showcase/runtime/showcase_main_loop.gd",
 			"properties": [],
 			"qualified_name": "ShowcaseMainLoop",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "RefCounted",
 				"kind": "native",
@@ -984,6 +1279,10 @@
 					"name": "calculate_damage",
 					"return_type": "int",
 					"signature": "static func calculate_damage(profile: ShowcaseWeaponProfile, critical: bool = false) -> int",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"static": true
 				}
 			],
@@ -992,9 +1291,15 @@
 			"path": "res://examples/showcase/services/damage_service.gd",
 			"properties": [],
 			"qualified_name": "ShowcaseDamageService",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "RefCounted",
 				"kind": "native",
@@ -1013,6 +1318,10 @@
 					"name": "choose_target",
 					"return_type": "ShowcaseBaseActor",
 					"signature": "static func choose_target(candidates: Array[ShowcaseBaseActor]) -> ShowcaseBaseActor",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": true
 				}
 			],
@@ -1021,9 +1330,15 @@
 			"path": "res://examples/showcase/services/targeting_service.gd",
 			"properties": [],
 			"qualified_name": "ShowcaseTargetingService",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "CanvasLayer",
 				"kind": "native",
@@ -1042,6 +1357,10 @@
 					"name": "controller_type_name",
 					"return_type": "String",
 					"signature": "func controller_type_name() -> String",
+					"source_location": {
+						"column": 1,
+						"line": 9
+					},
 					"static": false
 				}
 			],
@@ -1056,6 +1375,10 @@
 					"declaration": "var status_label_path: NodePath",
 					"exported": true,
 					"name": "status_label_path",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "NodePath"
 				},
@@ -1064,14 +1387,24 @@
 					"declaration": "var controller_script: Script = preload(\"res://examples/showcase/controllers/battle_controller.gd\")",
 					"exported": false,
 					"name": "controller_script",
+					"source_location": {
+						"column": 1,
+						"line": 6
+					},
 					"static": false,
 					"type": "Script"
 				}
 			],
 			"qualified_name": "ShowcaseBattleHud",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "Control",
 				"kind": "native",
@@ -1090,6 +1423,10 @@
 					"name": "set_headline",
 					"return_type": "void",
 					"signature": "func set_headline(value: String) -> void",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false
 				}
 			],
@@ -1104,14 +1441,24 @@
 					"declaration": "var headline: String = \"Battle status\"",
 					"exported": true,
 					"name": "headline",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "String"
 				}
 			],
 			"qualified_name": "ShowcaseBattlePanel",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "Node2D",
 				"kind": "native",
@@ -1130,6 +1477,10 @@
 					"name": "marker_position",
 					"return_type": "Vector2",
 					"signature": "func marker_position() -> Vector2",
+					"source_location": {
+						"column": 1,
+						"line": 7
+					},
 					"static": false
 				}
 			],
@@ -1144,14 +1495,21 @@
 					"declaration": "var marker_radius: float = 24.0",
 					"exported": true,
 					"name": "marker_radius",
+					"source_location": {
+						"column": 1,
+						"line": 4
+					},
 					"static": false,
 					"type": "float"
 				}
 			],
 			"qualified_name": "ambient_marker",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {}
 		},
 		{
+			"autoload": {},
 			"base": {
 				"display": "Node3D",
 				"kind": "native",
@@ -1170,6 +1528,10 @@
 					"name": "world_transform",
 					"return_type": "Transform3D",
 					"signature": "func world_transform() -> Transform3D",
+					"source_location": {
+						"column": 1,
+						"line": 8
+					},
 					"static": false
 				}
 			],
@@ -1184,14 +1546,33 @@
 					"declaration": "var anchor_id: StringName = &\"arena_origin\"",
 					"exported": true,
 					"name": "anchor_id",
+					"source_location": {
+						"column": 1,
+						"line": 5
+					},
 					"static": false,
 					"type": "StringName"
 				}
 			],
 			"qualified_name": "ShowcaseArenaAnchor3D",
-			"signals": []
+			"scene_usages": [],
+			"signals": [],
+			"source_location": {
+				"column": 1,
+				"line": 1
+			}
 		}
 	],
-	"schema_version": 1,
+	"scene_usages": [
+		{
+			"column": 1,
+			"evidence": "tscn_node_script_attachment",
+			"line": 6,
+			"node_path": "BattleDemo",
+			"scene_path": "res://examples/showcase/scenes/battle_demo.tscn",
+			"script_path": "res://examples/showcase/controllers/battle_controller.gd"
+		}
+	],
+	"schema_version": 2,
 	"warnings": []
 }

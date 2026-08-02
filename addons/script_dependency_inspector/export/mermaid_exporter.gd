@@ -39,14 +39,17 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 	for node_value in snapshot.get("nodes", []):
 		var node: Dictionary = node_value
 		var alias = str(aliases[node["id"]])
-		lines.append('class %s["%s"] {' % [alias, _escape_label(str(node["name"]))])
+		var display_name: String = str(node["name"])
+		if str(node.get("scope_role", "")) == "context":
+			display_name += " (context)"
+		lines.append('class %s["%s"] {' % [alias, _escape_label(display_name)])
 		for property_value in node.get("properties", []):
 			var property: Dictionary = property_value
 			var suffix = ""
 			if bool(display_options.get("show_property_types", false)):
 				var property_type = str(property.get("type", ""))
 				if not property_type.is_empty():
-					suffix = " : " + property_type
+					suffix = " : " + _mermaid_member_text(property_type)
 			var static_suffix = "$" if property.get("static", false) else ""
 			lines.append(
 				(
@@ -60,7 +63,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			if bool(display_options.get("show_signal_signatures", false)):
 				lines.append(
 					"  +signal %s(%s)"
-					% [signal_name, _escape_member(str(signal_data.get("arguments", "")))]
+					% [signal_name, _mermaid_arguments(str(signal_data.get("arguments", "")))]
 				)
 			else:
 				lines.append("  +signal %s" % signal_name)
@@ -70,7 +73,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			var static_suffix = "$" if method.get("static", false) else ""
 			if bool(display_options.get("show_method_signatures", false)):
 				var return_suffix = (
-					" " + str(method.get("return_type", ""))
+					" " + _mermaid_member_text(str(method.get("return_type", "")))
 					if not str(method.get("return_type", "")).is_empty()
 					else ""
 				)
@@ -78,7 +81,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 					"  +%s(%s)%s%s"
 					% [
 						method_name,
-						_escape_member(str(method.get("arguments", ""))),
+						_mermaid_arguments(str(method.get("arguments", ""))),
 						return_suffix,
 						static_suffix
 					]
@@ -177,10 +180,10 @@ func _append_styles(
 	if not options.get("include_colors", true):
 		return
 	var colors = {
-		"user": str(style.get("user_script_color", "4f7cac")),
-		"addon": str(style.get("addon_script_color", "8e6c9f")),
-		"native": str(style.get("native_class_color", "65737e")),
-		"external": str(style.get("external_class_color", "9b7653")),
+		"user": str(style.get("user_script_color", "005a8d")),
+		"addon": str(style.get("addon_script_color", "8f4f79")),
+		"native": str(style.get("native_class_color", "59616d")),
+		"external": str(style.get("external_class_color", "9a6500")),
 	}
 	for kind in colors:
 		lines.append("classDef %s fill:#%s,stroke:#222,color:#fff" % [kind, colors[kind]])
@@ -195,5 +198,35 @@ func _escape_label(value: String) -> String:
 	return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
+func _mermaid_arguments(value: String) -> String:
+	return _mermaid_member_text(_arguments_without_defaults(value))
+
+
+func _mermaid_member_text(value: String) -> String:
+	var result: String = ""
+	var generic_depth: int = 0
+	for index in range(value.length()):
+		var character: String = value.substr(index, 1)
+		match character:
+			"[", "<":
+				generic_depth += 1
+				result += "~"
+			"]", ">":
+				generic_depth = maxi(0, generic_depth - 1)
+				result += "~"
+			",":
+				# Mermaid does not support commas inside generic declarations.
+				result += ";" if generic_depth > 0 else ","
+			"{":
+				result += "("
+			"}":
+				result += ")"
+			"\n", "\r":
+				result += " "
+			_:
+				result += character
+	return result
+
+
 func _escape_member(value: String) -> String:
-	return value.replace("<", "~").replace(">", "~").replace("\n", " ")
+	return _mermaid_member_text(value)

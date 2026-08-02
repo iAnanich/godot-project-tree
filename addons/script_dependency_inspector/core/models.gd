@@ -1,7 +1,7 @@
 @tool
 extends RefCounted
 
-const SCHEMA_VERSION := 1
+const SCHEMA_VERSION := 2
 
 
 ## Creates the canonical, dictionary-based graph snapshot.
@@ -11,6 +11,7 @@ static func new_snapshot() -> Dictionary:
 		"metadata": {},
 		"nodes": [],
 		"edges": [],
+		"scene_usages": [],
 		"warnings": [],
 		"errors": [],
 		"diagnostics": [],

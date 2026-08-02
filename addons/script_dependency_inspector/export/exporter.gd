@@ -39,3 +39,105 @@ func capabilities() -> Dictionary:
 func export_text(_snapshot: Dictionary, _options: Dictionary = {}) -> String:
 	push_error("Exporter.export_text() must be overridden.")
 	return ""
+
+## Returns a diagram-safe argument list that omits default expressions.
+## JSON remains the lossless representation; textual diagram grammars cannot
+## reliably represent arbitrary GDScript expressions such as dictionary literals.
+func _arguments_without_defaults(arguments: String) -> String:
+	var values: Array[String] = []
+	for argument_value in _split_top_level(arguments, ","):
+		var argument: String = _strip_top_level_assignment(str(argument_value)).strip_edges()
+		if not argument.is_empty():
+			values.append(argument)
+	return ", ".join(values)
+
+
+func _strip_top_level_assignment(value: String) -> String:
+	var round_depth: int = 0
+	var square_depth: int = 0
+	var curly_depth: int = 0
+	var quote: String = ""
+	var escaped: bool = false
+	for index in range(value.length()):
+		var character: String = value.substr(index, 1)
+		if escaped:
+			escaped = false
+			continue
+		if character == "\\" and not quote.is_empty():
+			escaped = true
+			continue
+		if character in ['"', "'"]:
+			if quote.is_empty():
+				quote = character
+			elif quote == character:
+				quote = ""
+			continue
+		if not quote.is_empty():
+			continue
+		match character:
+			"(":
+				round_depth += 1
+			")":
+				round_depth = maxi(0, round_depth - 1)
+			"[":
+				square_depth += 1
+			"]":
+				square_depth = maxi(0, square_depth - 1)
+			"{":
+				curly_depth += 1
+			"}":
+				curly_depth = maxi(0, curly_depth - 1)
+			"=":
+				if round_depth == 0 and square_depth == 0 and curly_depth == 0:
+					return value.substr(0, index)
+	return value
+
+
+func _split_top_level(value: String, delimiter: String) -> Array[String]:
+	var parts: Array[String] = []
+	var start: int = 0
+	var round_depth: int = 0
+	var square_depth: int = 0
+	var curly_depth: int = 0
+	var quote: String = ""
+	var escaped: bool = false
+	for index in range(value.length()):
+		var character: String = value.substr(index, 1)
+		if escaped:
+			escaped = false
+			continue
+		if character == "\\" and not quote.is_empty():
+			escaped = true
+			continue
+		if character in ['"', "'"]:
+			if quote.is_empty():
+				quote = character
+			elif quote == character:
+				quote = ""
+			continue
+		if not quote.is_empty():
+			continue
+		match character:
+			"(":
+				round_depth += 1
+			")":
+				round_depth = maxi(0, round_depth - 1)
+			"[":
+				square_depth += 1
+			"]":
+				square_depth = maxi(0, square_depth - 1)
+			"{":
+				curly_depth += 1
+			"}":
+				curly_depth = maxi(0, curly_depth - 1)
+		if (
+			character == delimiter
+			and round_depth == 0
+			and square_depth == 0
+			and curly_depth == 0
+		):
+			parts.append(value.substr(start, index - start))
+			start = index + 1
+	parts.append(value.substr(start))
+	return parts
+

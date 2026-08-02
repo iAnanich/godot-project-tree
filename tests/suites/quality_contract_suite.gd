@@ -3,6 +3,9 @@ extends RefCounted
 const ADDON_ROOT: String = "res://addons/script_dependency_inspector/"
 const VALIDATOR_PATH: String = ADDON_ROOT + "core/snapshot_validator.gd"
 const SCANNER_PATH: String = ADDON_ROOT + "core/project_scanner.gd"
+const STATE_STORE_PATH: String = ADDON_ROOT + "core/editor_state_store.gd"
+const SNAPSHOT_SCOPE_PATH: String = ADDON_ROOT + "core/snapshot_scope.gd"
+const GRAPH_QUERY_PATH: String = ADDON_ROOT + "core/graph_query.gd"
 const EXPORT_SERVICE_PATH: String = ADDON_ROOT + "export/export_service.gd"
 const DOCK_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_dock.tscn"
 const EXPORTER_CONTRACT_PATH: String = "res://tests/contracts/exporter_contract.gd"
@@ -18,6 +21,10 @@ func run(valid_snapshot: Dictionary) -> Array[String]:
 	_test_exporter_contracts(valid_snapshot, failures)
 	_test_scan_root_boundary(failures)
 	_test_visual_decoding_summary(valid_snapshot, failures)
+	_test_control_tooltips(failures)
+	_test_toolbar_and_export_only_contract(valid_snapshot, failures)
+	_test_scope_projection_and_graph_queries(failures)
+	_test_editor_state_round_trip(failures)
 	return failures
 
 
@@ -100,6 +107,16 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 		failures
 	)
 
+	var invalid_scope_snapshot: Dictionary = valid_snapshot.duplicate(true)
+	invalid_scope_snapshot["nodes"][0]["scope_role"] = "maybe"
+	var invalid_scope_result: Dictionary = validator.validate(invalid_scope_snapshot)
+	_check(
+		not invalid_scope_result.get("ok", true)
+		and _has_issue_code(invalid_scope_result.get("errors", []), "invalid_scope_role"),
+		"Snapshot validator must reject unsupported node scope roles.",
+		failures
+	)
+
 	var dangling_snapshot: Dictionary = valid_snapshot.duplicate(true)
 	dangling_snapshot["edges"].append(
 		{"source": str(valid_snapshot["nodes"][0]["id"]), "target": "missing://node", "kind": "uses", "member_links": []}
@@ -142,6 +159,72 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 		"Snapshot validator must reject unsupported diagnostic severities.",
 		failures
 	)
+
+	var invalid_scene_usage_snapshot: Dictionary = valid_snapshot.duplicate(true)
+	if not invalid_scene_usage_snapshot.get("scene_usages", []).is_empty():
+		invalid_scene_usage_snapshot["scene_usages"][0].erase("column")
+		var invalid_scene_usage_result: Dictionary = validator.validate(
+			invalid_scene_usage_snapshot
+		)
+		_check(
+			not invalid_scene_usage_result.get("ok", true)
+			and _has_issue_code(
+				invalid_scene_usage_result.get("errors", []), "invalid_scene_usage_field"
+			),
+			"Snapshot validator must reject scene evidence without an exact positive column.",
+			failures
+		)
+
+	var missing_node_scene_usage_snapshot: Dictionary = valid_snapshot.duplicate(true)
+	if not missing_node_scene_usage_snapshot.get("scene_usages", []).is_empty():
+		var canonical_usage: Dictionary = missing_node_scene_usage_snapshot["scene_usages"][0]
+		var usage_script_path: String = str(canonical_usage.get("script_path", ""))
+		for node_value in missing_node_scene_usage_snapshot.get("nodes", []):
+			if not node_value is Dictionary:
+				continue
+			var node: Dictionary = node_value
+			if str(node.get("path", "")) != usage_script_path:
+				continue
+			var retained_usages: Array = []
+			for usage_value in node.get("scene_usages", []):
+				if usage_value != canonical_usage:
+					retained_usages.append(usage_value)
+			node["scene_usages"] = retained_usages
+			break
+		var missing_node_scene_usage_result: Dictionary = validator.validate(
+			missing_node_scene_usage_snapshot
+		)
+		_check(
+			not missing_node_scene_usage_result.get("ok", true)
+			and _has_issue_code(
+				missing_node_scene_usage_result.get("errors", []), "missing_node_scene_usage"
+			),
+			"Snapshot validator must reject canonical scene evidence missing from its script node.",
+			failures
+		)
+
+	var invalid_occurrence_snapshot: Dictionary = valid_snapshot.duplicate(true)
+	var occurrence_mutated: bool = false
+	for edge_value in invalid_occurrence_snapshot.get("edges", []):
+		if not edge_value is Dictionary:
+			continue
+		for link_value in edge_value.get("member_links", []):
+			if link_value is Dictionary and link_value.has("source_location"):
+				link_value["source_location"]["line"] = 0
+				occurrence_mutated = true
+				break
+		if occurrence_mutated:
+			break
+	if occurrence_mutated:
+		var invalid_occurrence_result: Dictionary = validator.validate(invalid_occurrence_snapshot)
+		_check(
+			not invalid_occurrence_result.get("ok", true)
+			and _has_issue_code(
+				invalid_occurrence_result.get("errors", []), "invalid_source_location"
+			),
+			"Snapshot validator must reject dependency evidence without an exact positive line.",
+			failures
+		)
 
 	var export_service = _new_script_instance(EXPORT_SERVICE_PATH, failures)
 	if export_service != null:
@@ -235,8 +318,8 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 	Engine.get_main_loop().root.add_child(dock)
 	dock.set("_snapshot", valid_snapshot.duplicate(true))
 	dock.call("_render_snapshot")
-	var legend: RichTextLabel = dock.get_node("LegendPanel/LegendView")
-	var summary: RichTextLabel = dock.get_node("MainSplit/ControlsTabs/Summary/SummaryView")
+	var legend: RichTextLabel = dock.get_node("%LegendView")
+	var summary: RichTextLabel = dock.get_node("%SummaryView")
 	_check(
 		legend.text.contains("Inheritance")
 		and legend.text.contains("load/preload or class-member use")
@@ -252,7 +335,375 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 		"The dock must provide a non-visual graph summary and exact-data route.",
 		failures
 	)
+	var first_node: Dictionary = valid_snapshot.get("nodes", [])[0]
+	var first_node_id: String = str(first_node.get("id", ""))
+	var search_input: LineEdit = dock.get_node("%SearchInput")
+	var search_status: Label = dock.get_node("%SearchStatus")
+	search_input.text = str(first_node.get("name", first_node_id))
+	dock.call("_apply_search")
+	var match_ids: Array = dock.get("_search_match_ids")
+	var rendered_node: GraphNode = dock.get("_id_to_graph_node").get(first_node_id)
+	_check(
+		match_ids.has(first_node_id)
+		and search_status.text.contains("/")
+		and rendered_node != null
+		and rendered_node.selected,
+		"Search must index node names, report a match count, and focus the current result.",
+		failures
+	)
 	dock.queue_free()
+
+
+func _test_control_tooltips(failures: Array[String]) -> void:
+	var scene_resource: Resource = ResourceLoader.load(DOCK_SCENE_PATH)
+	if scene_resource == null or not scene_resource is PackedScene:
+		failures.append("Tooltip contract could not load the dependency dock scene.")
+		return
+	var dock: Control = (scene_resource as PackedScene).instantiate()
+	Engine.get_main_loop().root.add_child(dock)
+	var required_names: Array[String] = [
+		"ScanButton", "ScanModeIndicator", "ExportButton", "FormatOption", "ShowGraph",
+		"ScopeOption", "ChooseScope", "IncludeDescendants", "IsolateNeighborhood",
+		"ClearFocus", "IncludeAddons", "IncludeNative", "IncludeExternal",
+		"IncludeMethods", "IncludeSignals", "IncludeProperties", "IncludeDependencies",
+		"IncludeTypeDependencies", "IncludeMemberAccessDependencies",
+		"ShowMemberDependencyEdges", "MethodSignatures", "SignalSignatures",
+		"PropertyTypes", "ExportColors", "GraphNodeWidth", "GraphNodeMaxWidth",
+		"NativeNodeWidth", "MaxMembers", "MaxMemberHeight", "SiblingSpacing",
+		"LayerSpacing", "DepthTopToBottom", "SearchInput", "PreviousMatch",
+		"NextMatch", "SyncOnEditorChanges", "EditorSyncDebounce",
+		"FollowActiveScript", "AutoRescan", "AutoRescanDelay", "AutoExportJson",
+		"AutoExportJsonPath", "BrowseAutoExportJson", "AutoExportMermaid",
+		"AutoExportMermaidPath", "BrowseAutoExportMermaid", "AutoExportPlantUML",
+		"AutoExportPlantUMLPath", "BrowseAutoExportPlantUML",
+		"ContentSourcesHeader", "ContentMembersHeader", "ContentRelationsHeader",
+		"ContentExportHeader", "AppearanceSizingHeader", "AppearanceDensityHeader",
+		"AppearanceLayoutHeader", "ColorsNodesHeader", "ColorsMembersHeader",
+		"ColorsRelationsHeader", "ColorsFamiliesHeader", "AutomationEditorHeader",
+		"AutomationTimedHeader", "AutomationExportHeader",
+	]
+	for control_name in required_names:
+		var control: Control = dock.get_node_or_null("%%%s" % control_name)
+		_check(control != null, "Expected dock control is missing: %s" % control_name, failures)
+		if control != null:
+			_check(
+				not control.tooltip_text.strip_edges().is_empty(),
+				"Every option control must explain itself with a tooltip: %s" % control_name,
+				failures
+			)
+	for color_name in [
+		"UserColor", "AddonColor", "NativeColor", "ExternalColor", "PropertyColor",
+		"SignalColor", "MethodColor", "MetadataColor", "InheritanceColor",
+		"DependencyColor", "TypeDependencyColor", "ObjectFamilyColor",
+		"RefCountedFamilyColor", "NodeFamilyColor", "Node2DFamilyColor",
+		"Node3DFamilyColor", "ControlFamilyColor", "OtherFamilyColor",
+	]:
+		var picker: ColorPickerButton = dock.get_node_or_null("%%%s" % color_name) as ColorPickerButton
+		_check(picker != null, "Expected color option is missing: %s" % color_name, failures)
+		if picker != null:
+			_check(
+				not picker.tooltip_text.strip_edges().is_empty(),
+				"Every color option must explain its visual role: %s" % color_name,
+				failures
+			)
+	dock.queue_free()
+
+
+func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures: Array[String]) -> void:
+	var scene_resource: Resource = ResourceLoader.load(DOCK_SCENE_PATH)
+	if scene_resource == null or not scene_resource is PackedScene:
+		failures.append("UI layout contract could not load the dependency dock scene.")
+		return
+	var dock: Control = (scene_resource as PackedScene).instantiate()
+	Engine.get_main_loop().root.add_child(dock)
+	var format_option: OptionButton = dock.get_node("%FormatOption")
+	var indicator: Label = dock.get_node("%ScanModeIndicator")
+	var show_graph: CheckButton = dock.get_node("%ShowGraph")
+	var graph: GraphEdit = dock.get_node("%GraphEdit")
+	var search_bar: HBoxContainer = dock.get_node("%SearchBar")
+	var focus_bar: HBoxContainer = dock.get_node("%FocusBar")
+	var legend_panel: PanelContainer = dock.get_node("%LegendPanel")
+	_check(
+		format_option.custom_minimum_size.x <= 100.0
+		and not bool(format_option.size_flags_horizontal & Control.SIZE_EXPAND),
+		"The export-format selector must remain compact instead of consuming toolbar action space.",
+		failures
+	)
+	_check(
+		indicator.text == "Save sync" and not indicator.tooltip_text.is_empty(),
+		"The toolbar must expose the default editor-synchronized scan mode next to Scan.",
+		failures
+	)
+	_check(show_graph.button_pressed and graph.visible, "Graph view must be enabled by default.", failures)
+	dock.set("_snapshot", valid_snapshot.duplicate(true))
+	dock.call("_render_snapshot")
+	_check(
+		not (dock.get("_graph_nodes") as Array).is_empty(),
+		"Enabled graph view must render the current snapshot.",
+		failures
+	)
+	show_graph.button_pressed = false
+	dock.call("_on_graph_view_toggled", false)
+	_check(
+		not graph.visible and not search_bar.visible and not focus_bar.visible and not legend_panel.visible,
+		"Export-only mode must hide graph-specific surfaces together.",
+		failures
+	)
+	_check(
+		(dock.get("_graph_nodes") as Array).is_empty()
+		and (dock.get_node("%SummaryView") as RichTextLabel).text.contains("Dependency graph summary"),
+		"Export-only mode must release rendered nodes while retaining the snapshot summary.",
+		failures
+	)
+	show_graph.button_pressed = true
+	dock.call("_on_graph_view_toggled", true)
+	_check(
+		graph.visible and not (dock.get("_graph_nodes") as Array).is_empty(),
+		"Re-enabling the graph must render the existing snapshot without rescanning.",
+		failures
+	)
+	var folded_header: Button = dock.get_node("%ContentExportHeader")
+	var folded_body: Control = dock.get_node("%ContentExportBody")
+	_check(not folded_header.button_pressed and not folded_body.visible, "Secondary control groups should start folded.", failures)
+	folded_header.button_pressed = true
+	dock.call("_on_fold_section_toggled", true, "content_export")
+	_check(folded_body.visible and folded_header.text.begins_with("▾"), "Fold headers must visibly reveal their grouped controls.", failures)
+	dock.queue_free()
+
+
+func _test_scope_projection_and_graph_queries(failures: Array[String]) -> void:
+	var scope_projector = _new_script_instance(SNAPSHOT_SCOPE_PATH, failures)
+	var graph_query = _new_script_instance(GRAPH_QUERY_PATH, failures)
+	if scope_projector == null or graph_query == null:
+		return
+	var child_usage: Dictionary = {
+		"scene_path": "res://scene.tscn",
+		"node_path": "Child",
+		"script_path": "res://feature/child.gd",
+		"line": 1,
+		"column": 1,
+		"evidence": "tscn_node_script_attachment",
+	}
+	var child_node: Dictionary = _test_node("res://feature/child.gd", "Child", "user")
+	child_node["scene_usages"] = [child_usage.duplicate(true)]
+	var snapshot: Dictionary = {
+		"schema_version": 2,
+		"metadata": {"root_path": "res://", "engine_version": "test", "options": {}, "style": {}},
+		"nodes": [
+			child_node,
+			_test_node("res://shared/base.gd", "Base", "user"),
+			_test_node("res://shared/service.gd", "Service", "user"),
+			_test_node("native://RefCounted", "RefCounted", "native"),
+			_test_node("res://unrelated/other.gd", "Other", "user"),
+		],
+		"edges": [
+			{"source": "res://feature/child.gd", "target": "res://shared/base.gd", "kind": "extends", "member_links": []},
+			{"source": "res://shared/base.gd", "target": "native://RefCounted", "kind": "extends", "member_links": []},
+			{"source": "res://feature/child.gd", "target": "res://shared/service.gd", "kind": "uses", "member_links": []},
+			{"source": "res://shared/service.gd", "target": "native://RefCounted", "kind": "extends", "member_links": []},
+		],
+		"scene_usages": [
+			child_usage,
+			{"scene_path": "res://other.tscn", "node_path": "Other", "script_path": "res://unrelated/other.gd", "line": 1, "column": 1, "evidence": "tscn_node_script_attachment"},
+		],
+		"warnings": [], "errors": [], "diagnostics": [],
+	}
+	var projected: Dictionary = scope_projector.project(snapshot, "res://feature")
+	var ids: Array[String] = []
+	var roles: Dictionary = {}
+	for node_value in projected.get("nodes", []):
+		var node: Dictionary = node_value
+		ids.append(str(node.get("id", "")))
+		roles[str(node.get("id", ""))] = str(node.get("scope_role", ""))
+	_check(ids.has("res://feature/child.gd"), "Selected-scope script must remain in the projected snapshot.", failures)
+	_check(ids.has("res://shared/base.gd") and ids.has("res://shared/service.gd"), "Required out-of-scope ancestors and direct dependencies must remain as context.", failures)
+	_check(ids.has("native://RefCounted"), "Required native ancestry must remain in a scoped snapshot.", failures)
+	_check(not ids.has("res://unrelated/other.gd"), "Unrelated out-of-scope scripts must be omitted.", failures)
+	_check(roles.get("res://feature/child.gd") == "in_scope" and roles.get("res://shared/base.gd") == "context", "Scoped nodes must expose explicit in-scope/context roles.", failures)
+	_check(projected.get("scene_usages", []).size() == 1, "Scoped projection must remove scene evidence for omitted scripts.", failures)
+	var validator = _new_script_instance(VALIDATOR_PATH, failures)
+	if validator != null:
+		var validation_result: Dictionary = validator.validate(projected)
+		_check(
+			validation_result.get("ok", false),
+			"Projected scope snapshots must satisfy the public snapshot validator.",
+			failures
+		)
+		var mismatched: Dictionary = projected.duplicate(true)
+		(mismatched["metadata"]["scope_summary"] as Dictionary)["context_nodes"] = 999
+		var mismatch_result: Dictionary = validator.validate(mismatched)
+		_check(
+			not mismatch_result.get("ok", true)
+			and _has_issue_code(mismatch_result.get("errors", []), "scope_summary_mismatch"),
+			"Scope summary drift must be rejected at the serialization boundary.",
+			failures
+		)
+
+	var counts: Dictionary = graph_query.descendant_counts(projected)
+	_check(int((counts.get("res://shared/base.gd", {}) as Dictionary).get("direct", -1)) == 1, "Direct descendant counts must be computed from inheritance edges.", failures)
+	var related: Dictionary = graph_query.relationship_focus_ids(projected, "res://feature/child.gd", false)
+	_check(related.has("res://shared/base.gd") and related.has("native://RefCounted") and not related.has("res://shared/service.gd"), "Relationship focus must emphasize inheritance context without conflating dependencies.", failures)
+	var neighborhood: Dictionary = graph_query.neighborhood_ids(projected, "res://feature/child.gd", false)
+	_check(neighborhood.has("res://shared/service.gd"), "Neighborhood isolation must include direct dependency targets.", failures)
+	var base_neighborhood: Dictionary = graph_query.neighborhood_ids(
+		projected, "res://shared/base.gd", false
+	)
+	_check(
+		not base_neighborhood.has("res://feature/child.gd"),
+		"Neighborhood isolation must not include descendants when descendant focus is disabled.",
+		failures
+	)
+	var base_neighborhood_with_descendants: Dictionary = graph_query.neighborhood_ids(
+		projected, "res://shared/base.gd", true
+	)
+	_check(
+		base_neighborhood_with_descendants.has("res://feature/child.gd"),
+		"Neighborhood isolation must include descendants when descendant focus is enabled.",
+		failures
+	)
+
+
+func _test_node(id: String, name: String, kind: String) -> Dictionary:
+	return {
+		"id": id,
+		"name": name,
+		"qualified_name": name,
+		"class_name": name if kind in ["user", "addon"] else "",
+		"has_custom_name": kind in ["user", "addon"],
+		"path": id if id.begins_with("res://") else "",
+		"kind": kind,
+		"base": {},
+		"native_base": name if kind == "native" else "",
+		"inheritance_family": "ref_counted",
+		"methods": [], "signals": [], "properties": [], "inner_classes": [],
+		"autoload": {}, "scene_usages": [],
+	}
+
+
+func _test_editor_state_round_trip(failures: Array[String]) -> void:
+	var store = _new_script_instance(STATE_STORE_PATH, failures)
+	if store == null:
+		return
+	var path: String = "user://script_dependency_inspector/state_round_trip/editor_state.json"
+	var state: Dictionary = {
+		"schema_version": 4,
+		"scan_root": "res://tests/fixtures",
+		"recent_scan_roots": ["res://tests/fixtures", "res://"],
+		"focus_include_descendants": true,
+		"isolate_neighborhood": true,
+		"graph_view_enabled": false,
+		"control_section_expanded": {"content_export": true, "automation_timed": true},
+		"sync_on_editor_changes": false,
+		"editor_change_debounce_seconds": 2.5,
+		"follow_active_script": false,
+		"auto_rescan_enabled": true,
+		"auto_rescan_delay_seconds": 37.0,
+		"auto_export": {"json": true, "mermaid": false, "plantuml": true},
+		"export_paths": {
+			"json": "res://generated/dependencies.json",
+			"mermaid": "res://generated/dependencies.mmd",
+			"plantuml": "res://generated/dependencies.puml",
+		},
+	}
+	var save_result: Dictionary = store.save_state(path, state)
+	_check(save_result.get("ok", false), "Editor state should save atomically.", failures)
+	var defaults: Dictionary = {
+		"schema_version": 4,
+		"scan_root": "res://",
+		"recent_scan_roots": ["res://"],
+		"focus_include_descendants": false,
+		"isolate_neighborhood": false,
+		"graph_view_enabled": true,
+		"control_section_expanded": {"content_export": false, "automation_timed": false},
+		"sync_on_editor_changes": true,
+		"editor_change_debounce_seconds": 1.0,
+		"follow_active_script": true,
+		"auto_rescan_enabled": false,
+		"auto_rescan_delay_seconds": 60.0,
+		"auto_export": {"json": false, "mermaid": false, "plantuml": false},
+		"export_paths": {"json": "", "mermaid": "", "plantuml": ""},
+	}
+	var load_result: Dictionary = store.load_state(path, defaults)
+	var loaded: Dictionary = load_result.get("state", {})
+	_check(load_result.get("ok", false), "Editor state should load after save.", failures)
+	_check(
+		str(loaded.get("scan_root", "")) == "res://tests/fixtures"
+		and bool(loaded.get("focus_include_descendants", false))
+		and bool(loaded.get("isolate_neighborhood", false)),
+		"Scan scope and graph-focus preferences must round-trip.",
+		failures
+	)
+	_check(
+		not bool(loaded.get("graph_view_enabled", true))
+		and bool((loaded.get("control_section_expanded", {}) as Dictionary).get("content_export", false))
+		and bool((loaded.get("control_section_expanded", {}) as Dictionary).get("automation_timed", false)),
+		"Graph visibility and fold-section preferences must round-trip.",
+		failures
+	)
+
+	_check(
+		not bool(loaded.get("sync_on_editor_changes", true))
+		and is_equal_approx(float(loaded.get("editor_change_debounce_seconds", 0.0)), 2.5)
+		and not bool(loaded.get("follow_active_script", true)),
+		"Editor synchronization preferences must round-trip independently.",
+		failures
+	)
+	_check(
+		loaded.get("auto_rescan_enabled", false)
+		and is_equal_approx(float(loaded.get("auto_rescan_delay_seconds", 0.0)), 37.0),
+		"Editor automation timer preferences must round-trip.",
+		failures
+	)
+	_check(
+		bool((loaded.get("auto_export", {}) as Dictionary).get("json", false))
+		and str((loaded.get("export_paths", {}) as Dictionary).get("plantuml", "")).ends_with(".puml"),
+		"Per-format automatic export preferences and paths must round-trip.",
+		failures
+	)
+
+	# Schema 1 remains readable and receives schema-4 synchronization, scope, focus, view, and fold defaults.
+	var legacy_path: String = "user://script_dependency_inspector/state_round_trip/editor_state_v1.json"
+	var legacy_file := FileAccess.open(legacy_path, FileAccess.WRITE)
+	if legacy_file == null:
+		failures.append("Could not create legacy editor-state migration fixture.")
+		return
+	legacy_file.store_string(
+		JSON.stringify(
+			{
+				"schema_version": 1,
+				"auto_rescan_enabled": true,
+				"auto_rescan_delay_seconds": 19.0,
+				"auto_export": {"json": false, "mermaid": true, "plantuml": false},
+				"export_paths": {"json": "", "mermaid": "res://legacy.mmd", "plantuml": ""},
+			}
+		)
+	)
+	legacy_file.close()
+	var legacy_result: Dictionary = store.load_state(legacy_path, defaults)
+	var migrated: Dictionary = legacy_result.get("state", {})
+	_check(
+		legacy_result.get("ok", false)
+		and bool(migrated.get("sync_on_editor_changes", false))
+		and bool(migrated.get("follow_active_script", false))
+		and bool((migrated.get("auto_export", {}) as Dictionary).get("mermaid", false)),
+		"Schema-1 editor state must migrate by retaining old values and applying schema-4 defaults.",
+		failures
+	)
+
+	var invalid_schema_path: String = "user://script_dependency_inspector/state_round_trip/editor_state_invalid_schema.json"
+	var invalid_schema_file: FileAccess = FileAccess.open(invalid_schema_path, FileAccess.WRITE)
+	if invalid_schema_file == null:
+		failures.append("Could not create invalid editor-state schema fixture.")
+		return
+	invalid_schema_file.store_string(JSON.stringify({"schema_version": "4"}))
+	invalid_schema_file.close()
+	var invalid_schema_result: Dictionary = store.load_state(invalid_schema_path, defaults)
+	_check(
+		not invalid_schema_result.get("ok", true)
+		and "integer" in str(invalid_schema_result.get("warning", "")),
+		"Editor-state schema must reject string values instead of coercing them.",
+		failures
+	)
 
 
 func _new_script_instance(path: String, failures: Array[String]):

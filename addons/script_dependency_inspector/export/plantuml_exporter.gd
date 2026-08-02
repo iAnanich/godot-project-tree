@@ -51,6 +51,8 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			else ""
 		)
 		var declaration = 'class "%s" as %s' % [_escape(str(node["name"])), alias]
+		if str(node.get("scope_role", "")) == "context":
+			declaration += " <<context>>"
 		if not color.is_empty():
 			declaration += " #%s" % color
 		lines.append(declaration + " {")
@@ -78,7 +80,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			if bool(display_options.get("show_signal_signatures", false)):
 				lines.append(
 					"  +signal %s(%s)"
-					% [signal_name, _escape(str(signal_data.get("arguments", "")))]
+					% [signal_name, _escape(_arguments_without_defaults(str(signal_data.get("arguments", ""))))]
 				)
 			else:
 				lines.append("  +signal %s" % signal_name)
@@ -97,7 +99,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 					% [
 						static_prefix,
 						method_name,
-						_escape(str(method.get("arguments", ""))),
+						_escape(_arguments_without_defaults(str(method.get("arguments", "")))),
 						suffix
 					]
 				)
@@ -212,13 +214,13 @@ func _aliases(nodes: Array) -> Dictionary:
 func _node_color(kind: String, style: Dictionary) -> String:
 	match kind:
 		"user":
-			return str(style.get("user_script_color", "4f7cac"))
+			return str(style.get("user_script_color", "005a8d"))
 		"addon":
-			return str(style.get("addon_script_color", "8e6c9f"))
+			return str(style.get("addon_script_color", "8f4f79"))
 		"native":
-			return str(style.get("native_class_color", "65737e"))
+			return str(style.get("native_class_color", "59616d"))
 		_:
-			return str(style.get("external_class_color", "9b7653"))
+			return str(style.get("external_class_color", "9a6500"))
 
 
 func _escape(value: String) -> String:

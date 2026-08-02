@@ -1,62 +1,51 @@
-# Canonical snapshot schema
+# Snapshot schema
 
-The canonical JSON-compatible snapshot is the stable boundary between scanning/building, editor presentation, and exporters. The current version is `schema_version: 1`.
+Version: 0.2.2
 
-A machine-readable schema is provided at [`docs/schema/snapshot-v1.schema.json`](schema/snapshot-v1.schema.json). Runtime exports are additionally checked by `core/snapshot_validator.gd` before serialization.
+The current public model remains **snapshot v2**, formally described by [`schema/snapshot-v2.schema.json`](schema/snapshot-v2.schema.json). The v1 schema is retained for historical consumers. v0.2.1 added optional scope fields; v0.2.2 changes only editor state and UI behavior without changing `schema_version` or relationship semantics.
 
-The runtime validator and JSON Schema define the same required fields and scalar types. Validation is strict at semantic boundaries: `schema_version` must be an integer, IDs/endpoints must be strings, required node member collections and edge `member_links` must be present, and warning/error entries must be strings. Values are not coerced during validation. Unknown additive fields remain permitted.
+## Root
 
-## Root object
+Required: `schema_version`, `metadata`, `nodes`, `edges`, `scene_usages`, `warnings`, and `errors`. `diagnostics` provides structured severity/code/message/context records when present.
 
-| Field | Required | Meaning |
-|---|---:|---|
-| `schema_version` | yes | Integer serialization version. Version 1 readers must reject other values. |
-| `metadata` | yes | Scan root, engine version, resolved options, and style snapshot. |
-| `nodes` | yes | Canonically sorted class/script nodes. |
-| `edges` | yes | Canonically sorted class-level dependency relations. |
-| `warnings` | yes | Reader-facing nonfatal messages retained for compatibility. |
-| `errors` | yes | Reader-facing graph errors retained for compatibility. |
-| `diagnostics` | no | Structured `{severity, code, message, context}` records. New producers include it. |
+## Source locations
 
-Unknown root and nested fields are permitted. Consumers should ignore unknown fields unless they explicitly require them.
+`source_location` is `{ "line": positive integer, "column": positive integer }`, one-based. It can identify a script/member declaration or the exact source occurrence represented by an edge `member_link`. Absence means no exact location is claimed.
 
-## Node identity
+## Autoload
 
-`id` is the relationship key and must be unique.
+Script nodes may contain `autoload` with `name` and `singleton`. An empty object means no matching project autoload was found.
 
-- User and add-on scripts: their normalized `res://` path.
-- Native classes: `native://ClassName`.
-- Unresolved/external classes: a deterministic external identifier.
+## Scene usage
 
-`name` is presentation text. `path` is the complete script path when applicable. A declared `class_name` is kept separately and is not concatenated with `path`.
+Each record contains:
 
-`kind` is one of `user`, `addon`, `native`, or `external`.
+- `scene_path`;
+- `node_path`;
+- `script_path`;
+- `line` and `column` of the script assignment in the text scene;
+- `evidence`, currently `tscn_node_script_attachment`.
 
-## Edge direction and kinds
+The root list contains records whose script nodes remain in the current snapshot projection. Matching script nodes repeat their records for local UI access. Validator invariants reject duplicate, orphaned, mismatched, or missing copies.
 
-Canonical edges point from the script that depends or derives to the class it uses or extends.
+## Scope projection
 
-- `extends`: inheritance.
-- `uses`: literal `.gd` load/preload or direct class-qualified member use.
-- `type_uses`: a reference established only through a type annotation.
+When the dock applies a folder scope, metadata may contain:
 
-The GraphEdit renderer may reverse connection direction for layout, but it must not mutate the snapshot or exported semantics.
+- `index_root_path`: the full bounded acquisition root, currently `res://`;
+- `root_path`: the selected display/export scope;
+- `scope_active`: whether `root_path` differs from `res://`;
+- `scope_summary`: required integer `in_scope_nodes` and `context_nodes` counts.
 
-## Member provenance
+Each projected node contains:
 
-An edge may contain `member_links`. Each link contains optional `source_member` and `target_member` references plus a required evidence code. Member references use:
+- `scope_role`: `in_scope` or `context`;
+- `scope_reason`: a stable explanatory value such as `selected_root`, `required_ancestor`, `required_dependency`, or `dependency_ancestor`.
 
-```json
-{"kind": "method", "name": "calculate_damage"}
-```
+Scope fields are additive. An older valid snapshot-v2 document without them remains valid. When scope metadata is present, runtime validation checks roles, selected-root containment for project scripts, full-index metadata, and count consistency.
 
-Member provenance is evidence about a class-level relation; it does not create a second graph edge. Empty endpoint objects mean the source analyzer could establish only one side or only the containing class.
+JSON preserves the fields exactly. Mermaid appends `(context)` to retained context labels; PlantUML applies `<<context>>`. Diagram formats remain lossy representations and do not replace JSON for exact evidence.
 
-JSON is the lossless representation. PlantUML can express exact `Class::member` endpoints. Mermaid class diagrams retain member specificity in relationship labels because their class relationship grammar does not provide member endpoints.
+## Compatibility
 
-## Evolution policy
-
-- Additive optional fields may be introduced without changing version 1.
-- New required fields, changed identity rules, changed edge direction, or changed field meaning require a new schema version.
-- Writers produce canonical ordering; readers must not infer semantic meaning from incidental object-key order.
-- Schema migration must be explicit. The current implementation does not silently coerce unsupported versions.
+Snapshot v2 was an intentional schema break from v1 because required scene evidence and navigable source data were introduced in v0.2.0. Consumers must branch on `schema_version`. Editor preference state is separate and is now schema v4, accepting and migrating schemas 1, 2, and 3.

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://examples/showcase/controllers/battle_controller.gd" id="1_controller"]
+
+[node name="BattleDemo" type="Node"]
+script = ExtResource("1_controller")

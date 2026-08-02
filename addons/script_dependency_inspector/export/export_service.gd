@@ -245,6 +245,9 @@ func export_to_file(
 		return serialization
 
 	var path: String = _ensure_extension(destination, extension_for(format_id))
+	var directory_result: Dictionary = _ensure_parent_directory(path)
+	if not directory_result.get("ok", false):
+		return directory_result
 	var operation_id: String = "%s_%s" % [get_instance_id(), Time.get_ticks_usec()]
 	var temporary_path: String = path + ".sdi_%s.tmp" % operation_id
 	var backup_path: String = path + ".sdi_%s.bak" % operation_id
@@ -285,6 +288,25 @@ func _validate_snapshot(snapshot: Dictionary) -> Dictionary:
 			"warnings": [],
 		}
 	return _validator.call("validate", snapshot)
+
+
+func _ensure_parent_directory(path: String) -> Dictionary:
+	var directory: String = path.get_base_dir()
+	if directory.is_empty():
+		return {"ok": true, "code": "ok"}
+	var absolute_directory: String = directory
+	if directory.begins_with("res://") or directory.begins_with("user://"):
+		absolute_directory = ProjectSettings.globalize_path(directory)
+	if DirAccess.dir_exists_absolute(absolute_directory):
+		return {"ok": true, "code": "ok"}
+	var error: Error = DirAccess.make_dir_recursive_absolute(absolute_directory)
+	if error != OK:
+		return _failure(
+			"destination_directory_failed",
+			"Cannot create export directory: %s (error %s)" % [directory, error],
+			path
+		)
+	return {"ok": true, "code": "ok"}
 
 
 func _write_temporary_file(temporary_path: String, text: String, destination: String) -> Dictionary:
@@ -353,7 +375,12 @@ func _commit_temporary_file(
 
 func _ensure_extension(path: String, extension: String) -> String:
 	var expected: String = "." + extension.to_lower()
-	return path if path.to_lower().ends_with(expected) else path + expected
+	if path.to_lower().ends_with(expected):
+		return path
+	var current_extension: String = path.get_extension()
+	if current_extension.is_empty():
+		return path + expected
+	return path.left(path.length() - current_extension.length() - 1) + expected
 
 
 func _remove_if_present(path: String) -> void:

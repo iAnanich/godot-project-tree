@@ -46,6 +46,7 @@ func build(scan_result: Dictionary, options: Dictionary = {}) -> Dictionary:
 		if not registered_name.is_empty() and not class_index.has(registered_name):
 			class_index[registered_name] = str(record["id"])
 
+	_attach_scene_usages(snapshot, node_index, scan_result.get("scene_usages", []))
 	var global_classes = _global_class_index()
 	for record_value in scan_result.get("scripts", []):
 		var record: Dictionary = record_value
@@ -128,7 +129,10 @@ func _script_node(record: Dictionary, options: Dictionary) -> Dictionary:
 		"class_name": class_name_value,
 		"has_custom_name": not class_name_value.is_empty(),
 		"path": str(record["path"]),
+		"source_location": analysis.get("class_name_location", {"line": 1, "column": 1}).duplicate(true),
 		"kind": "addon" if record["is_addon"] else "user",
+		"autoload": record.get("autoload", {}).duplicate(true),
+		"scene_usages": [],
 		"base": direct_base.duplicate(true),
 		"native_base": native_base,
 		"inheritance_family": "other",
@@ -138,6 +142,40 @@ func _script_node(record: Dictionary, options: Dictionary) -> Dictionary:
 		analysis["properties"].duplicate(true) if options["include_properties"] else [],
 		"inner_classes": analysis["inner_classes"].duplicate(true),
 	}
+
+
+func _attach_scene_usages(
+	snapshot: Dictionary, node_index: Dictionary, usage_values
+) -> void:
+	if not usage_values is Array:
+		return
+	for usage_value in usage_values:
+		if not usage_value is Dictionary:
+			continue
+		var usage: Dictionary = usage_value.duplicate(true)
+		var script_path = str(usage.get("script_path", ""))
+		if script_path.is_empty():
+			continue
+		snapshot["scene_usages"].append(usage)
+		if node_index.has(script_path):
+			var node: Dictionary = node_index[script_path]
+			var node_usages: Array = node.get("scene_usages", [])
+			node_usages.append(usage)
+			node["scene_usages"] = node_usages
+	snapshot["scene_usages"].sort_custom(
+		func(left: Dictionary, right: Dictionary) -> bool:
+			return "%s|%s|%s|%09d" % [
+				left.get("script_path", ""),
+				left.get("scene_path", ""),
+				left.get("node_path", ""),
+				int(left.get("line", 0)),
+			] < "%s|%s|%s|%09d" % [
+				right.get("script_path", ""),
+				right.get("scene_path", ""),
+				right.get("node_path", ""),
+				int(right.get("line", 0)),
+			]
+	)
 
 
 func _add_base_relationship(
@@ -233,7 +271,12 @@ func _add_resource_dependencies(
 			str(record["id"]),
 			target_id,
 			"uses",
-			_member_link(detail.get("source_member", {}), {}, str(detail.get("evidence", "load")))
+			_member_link(
+				detail.get("source_member", {}),
+				{},
+				str(detail.get("evidence", "load")),
+				detail.get("source_location", {})
+			)
 		)
 	for dependency_value in analysis.get("resource_dependencies", []):
 		var dependency_path = _normalize_dependency_path(str(dependency_value), str(record["path"]))
@@ -287,7 +330,10 @@ func _add_type_dependencies(
 				target_id,
 				"type_uses",
 				_member_link(
-					detail.get("source_member", {}), {}, str(detail.get("evidence", "type"))
+					detail.get("source_member", {}),
+					{},
+					str(detail.get("evidence", "type")),
+					detail.get("source_location", {})
 				)
 			)
 	for symbol_value in analysis.get("type_references", []):
@@ -333,7 +379,8 @@ func _add_member_access_dependencies(
 			_member_link(
 				access.get("source_member", {}),
 				target_member,
-				str(access.get("evidence", "class_member_access"))
+				str(access.get("evidence", "class_member_access")),
+				access.get("source_location", {})
 			)
 		)
 
@@ -353,22 +400,37 @@ func _existing_member_reference(
 	for member_value in node.get(collection_name, []):
 		var member: Dictionary = member_value
 		if str(member.get("name", "")) == name:
-			return {"kind": kind, "name": name}
+			return {
+				"kind": kind,
+				"name": name,
+				"source_location": member.get("source_location", {}).duplicate(true),
+			}
 	return {}
 
 
-func _member_link(source_member_value, target_member_value, evidence: String) -> Dictionary:
+func _member_link(
+	source_member_value,
+	target_member_value,
+	evidence: String,
+	source_location_value = {}
+) -> Dictionary:
 	var source_member: Dictionary = (
 		source_member_value.duplicate(true) if source_member_value is Dictionary else {}
 	)
 	var target_member: Dictionary = (
 		target_member_value.duplicate(true) if target_member_value is Dictionary else {}
 	)
-	if source_member.is_empty() and target_member.is_empty():
+	var source_location: Dictionary = (
+		source_location_value.duplicate(true)
+		if source_location_value is Dictionary
+		else {}
+	)
+	if source_member.is_empty() and target_member.is_empty() and source_location.is_empty():
 		return {}
 	return {
 		"source_member": source_member,
 		"target_member": target_member,
+		"source_location": source_location,
 		"evidence": evidence,
 	}
 
@@ -565,12 +627,15 @@ func _append_member_link(edge: Dictionary, member_link: Dictionary) -> void:
 func _member_link_sort_key(link: Dictionary) -> String:
 	var source_member: Dictionary = link.get("source_member", {})
 	var target_member: Dictionary = link.get("target_member", {})
-	return "%s|%s|%s|%s|%s" % [
+	var source_location: Dictionary = link.get("source_location", {})
+	return "%s|%s|%s|%s|%s|%09d|%09d" % [
 		str(source_member.get("kind", "")),
 		str(source_member.get("name", "")),
 		str(target_member.get("kind", "")),
 		str(target_member.get("name", "")),
 		str(link.get("evidence", "")),
+		int(source_location.get("line", 0)),
+		int(source_location.get("column", 0)),
 	]
 
 
@@ -628,10 +693,11 @@ func _new_snapshot() -> Dictionary:
 		if value is Dictionary:
 			return value
 	return {
-		"schema_version": 1,
+		"schema_version": 2,
 		"metadata": {},
 		"nodes": [],
 		"edges": [],
+		"scene_usages": [],
 		"warnings": [],
 		"errors": [],
 		"diagnostics": [],

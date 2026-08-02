@@ -61,10 +61,10 @@ func _run() -> void:
 				"show_property_types": false,
 				"style":
 				{
-					"user_script_color": "4f7cac",
-					"addon_script_color": "8e6c9f",
-					"native_class_color": "65737e",
-					"external_class_color": "9b7653",
+					"user_script_color": "005a8d",
+					"addon_script_color": "8f4f79",
+					"native_class_color": "59616d",
+					"external_class_color": "9a6500",
 				},
 			}
 		)

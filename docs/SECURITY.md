@@ -1,33 +1,21 @@
-# Security and operational safety
+# Security and trust boundary
 
-## Trust model
+Version: 0.2.2
 
-This add-on runs inside the Godot editor with the editor process's filesystem permissions. It is not a sandbox. Projects, installed add-ons, custom exporters, and destination paths must be treated according to the trust granted to the editor process.
+The add-on runs inside the Godot editor with the editor process's filesystem permissions. It does not provide network access, execute external processes, or instantiate scanned project classes as part of analysis.
 
-## Source scanning
+## Untrusted project input
 
-The source analyzer reads `.gd` files as text and does not instantiate user classes. Scan roots are restricted to the current project's `res://` namespace. Parent traversal, absolute paths, and `user://` roots are rejected.
+GDScript and `.tscn` text are treated as bounded input. Traversal rejects roots outside `res://`, skips symbolic links by default, honors file/directory/byte limits, and records read failures. The scene scanner recognizes only direct textual constructs and does not evaluate resource expressions. Binary `.scn` files are outside scope.
 
-Symbolic links are skipped by default. Enabling `follow_symbolic_links` is an explicit trust decision; traversal remains bounded by maximum file and directory counts, but the add-on does not claim to confine a followed operating-system link to the project directory.
+Optional Script resource loading for reflection can trigger Godot parsing, but not project-class instantiation. Source-only analysis remains available.
 
-Per-script byte limits, total file limits, and directory limits reduce accidental denial-of-service from very large projects or cyclic directory structures.
+## Scope is not a trust boundary
 
-## Optional runtime reflection
+A selected folder is a display/export projection. The scanner still acquires the bounded full `res://` index so ancestors and direct dependency targets outside the folder can be resolved. Users must not treat folder scope as preventing the add-on from reading other project files. The selected root is validated as an existing project-local directory, but it does not grant or revoke filesystem authority.
 
-`use_runtime_reflection` loads script resources through Godot to improve global-name and base resolution. The add-on still does not instantiate user scripts, but resource loading invokes Godot's parser/compiler and is not equivalent to treating input as inert text. Disable runtime reflection when inspecting source that should not be trusted by the current editor process.
+## Writes
 
-The plugin cannot make opening an untrusted Godot project safe: the editor may import resources and enable other project tooling independently of this add-on.
+Exports write only to user-selected or configured paths. Missing directories may be created. Existing files use same-directory temporary and backup paths with rollback attempts. Editor preferences are stored below `res://.godot` and excluded from release archives.
 
-## Exports
-
-Exports are written only after an explicit user destination is selected or a caller invokes the export API. The service validates the snapshot, writes a temporary file in the destination directory, stages an existing destination to an operation-unique backup, and restores that backup when commit fails where possible.
-
-Failure results contain stable codes and recovery context. A `commit_and_restore_failed` result is an operational incident: the returned backup path must be preserved for manual recovery.
-
-## Extension boundary
-
-Custom exporters run with the same authority as the editor. The exporter method contract and contract tests provide behavioral compatibility, not isolation. Do not register untrusted exporter code.
-
-## Reporting a vulnerability
-
-This package does not yet declare a public security contact or disclosure channel. That must be resolved by the project owner before public distribution. Until then, do not include secrets or private project data in public issue reports.
+Editor synchronization suppresses filesystem notifications only around configured project-local export writes to avoid loops. This is a control-flow safeguard, not a security sandbox. Timed rescanning is disabled by default.

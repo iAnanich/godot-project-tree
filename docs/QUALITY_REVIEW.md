@@ -1,242 +1,69 @@
-# Quality review
+# Quality review — v0.2.1 baseline and v0.2.2 correction
 
-- Review date: 2026-07-28
-- Reviewed baseline: 0.1.5
-- Remediated revision: 0.1.6
-- Review scope: correctness, maintainability, public API/tool usability, compatibility, test evidence, performance, security, documentation, and graph visualization
-- Evidence sources: supplied project/software guidelines, supplied software-quality guidance, supplied data-visualization guidance, source inspection, rendered editor artifacts, static validation, Godot runtime tests, cross-version execution, and package verification
+Review date: 2026-07-29
+Baseline: v0.2.1 source bundle
+Guidance: see [GUIDANCE_APPLIED.md](GUIDANCE_APPLIED.md)
 
 ## Outcome
 
-Revision 0.1.6 is a materially stronger development release. It now has a validated serialization boundary, an explicit exporter extension contract, structured operational failures, bounded project-local scanning, a visible graph legend, a non-visual summary, a reproducible performance gate, and project-level architecture/security/schema/contribution documentation.
+The v0.2.1 analysis/export model remained valid, but the dock allocated space poorly for manual export, concealed scan-trigger state, made GraphEdit mandatory, used flat high-density option lists, and provided an AI notice too generic for meaningful development disclosure. The findings below were corrected without changing snapshot schema or dependency semantics.
 
-It is suitable for continued technical evaluation and use in trusted Godot projects. It is not yet ready to claim a fully governed public marketplace release: license, publisher identity, support channel, and security contact remain owner decisions. Large synchronous core modules also remain a maintainability and responsiveness risk.
+## Findings and resolutions
 
-## Contract reconstructed for this review
+| ID | Severity / confidence | Type | Finding and impact | Resolution | Verification |
+|---|---|---|---|---|---|
+| SDI-REV-022-01 | Medium / high | Observed | The export format selector used flexible horizontal expansion, occupying disproportionate space compared with the action it qualifies. | Constrain the selector to compact intrinsic width and reserve flexible space for separation. | Static scene contract and rendered toolbar review. |
+| SDI-REV-022-02 | Medium / high | Observed | The toolbar did not identify whether automatic scans came from editor saves, the timer, both, or neither. | Add a derived state indicator beside **Scan** with detailed timing in its tooltip. | Default/combined-mode tests and automation screenshot. |
+| SDI-REV-022-03 | Low / high | Observed | **Scan** and **Export** read as one crowded action cluster. | Add a fixed gap and separator between the task groups. | Rendered toolbar inspection. |
+| SDI-REV-022-04 | Medium / high | Observed design gap | GraphEdit was always rendered even for users whose goal is only file export, consuming space and rendering work. | Add a default-on persisted **Graph** toggle; graph-off retains snapshot, summary, diagnostics, synchronization, and export; graph-on rerenders without rescanning. | Behavioral UI contract and export-only screenshot. |
+| SDI-REV-022-05 | Medium / high | Observed | Content, Appearance, Colors, and Automation tabs contained long flat control lists with weak hierarchy. | Introduce labelled, tooltip-equipped foldable semantic groups and persist their expanded state. | Fold-state round-trip, tooltip contract, and folded-controls screenshot. |
+| SDI-REV-022-06 | High / high | Observed documentation gap | The AI notice named broad activities but did not state concrete supervision, executed quality controls, or residual evidence limits. | Expand the repository/add-on notice and summarize it in marketplace copy without claiming an independent human audit. | Documentation static contract and review. |
+| SDI-REV-022-07 | Medium / high | Observed product-communication gap | Store copy listed file formats but did not explain why external files matter relative to the constrained dock. | Explain larger-canvas, alternate-layout, theming, publication, and custom-analysis workflows in dedicated third-party tools. | Store-copy contract review. |
+| SDI-REV-022-08 | Medium / high | Observed traceability gap | Existing use cases assumed a graph-first workflow and did not represent export-only operation or control configuration. | Add UC-12/UC-13 and update all three source-controlled diagrams and text alternatives. | Diagram render review and use-case traceability checks. |
 
-The add-on must:
+| SDI-REV-022-09 | Medium / high | Observed during release reconstruction | Generated Godot `.import` sidecars were ignored by Git but still selected by the release builder, so a manifest could depend on local editor cache state and patch reconstruction could not reproduce it. | Exclude `.import` and `.uid` sidecars independently in release-file selection and enforce the rule in static validation. | Two byte-identical clean builds, forbidden-entry inspection, manifest verification, and patch reconstruction. |
 
-1. inspect project-local GDScript without instantiating user objects;
-2. build a deterministic dependency snapshot with explicit uncertainty and stable edge semantics;
-3. render the snapshot in the editor without relying on color, hover, or visual inspection alone;
-4. export only snapshots that satisfy the public schema invariants;
-5. allow exporter extension through a discoverable, testable contract;
-6. fail with actionable and programmatically distinguishable results;
-7. preserve supported Godot 4.3–4.7 behavior;
-8. remain bounded and diagnosable on malformed, missing, or large inputs;
-9. provide enough versioned knowledge for another developer to reproduce, evaluate, and safely change the system.
+## Acceptance status
 
-## Prioritized findings and disposition
+All v0.2.2 corrections are implemented. Final completion depends on the executed compatibility matrix, deterministic build, patch reconstruction, and rendered-artifact checks recorded in `VALIDATION.md`.
 
-### P0 — No validated public serialization boundary
+---
 
-- Status at baseline: **Observed defect**
-- Location: graph snapshot to JSON/Mermaid/PlantUML export
-- Problem: exporters accepted arbitrary dictionaries. Duplicate IDs, dangling edges, malformed member provenance, and incompatible schema versions could be serialized as authoritative output.
-- Why it matters: all downstream formats and third-party consumers depend on the snapshot's meaning; invalid data at this boundary undermines correctness and trust.
-- Evidence: baseline export service selected an exporter and serialized directly; no schema validator or machine-readable schema existed.
-- Required action: define schema invariants, validate before export, and add negative tests.
-- Resolution: **Resolved in 0.1.6.** `core/snapshot_validator.gd`, `docs/schema/snapshot-v1.schema.json`, runtime negative tests, and static schema validation were added. Invalid snapshots return `invalid_snapshot` and are not written.
+## Historical v0.2.0 → v0.2.1 review
 
-### P0 — Runtime validation and the published schema initially disagreed
+# Quality review — v0.2.0 baseline and v0.2.1 correction
 
-- Status during remediation: **Observed correctness defect**
-- Location: `core/snapshot_validator.gd` versus `docs/schema/snapshot-v1.schema.json`
-- Problem: an intermediate validator implementation coerced schema versions, node IDs, and edge endpoints to strings and treated several schema-required collections as optional. A snapshot could therefore pass the executable boundary while failing the published JSON Schema.
-- Why it matters: two competing definitions of valid output make compatibility and downstream validation non-deterministic.
-- Evidence: direct invariant comparison found coercion at scalar boundaries and missing required-field checks for node member collections and edge `member_links`.
-- Required action: make the runtime validator strict, keep additive extension fields permissive, and add negative contract cases for every mismatch.
-- Resolution: **Resolved in 0.1.6 before release packaging.** Runtime validation now rejects type coercion, enforces required node/edge fields, validates warning/error item types, and uses stable issue codes. The public suite covers string schema versions, numeric IDs/endpoints, missing member collections, missing `member_links`, and malformed message collections.
+Review date: 2026-07-29
+Baseline: v0.2.0 source bundle
+Guidance: see [GUIDANCE_APPLIED.md](GUIDANCE_APPLIED.md)
 
-### P0 — Exporter extension promise lacked an enforceable contract
+## Outcome
 
-- Status at baseline: **Observed design gap**
-- Location: `export/exporter.gd` and `export/export_service.gd`
-- Problem: built-in exporters shared method names, but registration did not validate capability shape and there was no reusable contract suite for independent implementations.
-- Why it matters: a documented extension point without substitutability evidence is likely to fail late in the UI or export path.
-- Evidence: registration previously accepted any object with several methods and normalized some malformed identifiers.
-- Required action: declare capabilities, reject malformed implementations, and provide reusable positive/negative contract tests.
-- Resolution: **Resolved in 0.1.6.** Registration validates identifiers, display names, extensions, boolean capability declarations, duplicate formats, and empty output. `tests/contracts/exporter_contract.gd` is reusable by third-party exporters.
+The baseline was suitable for extension but contained several correctness, maintainability, and evidence gaps at the new scope/focus boundary. The findings below were addressed in the v0.2.1 worktree. The corrected release passed the executed matrix in [VALIDATION.md](VALIDATION.md).
 
-### P1 — Graph encodings were not decoded in the initial state
+## Findings and resolutions
 
-- Status at baseline: **Observed visualization defect**
-- Location: editor dock
-- Problem: edge colors and direction carried meaning, but the graph had no visible legend. A user had to infer semantics from controls or prior documentation.
-- Why it matters: the initial visual state was not self-contained, and meaning depended too heavily on color and prior knowledge.
-- Evidence: baseline rendered dock showed colored relationships without an adjacent decoding key.
-- Required action: provide a close, reader-facing legend and state the canonical versus rendered direction.
-- Resolution: **Resolved in 0.1.6.** A visible legend decodes inheritance, literal/direct use, type use, and rendered direction. Edge categories also retain distinct labels and independent toggles rather than color-only identity.
+| ID | Severity / confidence | Type | Finding and impact | Resolution | Verification |
+|---|---|---|---|---|---|
+| SDI-REV-021-01 | High / high | Observed | v0.2.0 opened a filesystem-event suppression window after every scan, including scans with no project-local automatic writes. A real editor change during that window could be ignored. | Suppression is opened only when an enabled automatic export targets `res://`; scans without such writes leave synchronization fully active. | Automation lifecycle regression and code inspection. |
+| SDI-REV-021-02 | Medium / high | Observed | Display-only rerenders reset `GraphEdit` scroll position, disrupting inspection. | Preserve the prior viewport when rerendering without a new focus target. | Render-state regression and visual review. |
+| SDI-REV-021-03 | Medium / high | Observed | Persisted state and messages were named as “automation” although they now also contain synchronization, scope, and focus state, increasing maintenance ambiguity. | Introduce editor-state schema v3 and generalized names/messages; retain schema-1/2 migration. | Round-trip/migration tests and static contract. |
+| SDI-REV-021-04 | Medium / high | Inferred from executed path validation | A remembered scope folder can be deleted or renamed between sessions; accepting it unconditionally could block the initial scan. | Validate stored recent roots at load, discard stale entries, and fall back to `res://` with a warning. | Root-boundary tests plus dock initialization review. |
+| SDI-REV-021-05 | High / high | Observed design gap | Additive scope roles and summary counts could drift without cross-record validation, causing misleading JSON/diagram output. | Validate role values, required roles in active scope, project-script containment, full-index metadata, and declared counts before export. | Positive projection test and negative `scope_summary_mismatch` test. |
+| SDI-REV-021-06 | Medium / high | Observed usability/evidence risk | Outside context could be encoded only through opacity/color and disappear in diagram exports. | Add textual **Context** metadata/reasons to graph nodes, `(context)` in Mermaid, and `<<context>>` in PlantUML. | Export assertions and rendered screenshot review. |
+| SDI-REV-021-07 | Medium / high | Observed maintainability gap | Scope/focus behavior placed directly in orchestration would be difficult to test independently and risk canonical-data mutation. | Add pure `SnapshotScope` and `GraphQuery` components; keep orchestration and presentation state in the dock. | Focused behavioral tests and architecture review. |
+| SDI-REV-021-08 | Medium / high | Observed documentation gap | Requirements/design did not provide a user-outcome layer connecting product workflows to contracts and evidence. | Add UC-01–UC-11, three source-controlled diagrams, text alternatives, traceability, and rendered-review notes. | Static documentation checks and `docs/diagrams/REVIEW.md`. |
+| SDI-REV-021-09 | Medium / high | Observed during v0.2.1 test review | Neighborhood isolation treated inheritance edges as generic neighbors, so direct children appeared even when **Include descendants** was disabled. | Exclude `extends` edges from direct-neighbor expansion; inheritance descendants are controlled only by the explicit option. | Positive and negative `GraphQuery` tests. |
+| SDI-REV-021-10 | Medium / high | Observed | Editor-state loading coerced `schema_version` with `int(...)`, allowing a string value to cross a type boundary. | Require an integer schema value and degrade malformed state to defaults with a warning. | Invalid-schema regression test. |
+| SDI-REV-021-11 | Low / high | Observed | The v0.2.0 development tree tracked Python bytecode caches and had no ignore contract for Godot/Python-generated files, creating noisy, non-reproducible review deltas. | Remove tracked caches and add a repository `.gitignore` for Godot import state, UID sidecars, Python bytecode, and local validation outputs. Release packaging continues to enforce its own independent exclusion rules. | Clean-tree inspection, static required-file check, and release archive forbidden-entry verification. |
 
-### P1 — Essential graph information depended on vision and hover
+## Design implications
 
-- Status at baseline: **Observed accessibility/usability gap**
-- Location: GraphEdit and script-path metadata
-- Problem: exact paths were available only through hover, and there was no non-visual relationship summary.
-- Why it matters: hover is unavailable to keyboard-only and non-visual users and is weak evidence for large graph comprehension.
-- Evidence: baseline used a compact tooltip label; GraphEdit was the only relationship representation inside the editor.
-- Required action: provide a keyboard-focusable path action and a textual summary with an exact-data route.
-- Resolution: **Partially resolved in 0.1.6.** The path affordance is now a focusable button that copies the full `res://` path. A Summary tab reports node/edge counts, relationship directions, diagnostics, and JSON as the exact-data route. Screen-reader usability has not been independently tested.
+- Folder selection is a **projection boundary**, not an acquisition/security boundary. The full bounded index is still scanned to resolve required outside context.
+- Focus and isolation are presentation queries. They never mutate the scoped snapshot or exporter input.
+- Snapshot schema remains v2 with additive optional scope fields. Persisted editor state becomes schema v3.
+- A general inferred call graph, TODO extraction, and immediate main-screen placement remain non-goals.
 
-### P1 — Scan trust boundary was implicit
+## Evidence limits
 
-- Status at baseline: **Observed security/operational defect**
-- Location: `core/project_scanner.gd`
-- Problem: callers could supply paths outside the current project namespace, and symbolic-link behavior was not explicit.
-- Why it matters: editor tooling operates with user filesystem permissions; unexpected traversal increases data exposure and denial-of-service risk.
-- Evidence: baseline normalized caller paths but did not explicitly reject absolute, `user://`, or parent-traversal roots.
-- Required action: confine roots to `res://`, reject traversal, skip symbolic links by default, retain limits, and document reflection/trust behavior.
-- Resolution: **Resolved for the default path in 0.1.6.** Invalid roots return `invalid_scan_root`; symbolic links are skipped unless explicitly enabled. `docs/SECURITY.md` records the remaining opt-in risk and the limits of editor-process trust.
-
-### P1 — Export failures were not programmatically stable
-
-- Status at baseline: **Observed API defect**
-- Location: export service
-- Problem: callers primarily received free-form error text. Failure recovery states could not be handled reliably without parsing messages.
-- Why it matters: public tooling should distinguish invalid input, unsupported format, temporary write failure, commit failure, and failed restoration.
-- Evidence: baseline result dictionaries did not consistently include stable codes and context.
-- Required action: define structured failure codes while preserving reader-facing messages.
-- Resolution: **Resolved in 0.1.6.** Export results include `ok`, `code`, `error`, `path`, and context. Replacement and recovery paths have distinct codes.
-
-### P1 — No reproducible performance evidence
-
-- Status at baseline: **Observed evidence gap**
-- Location: analyzer and graph builder
-- Problem: configurable limits existed, but there was no executable regression budget or representative scale fixture.
-- Why it matters: scanning and layout are synchronous; a functional regression can still make the editor unusable.
-- Evidence: existing validation covered correctness and compatibility but not elapsed time or large synthetic shapes.
-- Required action: add deterministic bounded fixtures, output completeness checks, loose regression budgets, and per-version records.
-- Resolution: **Resolved as a regression gate in 0.1.6.** `tests/performance_runner.gd` covers 500 typed methods and a 1,000-script inheritance chain. It is not a guarantee of editor responsiveness for all real projects.
-
-### P1 — Documentation did not preserve system rationale or release knowledge
-
-- Status at baseline: **Observed maintainability gap**
-- Location: repository documentation
-- Problem: README/contract/validation material described features, but architecture boundaries, schema evolution, security assumptions, contribution gates, decision rationale, and release history were absent.
-- Why it matters: a future maintainer would need to reconstruct consequential decisions from code and conversation history.
-- Evidence: no architecture document, machine-readable schema, security document, contributing guide, changelog, or decision records.
-- Required action: add concise versioned documentation close to the affected subsystem and validate local links.
-- Resolution: **Resolved in 0.1.6.** Architecture, schema, security, performance, contribution, changelog, test-system, and two ADR documents were added. Static validation checks required documents and local links.
-
-### P2 — Diagnostics had two representations without a migration statement
-
-- Status at baseline: **Observed design gap**
-- Location: scanner and canonical snapshot
-- Problem: warnings/errors were free-form arrays; new structured diagnostics were not part of the canonical output contract.
-- Why it matters: UI, exporters, and future automation need stable codes, while existing consumers may still rely on string arrays.
-- Required action: preserve legacy arrays, add structured diagnostics additively, and document the evolution policy.
-- Resolution: **Resolved in 0.1.6.** Snapshots include optional `diagnostics`; legacy arrays remain. The schema explicitly permits additive fields and documents migration rules.
-
-### P2 — Test discovery and diagnosis were concentrated in one runner
-
-- Status at baseline: **Observed maintainability risk**
-- Location: `tests/test_runner.gd`
-- Problem: more than one thousand lines of broad tests make ownership and failure localization harder.
-- Why it matters: change cost rises when unrelated capability setup and assertions share one orchestration file.
-- Required action: move new behavior into capability suites and reusable contracts; split legacy tests only with characterization coverage.
-- Resolution: **Partially resolved.** New quality tests live in `tests/suites`, exporter checks in `tests/contracts`, performance has a separate runner, and `tests/README.md` defines organization. The legacy runner remains large and should be decomposed incrementally rather than mechanically.
-
-### P2 — Large core modules concentrate unrelated change knowledge
-
-- Status at baseline: **Observed maintainability risk**
-- Location: analyzer, dock, graph builder, scanner
-- Problem: several files are 450–900 lines and combine sub-responsibilities that may evolve independently.
-- Why it matters: modifications require recovering large mental models and increase regression blast radius.
-- Evidence: source analysis combines sanitization, declaration parsing, type extraction, and member-access recognition; dock combines orchestration, rendering, layout, summary, and export UI.
-- Required action: identify volatile seams using real changes and tests before extraction.
-- Resolution: **Open.** This review did not split files solely to reduce line count. Candidate seams are recorded in `ARCHITECTURE.md`. Refactoring should follow characterization and delta-focused review.
-
-### P2 — Synchronous scan/layout can block the editor
-
-- Status at baseline: **Observed architectural limitation**
-- Location: editor workflow
-- Problem: traversal, analysis, graph construction, and rendering run on the editor thread.
-- Why it matters: limits cap work but do not provide cancellation or responsive progress for a large valid project.
-- Required action: define lifecycle, cancellation, progress, immutable plan, and thread-safety semantics before moving work off-thread.
-- Resolution: **Open.** Manual scan, size limits, and performance evidence bound current behavior. Background execution is a future design decision, not a safe local patch.
-
-### P2 — Static source analysis remains incomplete by design
-
-- Status at baseline: **Known limitation**
-- Location: GDScript analyzer
-- Problem: ordinary instance calls, aliases, virtual dispatch, dependency injection, conditional execution, and dynamic resource paths are not resolved.
-- Why it matters: users may otherwise interpret the graph as a complete runtime call graph.
-- Required action: state the evidence boundary prominently and avoid invented certainty.
-- Resolution: **Accepted limitation.** ADR 0002 and user documentation clarify that absence of an edge means unsupported or unobserved static evidence, not proof of no runtime dependency.
-
-### P2 — Public-release governance is incomplete
-
-- Status at baseline: **Observed release blocker**
-- Location: repository/project metadata
-- Problem: no selected license, final publisher identity, support policy, or security contact exists.
-- Why it matters: users cannot determine redistribution rights or a responsible disclosure/support path.
-- Required action: project owner decision.
-- Resolution: **Open; not safely inferable.** Documentation now surfaces the gap rather than inventing governance metadata.
-
-### P1 — Static evidence depended on editor cache state
-
-- Status at baseline: **Observed reproducibility defect**
-- Location: `tools/validate_static.py`
-- Problem: resource-reference checks traversed `.godot` editor metadata, so the reported check count differed between an imported working tree and a clean release copy.
-- Why it matters: validation evidence must describe source artifacts, not incidental cache contents.
-- Required action: exclude generated editor state and prove the same check count before and after import.
-- Resolution: **Resolved in 0.1.6.** `.godot` is excluded from source validation. Clean and imported trees now execute the same 299 source checks once the three rendered-review images are included.
-
-### P1 — Release assembly was not an executable project contract
-
-- Status at baseline: **Observed reproducibility gap**
-- Location: release workflow
-- Problem: archive exclusions, root layout, timestamps, manifest creation, and checksums were performed outside the repository.
-- Why it matters: a future maintainer could produce a materially different package despite passing source tests.
-- Required action: add a deterministic repository-owned builder and validate its outputs rather than only the working tree.
-- Resolution: **Resolved in 0.1.6.** `tools/build_release.py` derives the version, excludes generated state, writes the manifest, fixes member order/timestamps, and emits archive checksums. Two builds were byte-identical; clean extracted and minimal add-on installations were executed.
-
-### P2 — Public method knowledge was uneven
-
-- Status at baseline: **Observed maintainability gap**
-- Location: logger and concrete exporters
-- Problem: several public methods relied on names or base-class implication rather than local API documentation.
-- Why it matters: extension and operational surfaces should be understandable where maintainers encounter them.
-- Required action: document every non-private add-on method locally and prevent regression.
-- Resolution: **Resolved in 0.1.6.** Public methods now have GDScript documentation comments, and static validation enforces the rule across the add-on.
-
-### P2 — Independent accessibility and comprehension evidence is absent
-
-- Status at baseline: **Observed evidence gap**
-- Location: rendered editor graph
-- Problem: automated construction and internal visual inspection do not prove screen-reader usability, color-vision accessibility, keyboard workflow completeness, or comprehension by a developer unfamiliar with the project.
-- Why it matters: accessibility and decoding claims require representative users or assistive technology, not implementation intent alone.
-- Required action: run keyboard-only, assistive-technology, color-vision, and independent comprehension review before making stronger accessibility claims.
-- Resolution: **Open.** The visible legend, category controls, focusable path action, Summary tab, and JSON route reduce risk, but the project makes no stronger accessibility claim.
-
-## Test and evidence improvements
-
-Revision 0.1.6 adds or strengthens evidence for:
-
-- valid and invalid snapshot contracts;
-- strict parity between the runtime snapshot validator and published JSON Schema, including scalar-type and required-field negative cases;
-- duplicate IDs, dangling edges, invalid diagnostics, and contradictory member provenance;
-- exporter capability declarations, deterministic output, non-mutation, registration rejection, and empty-output failure;
-- invalid scan roots;
-- visible legend and non-visual summary construction;
-- analyzer and graph-builder scale regression;
-- JSON Schema validity and showcase conformance;
-- documentation-link and required-knowledge checks;
-- isolated validation orchestration through `tools/run_validation.py`.
-
-## Visualization review contract
-
-The editor graph is considered releasable only when:
-
-1. the initial populated state visibly explains edge encodings and direction;
-2. identity does not depend on color alone—titles, family text, relation category, position, and toggles remain available;
-3. essential path and relationship information is available without hover;
-4. the Summary tab and JSON export provide non-visual and exact-data alternatives;
-5. the densest showcase is rendered and inspected for clipping, collision, legend wrapping, disabled-state ambiguity, and control availability;
-6. the review record links the actual screenshots and engine version.
-
-Automated scene construction verifies presence and text contracts. It does not establish assistive-technology usability or independent comprehension; those remain manual evidence requirements.
-
-## Completion status
-
-**Conditionally accepted as a high-quality development release.** Core correctness, extension, failure, documentation, and visualization-decoding gaps identified in this review have executable protections. Public-release governance, large-module maintainability, editor-thread responsiveness, Godot 4.0–4.2, non-Linux platforms, and independent accessibility testing remain explicit unresolved boundaries.
+The diagrams and screenshots are reviewed representations, not proof of unfamiliar-user comprehension or accessibility conformance. No screen-reader study, formal WCAG review, non-Linux run, Godot 4.0–4.2 run, or binary-scene analysis is claimed.

@@ -1,31 +1,13 @@
-# Script Dependency Inspector add-on
+# Script Dependency Inspector 0.2.2
 
-Copy this directory to `res://addons/script_dependency_inspector`, then enable **Script Dependency Inspector** under **Project > Project Settings > Plugins**.
+Editor-only Godot 4 add-on that scans GDScript and exact text-scene script attachments, builds a validated dependency snapshot, optionally renders an interactive searchable graph, and exports JSON, Mermaid, or PlantUML.
 
-The right-side editor dock scans GDScript inheritance, literal script loads, and type-annotation and direct class-member usage; renders the result through `GraphEdit`; and exports JSON, Mermaid, or PlantUML.
+The **Graph** toggle is enabled by default. Disable it for export-only operation: scans, editor-save synchronization, summaries, diagnostics, and manual/automatic file exports remain active. Re-enable it to render the retained snapshot without rescanning. The compact toolbar shows whether automatic scans are save-synchronized, timed, both, or manual.
 
-The dock provides:
+Exported Mermaid and PlantUML files can be opened in dedicated diagram applications for larger canvases, alternate layout engines, themes, or presentation workflows. JSON is the lossless machine-readable representation for automation and custom renderers.
 
-- custom class names as titles, or the script filename when `class_name` is absent;
-- full `res://` paths through title-bar and child metadata tooltips rather than title/path concatenation;
-- method/signal name-only or full-signature display;
-- property name-only or typed display;
-- independent colors for properties, signals, methods, metadata, script kinds, inheritance families, and edge kinds;
-- compact native nodes;
-- adaptive script width and height, with member scrolling only after a high configurable overflow threshold;
-- deterministic inheritance-depth layout;
-- corrected built-in GraphEdit arrangement direction, with bases/dependencies before their dependents;
-- optional member-row edge anchors in GraphEdit;
-- JSON member provenance, exact PlantUML `Class::member` endpoints, and labeled Mermaid class relationships.
+Folder scopes retain required outside ancestors and direct dependency targets as labelled **Context**. Search, focus, source navigation, autoload metadata, and exact text-scene attachments remain available when the graph is shown.
 
-Native intermediary bases are expanded with `ClassDB.get_parent_class()`. Family accents distinguish Object, RefCounted, Node, Node2D, Node3D, Control, and other branches.
+Generative AI was used extensively under owner-directed scope and documented automated quality controls. See `AI_USAGE_NOTICE.md` for uses, supervision, executed checks, and residual evidence limits.
 
-Internal dependencies are loaded through explicit checked paths rather than parse-time preload chains. The full development package contains a runnable showcase under `examples/showcase` and headless validation scripts under `tests`.
-
-
-Public exports are checked by the canonical snapshot validator. Exporters declare capabilities and must satisfy the reusable contract documented in the full development project. Scan roots are confined to `res://`; symbolic links are skipped by default.
-
-
-The populated dock includes a visible relation legend and a Summary tab with node/family/edge counts, direction semantics, diagnostics, and a route to lossless JSON. Script paths are available through a focusable copy action, not only hover.
-
-Exports are accepted only after canonical snapshot validation. Exporters declare representation capabilities and return stable failure codes; custom exporters should be verified with the reusable contract suite from the full development project.
+Static-analysis limits are deliberate: no general inferred call graph, runtime profiling, dynamic-path evaluation, project-class instantiation, binary-scene inference, or TODO extraction.

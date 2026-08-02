@@ -53,10 +53,14 @@ func _test_packaged_resource_paths() -> void:
 			"core/compat.gd",
 			"core/gdscript_analyzer.gd",
 			"core/graph_builder.gd",
+			"core/graph_query.gd",
+			"core/editor_state_store.gd",
 			"core/logger.gd",
 			"core/models.gd",
 			"core/project_scanner.gd",
+			"core/scene_usage_scanner.gd",
 			"core/settings.gd",
+			"core/snapshot_scope.gd",
 			"core/snapshot_validator.gd",
 			"export/export_service.gd",
 			"export/exporter.gd",
@@ -150,6 +154,10 @@ func _test_source_analyzer() -> void:
 	)
 	var result: Dictionary = analyzer.analyze(source, "res://example.gd")
 	_check(result["class_name"] == "Example", "Analyzer should read class_name.")
+	_check(
+		int(result.get("class_name_location", {}).get("line", 0)) == 2,
+		"Analyzer should preserve the class_name source line."
+	)
 	_check(result["extends"]["value"] == "Node", "Analyzer should read extends.")
 	_check(result["signals"].size() == 1, "Analyzer should read signals.")
 	_check(result["properties"].size() == 3, "Analyzer should read top-level properties.")
@@ -217,6 +225,9 @@ func _test_source_analyzer() -> void:
 
 
 func _test_scan_and_graph() -> void:
+	ProjectSettings.set_setting(
+		"autoload/FixtureHelperService", "*res://tests/fixtures/helper.gd"
+	)
 	var scanner = _scanner_script.new()
 	var scan_result = (
 		scanner
@@ -229,11 +240,31 @@ func _test_scan_and_graph() -> void:
 			}
 		)
 	)
+	ProjectSettings.set_setting("autoload/FixtureHelperService", null)
 	_check(
 		scan_result["errors"].is_empty(),
 		"Fixture scan should not have errors: %s" % [scan_result["errors"]]
 	)
 	_check(scan_result["scripts"].size() == 5, "Fixture scan should find five scripts.")
+	_check(
+		scan_result.get("scene_usages", []).size() == 1,
+		"Fixture scan should find one exact .tscn script attachment."
+	)
+	if scan_result.get("scene_usages", []).size() == 1:
+		var scene_usage: Dictionary = scan_result["scene_usages"][0]
+		_check(
+			int(scene_usage.get("line", 0)) > 0 and int(scene_usage.get("column", 0)) == 1,
+			"Scene attachment evidence should preserve a one-based exact source location."
+		)
+	var helper_record: Dictionary = {}
+	for record_value in scan_result.get("scripts", []):
+		if str((record_value as Dictionary).get("path", "")) == "res://tests/fixtures/helper.gd":
+			helper_record = record_value
+			break
+	_check(
+		str(helper_record.get("autoload", {}).get("name", "")) == "FixtureHelperService",
+		"Scanner should classify matching ProjectSettings autoload entries."
+	)
 
 	var builder = _builder_script.new()
 	_snapshot = (
@@ -260,6 +291,10 @@ func _test_scan_and_graph() -> void:
 	_check(
 		_find_node(_snapshot, "res://tests/fixtures/child.gd").get("name", "") == "FixtureChild",
 		"Graph should preserve class display names."
+	)
+	_check(
+		_find_node(_snapshot, "res://tests/fixtures/base.gd").get("scene_usages", []).size() == 1,
+		"Graph should attach exact scene usage evidence to the referenced script node."
 	)
 	_check(
 		_has_edge(
@@ -452,6 +487,17 @@ func _test_showcase_graph() -> void:
 		"Showcase graph should retain exact member provenance for direct class-member use."
 	)
 	_check(
+		_edge_member_link_has_location(
+			_showcase_snapshot.get("edges", []),
+			"res://examples/showcase/actors/base_actor.gd",
+			"res://examples/showcase/services/damage_service.gd",
+			"uses",
+			"method",
+			"attack_power"
+		),
+		"Showcase relationship provenance should retain an exact source occurrence location."
+	)
+	_check(
 		_find_node(_showcase_snapshot, "native://Node").get("name", "") == "Node",
 		"Showcase graph should include native inheritance."
 	)
@@ -470,11 +516,11 @@ func _test_graph_presentation() -> void:
 		"signal_color": "445566",
 		"method_color": "778899",
 		"metadata_color": "aabbcc",
-		"user_script_color": "4f7cac",
-		"native_class_color": "65737e",
-		"inheritance_edge_color": "d8dee9",
-		"dependency_edge_color": "e5c07b",
-		"type_dependency_edge_color": "56b6c2",
+		"user_script_color": "005a8d",
+		"native_class_color": "59616d",
+		"inheritance_edge_color": "e5e7eb",
+		"dependency_edge_color": "e69f00",
+		"type_dependency_edge_color": "56b4e9",
 		"object_family_color": "101010",
 		"ref_counted_family_color": "202020",
 		"node_family_color": "334455",
@@ -488,13 +534,39 @@ func _test_graph_presentation() -> void:
 		"kind": "user",
 		"path": "res://presentation_example.gd",
 		"inheritance_family": "node",
-		"properties": [{"name": "target", "type": "FixtureBase"}],
-		"signals": [{"name": "changed", "arguments": "value: int"}],
+		"autoload": {"name": "PresentationService", "singleton": true},
+		"scene_usages": [
+			{
+				"scene_path": "res://presentation_scene.tscn",
+				"node_path": "Root/Consumer",
+				"script_path": "res://presentation_example.gd",
+				"line": 8,
+				"column": 1,
+				"evidence": "tscn_node_script_attachment",
+			}
+		],
+		"properties": [{"name": "target", "type": "FixtureBase", "source_location": {"line": 3, "column": 1}}],
+		"signals": [{"name": "changed", "arguments": "value: int", "source_location": {"line": 4, "column": 1}}],
 		"methods": [
 			{
 				"name": "resolve",
 				"arguments": "target: FixtureBase",
 				"return_type": "FixtureHelper",
+				"source_location": {"line": 7, "column": 1},
+			}
+		],
+		"inner_classes": [
+			{"name": "LocalState", "source_location": {"line": 10, "column": 1}}
+		],
+		"relationship_occurrences": [
+			{
+				"kind": "uses",
+				"target_id": "res://tests/fixtures/helper.gd",
+				"target_name": "FixtureHelper",
+				"source_member": {"kind": "method", "name": "resolve"},
+				"target_member": {"kind": "method", "name": "make"},
+				"source_location": {"line": 12, "column": 5},
+				"evidence": "class_member_access",
 			}
 		],
 	}
@@ -510,26 +582,75 @@ func _test_graph_presentation() -> void:
 			"show_property_types": false,
 		}
 	)
-	var compact_labels: Array[String] = _collect_label_texts(compact_node)
-	_check(compact_node.custom_minimum_size.x == 240.0, "Script nodes should use the configured width.")
+	var source_request: Dictionary = {}
+	compact_node.source_requested.connect(
+		func(path: String, line: int, column: int) -> void:
+			source_request["path"] = path
+			source_request["line"] = line
+			source_request["column"] = column
+	)
+	var scene_request: Dictionary = {}
+	compact_node.scene_requested.connect(
+		func(path: String, line: int, column: int) -> void:
+			scene_request["path"] = path
+			scene_request["line"] = line
+			scene_request["column"] = column
+	)
+	var compact_labels: Array[String] = _collect_control_texts(compact_node)
+	_check(compact_node.custom_minimum_size.x >= 240.0 and compact_node.custom_minimum_size.x <= 420.0, "Script nodes should remain within configured width bounds.")
 	_check(compact_labels.has("target"), "Compact properties should display only their names.")
 	_check(compact_labels.has("changed"), "Compact signals should display only their names.")
 	_check(compact_labels.has("resolve"), "Compact methods should display only their names.")
+	_check(compact_labels.has("LocalState"), "Inner classes should be visible and navigable.")
+	_check(
+		compact_labels.has("member use → FixtureHelper.make"),
+		"Exact relationship occurrences should be visible as source-navigation actions."
+	)
 	_check(not compact_labels.has("target: FixtureBase"), "Compact properties must omit types.")
 	_check(compact_node.title == "PresentationExample", "Graph title should contain only the display name.")
 	_check(compact_node.tooltip_text.is_empty(), "The entire GraphNode must not mask child tooltips.")
-	var path_button: Button = _find_button(compact_node, "…")
+	var path_button: Button = _find_button(compact_node, "Copy")
 	_check(
 		path_button != null
 		and path_button.tooltip_text.contains("res://presentation_example.gd")
-		and path_button.tooltip_text.contains("Press to copy"),
+		and path_button.tooltip_text.contains("Copy script path"),
 		"A keyboard-focusable child action should expose and copy the complete script path."
 	)
-	var compact_method_label: Label = _find_label(compact_node, "resolve")
+	var compact_method_label: Button = _find_button(compact_node, "resolve")
 	_check(
 		compact_method_label != null
-		and compact_method_label.tooltip_text == "resolve",
-		"Member labels should retain their own tooltips."
+		and compact_method_label.tooltip_text.begins_with("resolve")
+		and compact_method_label.tooltip_text.contains("open the declaration"),
+		"Member actions should retain their own tooltips."
+	)
+	if compact_method_label != null:
+		compact_method_label.pressed.emit()
+	_check(
+		str(source_request.get("path", "")) == "res://presentation_example.gd"
+		and int(source_request.get("line", 0)) == 7,
+		"Member actions must emit exact script declaration locations."
+	)
+	var reference_button: Button = _find_button(compact_node, "member use → FixtureHelper.make")
+	if reference_button != null:
+		reference_button.pressed.emit()
+	_check(
+		reference_button != null
+		and int(source_request.get("line", 0)) == 12
+		and int(source_request.get("column", 0)) == 5,
+		"Relationship actions must open the exact dependency occurrence rather than only the member declaration."
+	)
+	var scene_button: Button = _find_button(compact_node, "↗ presentation_scene.tscn · Root/Consumer")
+	if scene_button != null:
+		scene_button.pressed.emit()
+	_check(
+		scene_button != null
+		and str(scene_request.get("path", "")) == "res://presentation_scene.tscn"
+		and int(scene_request.get("line", 0)) == 8,
+		"Scene-usage actions must emit the exact scene evidence location."
+	)
+	_check(
+		compact_labels.has("User · Node family · Autoload"),
+		"Autoload classification must remain visible without relying on color."
 	)
 	var compact_panel = compact_node.get_theme_stylebox("panel") as StyleBoxFlat
 	_check(
@@ -558,17 +679,17 @@ func _test_graph_presentation() -> void:
 			"show_property_types": true,
 		}
 	)
-	var full_labels: Array[String] = _collect_label_texts(full_node)
+	var full_labels: Array[String] = _collect_control_texts(full_node)
 	_check(full_labels.has("target: FixtureBase"), "Full properties should display types.")
 	_check(full_labels.has("signal changed(value: int)"), "Full signals should display signatures.")
 	_check(
 		full_labels.has("resolve(target: FixtureBase) -> FixtureHelper"),
 		"Full methods should display arguments and return types."
 	)
-	var property_label: Label = _find_label(full_node, "target: FixtureBase")
+	var property_label: Button = _find_button(full_node, "target: FixtureBase")
 	_check(
 		property_label != null and property_label.modulate.is_equal_approx(Color("112233")),
-		"Property labels should use the configured member color."
+		"Property actions should use the configured member color."
 	)
 	full_node.queue_free()
 
@@ -858,12 +979,14 @@ func _test_member_rendered_connections() -> void:
 	dock.queue_free()
 
 
-func _collect_label_texts(parent: Node) -> Array[String]:
+func _collect_control_texts(parent: Node) -> Array[String]:
 	var values: Array[String] = []
 	for child in parent.get_children():
 		if child is Label:
 			values.append((child as Label).text)
-		values.append_array(_collect_label_texts(child))
+		elif child is Button:
+			values.append((child as Button).text)
+		values.append_array(_collect_control_texts(child))
 	return values
 
 
@@ -976,6 +1099,19 @@ func _test_exporters() -> void:
 		and str(member_mermaid["text"]).contains("attack_power() to calculate_damage() uses"),
 		"Mermaid class diagrams should preserve member specificity in the relationship label."
 	)
+	var scoped_snapshot: Dictionary = _snapshot.duplicate(true)
+	if not scoped_snapshot.get("nodes", []).is_empty():
+		(scoped_snapshot["nodes"][0] as Dictionary)["scope_role"] = "context"
+		var scoped_mermaid = service.export_to_string("mermaid", scoped_snapshot)
+		var scoped_plantuml = service.export_to_string("plantuml", scoped_snapshot)
+		_check(
+			scoped_mermaid["ok"] and str(scoped_mermaid["text"]).contains("(context)"),
+			"Mermaid exports must label required out-of-scope context without relying on color."
+		)
+		_check(
+			scoped_plantuml["ok"] and str(scoped_plantuml["text"]).contains("<<context>>"),
+			"PlantUML exports must label required out-of-scope context without relying on color."
+		)
 	var first_json = service.export_to_string("json", _snapshot)["text"]
 	var second_json = service.export_to_string("json", _snapshot)["text"]
 	_check(first_json == second_json, "Export output should be deterministic.")
@@ -994,6 +1130,13 @@ func _test_exporters() -> void:
 	_check(
 		replacement_result["ok"] and FileAccess.file_exists(replacement_result["path"]),
 		"Staged file export should replace an existing destination."
+	)
+	var nested_result = service.export_to_file(
+		"json", "user://dependency_inspector_nested/one/two/graph", _snapshot
+	)
+	_check(
+		nested_result["ok"] and FileAccess.file_exists(nested_result["path"]),
+		"File export should create missing parent directories for configured automation paths."
 	)
 
 
@@ -1098,6 +1241,36 @@ func _edge_has_member_link(
 				and str(source_member.get("name", "")) == source_name
 				and str(target_member.get("kind", "")) == target_kind
 				and str(target_member.get("name", "")) == target_name
+			):
+				return true
+	return false
+
+
+func _edge_member_link_has_location(
+	edges: Array,
+	source: String,
+	target: String,
+	kind: String,
+	source_kind: String,
+	source_name: String
+) -> bool:
+	for edge_value in edges:
+		var edge: Dictionary = edge_value
+		if (
+			str(edge.get("source", "")) != source
+			or str(edge.get("target", "")) != target
+			or str(edge.get("kind", "")) != kind
+		):
+			continue
+		for link_value in edge.get("member_links", []):
+			var link: Dictionary = link_value
+			var source_member: Dictionary = link.get("source_member", {})
+			var location: Dictionary = link.get("source_location", {})
+			if (
+				str(source_member.get("kind", "")) == source_kind
+				and str(source_member.get("name", "")) == source_name
+				and int(location.get("line", 0)) > 0
+				and int(location.get("column", 0)) > 0
 			):
 				return true
 	return false

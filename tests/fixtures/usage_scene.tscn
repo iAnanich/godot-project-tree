@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/fixtures/base.gd" id="1_base"]
+
+[node name="UsageRoot" type="Node"]
+
+[node name="BaseConsumer" type="Node" parent="."]
+script = ExtResource("1_base")

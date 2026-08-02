@@ -1,0 +1,28 @@
+digraph UseCasesSynchronization {
+  graph [rankdir=LR, bgcolor="transparent", pad=0.25, nodesep=0.32, ranksep=0.65, fontname="DejaVu Sans", label="Synchronization and export use cases", labelloc=t, fontsize=18];
+  node [fontname="DejaVu Sans", fontsize=10.2, shape=box, style="rounded,filled", fillcolor="#F8FAFC", color="#334155", penwidth=1.15, margin="0.13,0.08"];
+  edge [fontname="DejaVu Sans", fontsize=8.5, color="#475569", arrowsize=0.65];
+
+  editor [shape=box, style="filled", label="Godot Editor", fillcolor="#EAF7EF"];
+  developer [shape=box, style="filled", label="Godot developer", fillcolor="#E8F3FF"];
+  tool [shape=box, style="filled", label="Diagram or\ndocumentation tool", fillcolor="#FFF5E6"];
+  fs [label="Filesystem change"];
+  debounce [label="Quiet-period debounce"];
+  scan [label="Run one non-overlapping scan"];
+  pending [shape=diamond, label="Change during scan?", fillcolor="#FFF7ED"];
+  validate [label="Validate snapshot"];
+  graphview [label="Render graph\nif enabled"];
+  json [label="JSON if enabled"];
+  mermaid [label="Mermaid if enabled"];
+  plantuml [label="PlantUML if enabled"];
+  timer [label="Timed fallback\n(default off)"];
+  suppress [shape=note, label="Suppress self-generated res:// events\nonly around configured writes", fillcolor="#FFF7ED"];
+
+  editor -> fs -> debounce -> scan -> pending;
+  pending -> validate [label="no"];
+  pending -> debounce [label="yes: one pending", style=dashed];
+  validate -> graphview; validate -> json; validate -> mermaid; validate -> plantuml;
+  json -> suppress [style=dashed]; mermaid -> suppress [style=dashed]; plantuml -> suppress [style=dashed];
+  json -> tool; mermaid -> tool; plantuml -> tool;
+  developer -> timer; timer -> scan [style=dashed, label="independent trigger"];
+}

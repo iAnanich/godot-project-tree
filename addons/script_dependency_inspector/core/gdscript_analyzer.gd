@@ -15,7 +15,9 @@ func analyze(source: String, script_path: String = "") -> Dictionary:
 	var result = {
 		"path": script_path,
 		"class_name": "",
+		"class_name_location": {},
 		"extends": {"kind": "none", "value": "", "raw": ""},
+		"extends_location": {},
 		"methods": [],
 		"signals": [],
 		"properties": [],
@@ -58,15 +60,18 @@ func analyze(source: String, script_path: String = "") -> Dictionary:
 
 		if declaration.begins_with("class_name "):
 			result["class_name"] = _first_identifier(declaration.trim_prefix("class_name "))
+			result["class_name_location"] = _location(line_index + 1, 1)
 			line_index += 1
 			continue
 
 		if declaration.begins_with("extends "):
 			result["extends"] = _parse_extends_expression(declaration.trim_prefix("extends "))
+			result["extends_location"] = _location(line_index + 1, 1)
 			line_index += 1
 			continue
 
 		if _is_function_declaration(declaration):
+			var declaration_line: int = line_index + 1
 			var combined = declaration
 			while _parenthesis_balance(combined) > 0 and line_index + 1 < lines.size():
 				line_index += 1
@@ -77,11 +82,12 @@ func analyze(source: String, script_path: String = "") -> Dictionary:
 						. strip_edges()
 					)
 				)
-			result["methods"].append(_parse_function(combined, annotations))
+			result["methods"].append(_parse_function(combined, annotations, declaration_line))
 			line_index += 1
 			continue
 
 		if declaration.begins_with("signal "):
+			var declaration_line: int = line_index + 1
 			var combined_signal = declaration
 			while _parenthesis_balance(combined_signal) > 0 and line_index + 1 < lines.size():
 				line_index += 1
@@ -92,18 +98,20 @@ func analyze(source: String, script_path: String = "") -> Dictionary:
 						. strip_edges()
 					)
 				)
-			result["signals"].append(_parse_signal(combined_signal))
+			result["signals"].append(_parse_signal(combined_signal, declaration_line))
 			line_index += 1
 			continue
 
 		if _is_variable_declaration(declaration):
-			result["properties"].append(_parse_property(declaration, annotations))
+			result["properties"].append(_parse_property(declaration, annotations, line_index + 1))
 			line_index += 1
 			continue
 
 		if declaration.begins_with("class ") and declaration.ends_with(":"):
 			var inner_tail = declaration.trim_prefix("class ").trim_suffix(":").strip_edges()
-			result["inner_classes"].append({"name": _first_identifier(inner_tail)})
+			result["inner_classes"].append(
+				{"name": _first_identifier(inner_tail), "source_location": _location(line_index + 1, 1)}
+			)
 
 		line_index += 1
 
@@ -267,7 +275,7 @@ func _is_function_declaration(declaration: String) -> bool:
 	return declaration.begins_with("func ") or declaration.begins_with("static func ")
 
 
-func _parse_function(declaration: String, annotations: Array) -> Dictionary:
+func _parse_function(declaration: String, annotations: Array, source_line: int = 0) -> Dictionary:
 	var work = declaration.strip_edges()
 	var is_static = work.begins_with("static func ")
 	if is_static:
@@ -303,15 +311,21 @@ func _parse_function(declaration: String, annotations: Array) -> Dictionary:
 		"static": is_static,
 		"annotations": annotations.duplicate(),
 		"signature": _normalize_whitespace(signature),
+		"source_location": _location(source_line, 1),
 	}
 
 
-func _parse_signal(declaration: String) -> Dictionary:
+func _parse_signal(declaration: String, source_line: int = 0) -> Dictionary:
 	var work = declaration.trim_prefix("signal ").strip_edges()
 	var open_parenthesis = work.find("(")
 	if open_parenthesis < 0:
 		var simple_name = _first_identifier(work)
-		return {"name": simple_name, "arguments": "", "signature": "signal " + simple_name}
+		return {
+			"name": simple_name,
+			"arguments": "",
+			"signature": "signal " + simple_name,
+			"source_location": _location(source_line, 1),
+		}
 	var close_parenthesis = _matching_parenthesis(work, open_parenthesis)
 	var arguments = ""
 	if close_parenthesis > open_parenthesis:
@@ -321,14 +335,19 @@ func _parse_signal(declaration: String) -> Dictionary:
 			. strip_edges()
 		)
 	var name = _first_identifier(work.substr(0, open_parenthesis))
-	return {"name": name, "arguments": arguments, "signature": "signal %s(%s)" % [name, arguments]}
+	return {
+		"name": name,
+		"arguments": arguments,
+		"signature": "signal %s(%s)" % [name, arguments],
+		"source_location": _location(source_line, 1),
+	}
 
 
 func _is_variable_declaration(declaration: String) -> bool:
 	return declaration.begins_with("var ") or declaration.begins_with("static var ")
 
 
-func _parse_property(declaration: String, annotations: Array) -> Dictionary:
+func _parse_property(declaration: String, annotations: Array, source_line: int = 0) -> Dictionary:
 	var work = declaration.strip_edges()
 	var is_static = work.begins_with("static var ")
 	if is_static:
@@ -356,6 +375,7 @@ func _parse_property(declaration: String, annotations: Array) -> Dictionary:
 		"static": is_static,
 		"annotations": annotations.duplicate(),
 		"declaration": _normalize_whitespace(declaration),
+		"source_location": _location(source_line, 1),
 	}
 
 
@@ -464,6 +484,10 @@ func _collect_resource_dependency_details(source: String) -> Array:
 			var detail = {
 				"path": dependency_path,
 				"source_member": source_member.duplicate(true),
+				"source_location": _location(
+					_source_line_number(source, token_start) + 1,
+					_source_column_number(source, token_start)
+				),
 				"evidence": token,
 			}
 			var detail_key = "%s|%s|%s|%s" % [
@@ -490,7 +514,7 @@ func _collect_declared_type_reference_details(analysis: Dictionary, source: Stri
 		var property: Dictionary = property_value
 		_append_type_expression_details(
 			str(property.get("type", "")),
-			{"kind": "property", "name": str(property.get("name", ""))},
+			_member_reference(property, "property"),
 			"property_type",
 			details
 		)
@@ -498,13 +522,13 @@ func _collect_declared_type_reference_details(analysis: Dictionary, source: Stri
 		var signal_data: Dictionary = signal_value
 		_append_argument_type_details(
 			str(signal_data.get("arguments", "")),
-			{"kind": "signal", "name": str(signal_data.get("name", ""))},
+			_member_reference(signal_data, "signal"),
 			"signal_argument_type",
 			details
 		)
 	for method_value in analysis.get("methods", []):
 		var method: Dictionary = method_value
-		var method_ref = {"kind": "method", "name": str(method.get("name", ""))}
+		var method_ref = _member_reference(method, "method")
 		_append_argument_type_details(
 			str(method.get("arguments", "")), method_ref, "method_argument_type", details
 		)
@@ -541,9 +565,11 @@ func _collect_source_scope_type_reference_details(source: String, details: Array
 		var declaration = without_comment.strip_edges()
 		if declaration.is_empty() or _indent_width(without_comment) <= 0:
 			continue
-		var source_member: Dictionary = scope_by_line.get(line_index, {})
+		var source_member: Dictionary = scope_by_line.get(line_index, {}).duplicate(true)
 		if source_member.is_empty():
 			continue
+		# Keep the enclosing member declaration as the member reference. The exact
+		# occurrence is stored separately on each dependency detail.
 		if _is_variable_declaration(declaration):
 			var local_property = _parse_property(declaration, [])
 			_append_type_expression_details(
@@ -594,6 +620,7 @@ func _append_type_expression_details(
 			{
 				"symbol": str(symbol_value),
 				"source_member": source_member.duplicate(true),
+				"source_location": source_member.get("source_location", {}).duplicate(true),
 				"evidence": evidence,
 			}
 		)
@@ -664,6 +691,10 @@ func _collect_member_accesses(source: String) -> Array:
 			"target_symbol": target_symbol,
 			"target_member": {"kind": member_kind, "name": member_name},
 			"source_member": source_member.duplicate(true),
+			"source_location": _location(
+				_source_line_number(source, symbol_start) + 1,
+				_source_column_number(source, symbol_start)
+			),
 			"evidence": "class_member_access",
 		}
 		var key = "%s|%s|%s|%s|%s" % [
@@ -704,20 +735,46 @@ func _member_scope_by_line(source: String) -> Dictionary:
 			current_member = {}
 			current_indent = -1
 		if indent == 0 and _is_function_declaration(declaration):
-			var method = _parse_function(declaration, [])
-			current_member = {"kind": "method", "name": str(method.get("name", ""))}
+			var method = _parse_function(declaration, [], line_index + 1)
+			current_member = _member_reference(method, "method")
 			current_indent = 0
 			scope_by_line[line_index] = current_member.duplicate(true)
 			continue
 		if indent == 0 and _is_variable_declaration(declaration):
-			var property = _parse_property(declaration, [])
-			current_member = {"kind": "property", "name": str(property.get("name", ""))}
+			var property = _parse_property(declaration, [], line_index + 1)
+			current_member = _member_reference(property, "property")
 			current_indent = 0
 			scope_by_line[line_index] = current_member.duplicate(true)
 			continue
 		if not current_member.is_empty() and indent > current_indent:
 			scope_by_line[line_index] = current_member.duplicate(true)
 	return scope_by_line
+
+
+func _member_reference(member: Dictionary, kind: String) -> Dictionary:
+	return {
+		"kind": kind,
+		"name": str(member.get("name", "")),
+		"source_location": member.get("source_location", {}).duplicate(true),
+	}
+
+
+func _location(line: int, column: int) -> Dictionary:
+	if line <= 0:
+		return {}
+	return {"line": line, "column": maxi(1, column)}
+
+
+func _first_non_whitespace_column(line: String) -> int:
+	for index in range(line.length()):
+		if line.substr(index, 1) not in [" ", "\t"]:
+			return index + 1
+	return 1
+
+
+func _source_column_number(source: String, source_index: int) -> int:
+	var line_start = source.rfind("\n", source_index - 1)
+	return source_index - line_start
 
 
 func _source_line_number(source: String, source_index: int) -> int:

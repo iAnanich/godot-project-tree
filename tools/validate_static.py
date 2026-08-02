@@ -15,29 +15,98 @@ PLUGIN = ROOT / "addons" / "script_dependency_inspector"
 
 EXPECTED = [
     ROOT / "project.godot",
+    ROOT / ".gitignore",
     ROOT / "README.md",
     ROOT / "CONTRIBUTING.md",
     ROOT / "CHANGELOG.md",
+    ROOT / "LICENSE",
+    ROOT / "NOTICE",
+    ROOT / "AI_USAGE_NOTICE.md",
     ROOT / "docs" / "ARCHITECTURE.md",
+    ROOT / "docs" / "DESIGN.md",
+    ROOT / "docs" / "ASSET_STORE_DESCRIPTION.md",
     ROOT / "docs" / "SCHEMA.md",
     ROOT / "docs" / "SECURITY.md",
     ROOT / "docs" / "PERFORMANCE.md",
     ROOT / "docs" / "QUALITY_REVIEW.md",
-    ROOT / "docs" / "images" / "v0.1.6-default-dock.png",
-    ROOT / "docs" / "images" / "v0.1.6-summary.png",
-    ROOT / "docs" / "images" / "v0.1.6-advanced.png",
+    ROOT / "docs" / "GUIDANCE_APPLIED.md",
+    ROOT / "docs" / "USE_CASES.md",
+    ROOT / "docs" / "validation" / "v0.2.0-compatibility-matrix.md",
+    ROOT / "docs" / "validation" / "v0.2.1-compatibility-matrix.md",
+    ROOT / "docs" / "validation" / "v0.2.2-compatibility-matrix.md",
+    ROOT / "docs" / "validation" / "v0.2.2-release-validation.md",
+    ROOT / "docs" / "reviews" / "v0.2.0.md",
+    ROOT / "docs" / "ROADMAP.md",
+    ROOT / "docs" / "RELATED_PROJECTS.md",
+    ROOT / "docs" / "COMPREHENSION_TEST.md",
+    ROOT / "docs" / "diagrams" / "REVIEW.md",
+    ROOT / "docs" / "diagrams" / "use-cases-overview.dot",
+    ROOT / "docs" / "diagrams" / "use-cases-overview.svg",
+    ROOT / "docs" / "diagrams" / "use-cases-analysis.dot",
+    ROOT / "docs" / "diagrams" / "use-cases-analysis.svg",
+    ROOT / "docs" / "diagrams" / "use-cases-synchronization.dot",
+    ROOT / "docs" / "diagrams" / "use-cases-synchronization.svg",
+    ROOT / "docs" / "images" / ".gdignore",
+    ROOT / "docs" / "images" / "v0.1.7-overview.png",
+    ROOT / "docs" / "images" / "v0.1.7-analysis.png",
+    ROOT / "docs" / "images" / "v0.1.7-customization.png",
+    ROOT / "docs" / "images" / "v0.1.8-overview.png",
+    ROOT / "docs" / "images" / "v0.1.8-analysis.png",
+    ROOT / "docs" / "images" / "v0.1.8-member-links.png",
+    ROOT / "docs" / "images" / "v0.1.8-native-families.png",
+    ROOT / "docs" / "images" / "v0.1.8-automation.png",
+    ROOT / "docs" / "images" / "v0.1.8-option-tooltip.png",
+    ROOT / "docs" / "images" / "v0.1.8-colors.png",
+    ROOT / "docs" / "images" / "v0.1.8-appearance.png",
+    ROOT / "docs" / "images" / "v0.1.8-summary.png",
+    ROOT / "docs" / "images" / "v0.1.8-arranged.png",
+    ROOT / "docs" / "images" / "v0.2.0-overview.png",
+    ROOT / "docs" / "images" / "v0.2.0-search.png",
+    ROOT / "docs" / "images" / "v0.2.0-navigation.png",
+    ROOT / "docs" / "images" / "v0.2.0-context.png",
+    ROOT / "docs" / "images" / "v0.2.0-sync.png",
+    ROOT / "docs" / "images" / "v0.2.0-automation.png",
+    ROOT / "docs" / "images" / "v0.2.0-analysis.png",
+    ROOT / "docs" / "images" / "v0.2.0-summary.png",
+    ROOT / "docs" / "images" / "v0.2.1-overview.png",
+    ROOT / "docs" / "images" / "v0.2.1-scope.png",
+    ROOT / "docs" / "images" / "v0.2.1-focus.png",
+    ROOT / "docs" / "images" / "v0.2.1-isolated.png",
+    ROOT / "docs" / "images" / "v0.2.1-REVIEW.md",
+    ROOT / "docs" / "images" / "v0.2.2-overview.png",
+    ROOT / "docs" / "images" / "v0.2.2-export-only.png",
+    ROOT / "docs" / "images" / "v0.2.2-folded-controls.png",
+    ROOT / "docs" / "images" / "v0.2.2-automation.png",
+    ROOT / "docs" / "images" / "v0.2.2-REVIEW.md",
     ROOT / "docs" / "schema" / "snapshot-v1.schema.json",
+    ROOT / "docs" / "schema" / "snapshot-v2.schema.json",
     ROOT / "docs" / "decisions" / "0001-canonical-dictionary-snapshot.md",
     ROOT / "docs" / "decisions" / "0002-source-analysis-boundary.md",
+    ROOT / "docs" / "decisions" / "0003-automation-state-and-export-paths.md",
+    ROOT / "docs" / "decisions" / "0004-editor-synchronized-navigation.md",
+    ROOT / "docs" / "decisions" / "0005-scene-usage-evidence.md",
+    ROOT / "docs" / "decisions" / "0006-scoped-projection-and-focus.md",
+    ROOT / "docs" / "decisions" / "0007-optional-graph-and-control-hierarchy.md",
     PLUGIN / "plugin.cfg",
+    PLUGIN / "icon.svg",
+    PLUGIN / "LICENSE",
+    PLUGIN / "NOTICE",
+    PLUGIN / "AI_USAGE_NOTICE.md",
     PLUGIN / "plugin.gd",
     PLUGIN / "default_settings.tres",
     PLUGIN / "core" / "snapshot_validator.gd",
+    PLUGIN / "core" / "scene_usage_scanner.gd",
+    PLUGIN / "core" / "editor_state_store.gd",
+    PLUGIN / "core" / "snapshot_scope.gd",
+    PLUGIN / "core" / "graph_query.gd",
     PLUGIN / "ui" / "dependency_dock.tscn",
     PLUGIN / "ui" / "dependency_graph_node.tscn",
     ROOT / "tests" / "README.md",
     ROOT / "tests" / "test_runner.gd",
+    ROOT / "tests" / "automation_runner.gd",
+    ROOT / "tests" / "visual_showcase_runner.gd",
     ROOT / "tests" / "performance_runner.gd",
+    ROOT / "tests" / "export_matrix_runner.gd",
     ROOT / "tests" / "generate_showcase_exports.gd",
     ROOT / "tests" / "contracts" / "exporter_contract.gd",
     ROOT / "tests" / "suites" / "quality_contract_suite.gd",
@@ -45,6 +114,7 @@ EXPECTED = [
     ROOT / "tools" / "build_release.py",
     ROOT / "examples" / "showcase" / "README.md",
     ROOT / "examples" / "showcase" / "services" / "targeting_service.gd",
+    ROOT / "examples" / "showcase" / "scenes" / "battle_demo.tscn",
     ROOT / "examples" / "showcase" / "representations" / "showcase.json",
     ROOT / "examples" / "showcase" / "representations" / "showcase.mmd",
     ROOT / "examples" / "showcase" / "representations" / "showcase.puml",
@@ -61,6 +131,8 @@ ALLOWED_SYNTHETIC_RES_PATHS = {
     "res://b.gd",
     "res://grandchild.gd",
     "res://presentation_example.gd",
+    "res://presentation_scene.tscn",
+    "res://legacy.mmd",
     "res://object_script.gd",
     "res://ref_counted_script.gd",
     "res://node_script.gd",
@@ -70,11 +142,23 @@ ALLOWED_SYNTHETIC_RES_PATHS = {
     "res://performance_fixture.gd",
     "res://synthetic",
     "res://../outside",
+    "res://.godot",
     "res://.godot/",
+    "res://script_dependency_exports",
+    "res://feature",
+    "res://feature/child.gd",
+    "res://shared/base.gd",
+    "res://shared/service.gd",
+    "res://unrelated/other.gd",
+    "res://scene.tscn",
+    "res://other.tscn",
 }
 
 ALLOWED_SYNTHETIC_RES_PREFIXES = (
     "res://synthetic/",
+    "res://script_dependency_exports/",
+    "res://generated/",
+    "res://.godot/script_dependency_inspector/",
 )
 
 failures: list[str] = []
@@ -87,6 +171,12 @@ def check(condition: bool, message: str) -> None:
     checks += 1
     if not condition:
         failures.append(message)
+
+
+check(
+    not (ROOT / "script_dependency_exports").exists(),
+    "Default automatic exports must not be committed to the source tree.",
+)
 
 
 def res_to_path(value: str) -> Path | None:
@@ -196,6 +286,10 @@ def validate_plugin_contract() -> None:
     check("extends EditorPlugin" in plugin_script, "Plugin entry point must extend EditorPlugin.")
     check("add_control_to_dock(" in plugin_script, "Plugin does not register its dock.")
     check("remove_control_from_docks(" in plugin_script, "Plugin does not remove its dock.")
+    check(
+        '@icon("res://addons/script_dependency_inspector/icon.svg")' in plugin_script,
+        "Plugin entry point does not declare the bundled editor icon.",
+    )
 
     project = (ROOT / "project.godot").read_text(encoding="utf-8")
     check(
@@ -279,7 +373,7 @@ def validate_runtime_dependency_policy() -> None:
                     resolved[name] = resolved[concat_match.group(1)] + suffix
                     made_progress = True
         for name, value in sorted(resolved.items()):
-            if not name.endswith("_PATH"):
+            if not name.endswith("_PATH") or name in {"EDITOR_STATE_PATH"}:
                 continue
             path_constants += 1
             target = res_to_path(value)
@@ -311,7 +405,17 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.1.6"' in plugin_cfg, "plugin.cfg version is not 0.1.6.")
+    check('version="0.2.2"' in plugin_cfg, "plugin.cfg version is not 0.2.2.")
+
+    release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
+    check(
+        '".git"' in release_builder and "EXCLUDED_DIRECTORY_NAMES" in release_builder,
+        "Release builder must exclude VCS metadata from archives and manifests.",
+    )
+    check(
+        '".import"' in release_builder and 'path.suffix in {".uid", ".import"}' in release_builder,
+        "Release builder must exclude generated Godot import sidecars from archives and manifests.",
+    )
 
     showcase_json = ROOT / "examples" / "showcase" / "representations" / "showcase.json"
     if showcase_json.is_file():
@@ -322,7 +426,7 @@ def validate_release_regressions() -> None:
         except json.JSONDecodeError as error:
             check(False, f"Showcase JSON is invalid: {error}")
         else:
-            check(snapshot.get("schema_version") == 1, "Showcase JSON schema version is invalid.")
+            check(snapshot.get("schema_version") == 2, "Showcase JSON schema version is invalid.")
             check(len(snapshot.get("nodes", [])) == 25, "Showcase JSON should contain 25 nodes.")
             check(len(snapshot.get("edges", [])) == 36, "Showcase JSON should contain 36 edges.")
             type_edges = [edge for edge in snapshot.get("edges", []) if edge.get("kind") == "type_uses"]
@@ -349,6 +453,14 @@ def validate_release_regressions() -> None:
                 "Showcase JSON is missing the member-to-member damage-service dependency.",
             )
             check(not snapshot.get("errors", []), "Showcase JSON contains graph errors.")
+            check(len(snapshot.get("scene_usages", [])) == 1, "Showcase JSON should contain one exact scene usage.")
+            check(
+                any(
+                    node.get("autoload", {}).get("name") == "BattleCoordinator"
+                    for node in snapshot.get("nodes", [])
+                ),
+                "Showcase JSON is missing the development-project autoload classification.",
+            )
 
 def validate_v014_feature_contracts() -> None:
     settings = (PLUGIN / "core" / "settings.gd").read_text(encoding="utf-8")
@@ -398,7 +510,7 @@ def validate_v014_feature_contracts() -> None:
     check('get_parent_class' in builder, "Native intermediary bases must be discovered through ClassDB.")
     check(
         'tooltip_text = ""' in node_script
-        and 'path_button.tooltip_text = "Script path:\\n%s\\n\\nPress to copy." % path' in node_script
+        and 'path_button.tooltip_text = "Copy script path:\\n%s" % path' in node_script
         and 'DisplayServer.clipboard_set(path)' in node_script,
         "GraphNode-wide tooltip masking or keyboard-accessible path tooltip contract is missing.",
     )
@@ -408,8 +520,110 @@ def validate_v014_feature_contracts() -> None:
           "Rendered GraphEdit connections must point dependency/base to dependent for arrangement.")
 
 
+def validate_v020_feature_contracts() -> None:
+    settings = (PLUGIN / "core" / "settings.gd").read_text(encoding="utf-8")
+    scanner = (PLUGIN / "core" / "project_scanner.gd").read_text(encoding="utf-8")
+    scene_scanner = (PLUGIN / "core" / "scene_usage_scanner.gd").read_text(encoding="utf-8")
+    builder = (PLUGIN / "core" / "graph_builder.gd").read_text(encoding="utf-8")
+    validator = (PLUGIN / "core" / "snapshot_validator.gd").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    dock_scene = (PLUGIN / "ui" / "dependency_dock.tscn").read_text(encoding="utf-8")
+    node = (PLUGIN / "ui" / "dependency_graph_node.gd").read_text(encoding="utf-8")
+    state_store = (PLUGIN / "core" / "editor_state_store.gd").read_text(encoding="utf-8")
+    for token in ["sync_on_editor_changes", "editor_change_debounce_seconds", "follow_active_script"]:
+        check(token in settings and token in dock and token in state_store, f"Missing editor synchronization contract: {token}")
+    check('auto_rescan_enabled: bool = false' in settings, "Timed rescan must remain disabled by default.")
+    for node_name in ["SearchInput", "PreviousMatch", "NextMatch", "SyncOnEditorChanges", "EditorSyncDebounce", "FollowActiveScript"]:
+        check(f'name="{node_name}"' in dock_scene, f"Dock scene is missing v0.2.0 control: {node_name}")
+    check("source_requested" in node and "scene_requested" in node, "Graph node navigation signals are missing.")
+    check("_apply_search" in dock and "_focus_node_id" in dock, "Search/focus implementation is missing.")
+    check("_on_editor_filesystem_changed" in dock and "_editor_change_pending" in dock, "Editor refresh lifecycle is missing.")
+    check("_autoload_index" in scanner and '"autoload"' in builder, "Autoload classification is missing.")
+    check("tscn_node_script_attachment" in scene_scanner and '"scene_usages"' in builder, "Scene usage evidence is missing.")
+    check('"source_location": source_location' in builder, "Relationship occurrence locations are missing from canonical member links.")
+    check("relationship_occurrences" in dock and '"References"' in node, "Exact relationship occurrence navigation is missing.")
+    check('"Inner classes"' in node, "Inner-class declaration navigation is missing.")
+    check("SUPPORTED_SCHEMA_VERSION: int = 2" in validator, "Snapshot validator does not enforce schema v2.")
+    check(
+        "STATE_SCHEMA_VERSION: int = 4" in state_store
+        and "loaded_schema not in [1, 2, 3, STATE_SCHEMA_VERSION]" in state_store,
+        "Editor state v1/v2/v3 migration and schema-v4 contract is missing.",
+    )
+
+
+def validate_v021_feature_contracts() -> None:
+    scope = (PLUGIN / "core" / "snapshot_scope.gd").read_text(encoding="utf-8")
+    query = (PLUGIN / "core" / "graph_query.gd").read_text(encoding="utf-8")
+    validator = (PLUGIN / "core" / "snapshot_validator.gd").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    dock_scene = (PLUGIN / "ui" / "dependency_dock.tscn").read_text(encoding="utf-8")
+    node = (PLUGIN / "ui" / "dependency_graph_node.gd").read_text(encoding="utf-8")
+    mermaid = (PLUGIN / "export" / "mermaid_exporter.gd").read_text(encoding="utf-8")
+    plantuml = (PLUGIN / "export" / "plantuml_exporter.gd").read_text(encoding="utf-8")
+    for token in ["scope_role", "required_ancestor", "required_dependency", "scope_summary"]:
+        check(token in scope, f"Scoped projection contract is missing: {token}")
+    for token in ["descendant_counts", "relationship_focus_ids", "neighborhood_ids"]:
+        check(token in query, f"Graph presentation query is missing: {token}")
+    check('str(edge.get("kind", "")) == "extends"' in query,
+          "Neighborhood queries must keep descendant inclusion controlled by the explicit option.")
+    for node_name in ["ScopeOption", "ChooseScope", "IncludeDescendants", "IsolateNeighborhood", "ClearFocus", "FocusStatus"]:
+        check(f'name="{node_name}"' in dock_scene, f"Dock scene is missing v0.2.1 control: {node_name}")
+    for token in ["_set_scan_root", "_update_relationship_focus", "_clear_relationship_focus", "_populate_scope_options"]:
+        check(token in dock, f"Dock is missing v0.2.1 orchestration: {token}")
+    check("Context" in node and "scope_reason" in node,
+          "Graph nodes must communicate retained context in text.")
+    check('(context)' in mermaid, "Mermaid must label retained context nodes.")
+    check('<<context>>' in plantuml, "PlantUML must label retained context nodes.")
+    for code in ["invalid_scope_role", "missing_scope_role", "scope_summary_mismatch"]:
+        check(code in validator, f"Snapshot validator is missing v0.2.1 scope code: {code}")
+    use_cases = (ROOT / "docs" / "USE_CASES.md").read_text(encoding="utf-8")
+    for use_case in ["UC-01", "UC-02", "UC-04", "UC-05", "UC-11"]:
+        check(use_case in use_cases, f"Use-case catalogue is missing {use_case}.")
+    diagram_review = (ROOT / "docs" / "diagrams" / "REVIEW.md").read_text(encoding="utf-8")
+    check("Text alternative" in use_cases and "review" in diagram_review.lower(),
+          "Use-case diagrams need text alternatives and a rendered-review record.")
+
+
+
+def validate_v022_feature_contracts() -> None:
+    settings = (PLUGIN / "core" / "settings.gd").read_text(encoding="utf-8")
+    state_store = (PLUGIN / "core" / "editor_state_store.gd").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    dock_scene = (PLUGIN / "ui" / "dependency_dock.tscn").read_text(encoding="utf-8")
+    for node_name in [
+        "ScanModeIndicator", "ShowGraph", "FormatOption",
+        "ContentSourcesHeader", "ContentMembersHeader", "ContentRelationsHeader", "ContentExportHeader",
+        "AppearanceSizingHeader", "AppearanceDensityHeader", "AppearanceLayoutHeader",
+        "ColorsNodesHeader", "ColorsMembersHeader", "ColorsRelationsHeader", "ColorsFamiliesHeader",
+        "AutomationEditorHeader", "AutomationTimedHeader", "AutomationExportHeader",
+    ]:
+        check(f'name="{node_name}"' in dock_scene, f"Dock scene is missing v0.2.2 control: {node_name}")
+    check('custom_minimum_size = Vector2(80, 0)' in dock_scene and 'fit_to_longest_item = false' in dock_scene,
+          "Manual export format selector must remain compact.")
+    check('name="ToolbarSeparator"' in dock_scene and 'name="ToolbarActionGap"' in dock_scene,
+          "Scan and Export action groups need explicit separation.")
+    for token in [
+        "_update_scan_mode_indicator", "_apply_graph_view_visibility", "_clear_rendered_graph",
+        "_setup_fold_sections", "_apply_fold_section",
+    ]:
+        check(token in dock, f"Dock is missing v0.2.2 orchestration: {token}")
+    check("graph_view_enabled: bool = true" in settings and '"control_section_expanded"' in settings,
+          "Default graph visibility and fold-state settings are missing.")
+    check("STATE_SCHEMA_VERSION: int = 4" in state_store and '"graph_view_enabled"' in state_store
+          and '"control_section_expanded"' in state_store,
+          "Editor-state schema v4 graph/fold contract is missing.")
+    use_cases = (ROOT / "docs" / "USE_CASES.md").read_text(encoding="utf-8")
+    check("UC-12" in use_cases and "UC-13" in use_cases and "export-only" in use_cases.lower(),
+          "Use-case layer is missing export-only/control-configuration workflows.")
+    ai_notice = (ROOT / "AI_USAGE_NOTICE.md").read_text(encoding="utf-8")
+    for heading in ["How AI was used", "Human direction and supervision", "Quality-control measures", "Provenance and licensing boundary"]:
+        check(heading in ai_notice, f"AI notice is missing section: {heading}")
+    store = (ROOT / "docs" / "ASSET_STORE_DESCRIPTION.md").read_text(encoding="utf-8")
+    for phrase in ["third-party", "larger canvas", "AI-assisted development disclosure"]:
+        check(phrase.lower() in store.lower(), f"Store description is missing v0.2.2 disclosure/export message: {phrase}")
+
 def validate_schema_contract() -> None:
-    schema_path = ROOT / "docs" / "schema" / "snapshot-v1.schema.json"
+    schema_path = ROOT / "docs" / "schema" / "snapshot-v2.schema.json"
     showcase_path = ROOT / "examples" / "showcase" / "representations" / "showcase.json"
     try:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
@@ -437,10 +651,72 @@ def validate_schema_contract() -> None:
             )
             check(
                 not errors,
-                "Showcase JSON violates snapshot-v1 schema: "
+                "Showcase JSON violates snapshot-v2 schema: "
                 + "; ".join(error.message for error in errors[:5]),
             )
     check("diagnostics" in snapshot, "Showcase JSON should expose structured diagnostics.")
+
+
+def _hex_rgb(value: str) -> tuple[float, float, float]:
+    return tuple(int(value[index:index + 2], 16) / 255.0 for index in (0, 2, 4))  # type: ignore[return-value]
+
+
+def _linear_component(value: float) -> float:
+    return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+
+
+def _luminance(value: str) -> float:
+    red, green, blue = (_linear_component(component) for component in _hex_rgb(value))
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+
+def _contrast(first: str, second: str) -> float:
+    first_luminance, second_luminance = _luminance(first), _luminance(second)
+    lighter, darker = max(first_luminance, second_luminance), min(first_luminance, second_luminance)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def _simulate_cvd(value: str, matrix: tuple[tuple[float, float, float], ...]) -> tuple[float, float, float]:
+    channels = _hex_rgb(value)
+    return tuple(
+        max(0.0, min(1.0, sum(matrix[row][column] * channels[column] for column in range(3))))
+        for row in range(3)
+    )  # type: ignore[return-value]
+
+
+def validate_default_color_contract() -> None:
+    settings = (PLUGIN / "core" / "settings.gd").read_text(encoding="utf-8")
+    values = dict(re.findall(r"@export var (\w+_color): Color = Color\(\"([0-9a-fA-F]{6})\"\)", settings))
+    required = {
+        "user_script_color": "005a8d",
+        "addon_script_color": "8f4f79",
+        "native_class_color": "59616d",
+        "external_class_color": "9a6500",
+        "inheritance_edge_color": "e5e7eb",
+        "dependency_edge_color": "e69f00",
+        "type_dependency_edge_color": "56b4e9",
+    }
+    for key, expected in required.items():
+        check(values.get(key, "").lower() == expected, f"Unexpected default palette value for {key}.")
+    for key in ("user_script_color", "addon_script_color", "native_class_color", "external_class_color"):
+        if key in values:
+            check(_contrast(values[key], "ffffff") >= 4.5,
+                  f"Default node fill does not preserve readable white text contrast: {key}")
+    # Color is not the sole encoding: edge kinds also use labels, toggles, and line semantics.
+    # This simulation guards only against the three default edge colors collapsing together.
+    matrices = (
+        ((0.152286, 1.052583, -0.204868), (0.114503, 0.786281, 0.099216), (-0.003882, -0.048116, 1.051998)),
+        ((0.367322, 0.860646, -0.227968), (0.280085, 0.672501, 0.047413), (-0.011820, 0.042940, 0.968881)),
+    )
+    edge_keys = ("inheritance_edge_color", "dependency_edge_color", "type_dependency_edge_color")
+    for matrix in matrices:
+        simulated = {key: _simulate_cvd(values[key], matrix) for key in edge_keys if key in values}
+        for index, first in enumerate(edge_keys):
+            for second in edge_keys[index + 1:]:
+                if first not in simulated or second not in simulated:
+                    continue
+                distance = sum((simulated[first][channel] - simulated[second][channel]) ** 2 for channel in range(3)) ** 0.5
+                check(distance >= 0.30, f"Default edge colors collapse under CVD simulation: {first}, {second}")
 
 
 def validate_documentation_contract() -> None:
@@ -467,11 +743,17 @@ def validate_documentation_contract() -> None:
         "docs/ARCHITECTURE.md",
         "docs/SCHEMA.md",
         "docs/SECURITY.md",
+        "docs/COMPREHENSION_TEST.md",
+        "docs/ROADMAP.md",
+        "docs/RELATED_PROJECTS.md",
+        "docs/USE_CASES.md",
+        "docs/GUIDANCE_APPLIED.md",
+        "AI_USAGE_NOTICE.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md",
     ]:
         check(required_reference in readme, f"README does not link to {required_reference}.")
-    check("0.1.6" in readme, "README release identifier is not 0.1.6.")
+    check("0.2.2" in readme, "README release identifier is not 0.2.2.")
 
 
 def validate_quality_contracts() -> None:
@@ -498,6 +780,19 @@ def validate_quality_contracts() -> None:
         "dangling_edge_target",
         "unknown_member_reference",
         "invalid_diagnostic_severity",
+        "invalid_scene_usage",
+        "duplicate_scene_usage",
+        "invalid_node_scene_usage",
+        "node_scene_usage_script_mismatch",
+        "duplicate_node_scene_usage",
+        "orphan_node_scene_usage",
+        "missing_node_scene_usage",
+        "invalid_source_location",
+        "invalid_scope_role",
+        "missing_scope_role",
+        "missing_scope_index_root",
+        "in_scope_node_outside_root",
+        "scope_summary_mismatch",
     ]:
         check(code in validator, f"Snapshot validator is missing issue code: {code}")
     check("follow_symbolic_links" in scanner and "invalid_scan_root" in scanner,
@@ -536,6 +831,14 @@ def validate_exporter_contracts() -> None:
     check('_member_relation_label' in mermaid and 'show_member_dependency_edges' in mermaid,
           "Mermaid member-specific relation labeling is missing.")
     check("@startuml" in plantuml and "@enduml" in plantuml, "PlantUML markers are missing.")
+    exporter_base = (PLUGIN / "export" / "exporter.gd").read_text(encoding="utf-8")
+    service = (PLUGIN / "export" / "export_service.gd").read_text(encoding="utf-8")
+    check("_arguments_without_defaults" in exporter_base,
+          "Text exporters have no shared default-expression sanitizer.")
+    check("_mermaid_arguments" in mermaid and "_arguments_without_defaults(value)" in mermaid,
+          "Mermaid signature sanitization contract is missing.")
+    check("path.get_extension()" in service and "path.left(" in service,
+          "Export extension replacement contract is missing.")
 
 
 def run_command(command: list[str], description: str) -> None:
@@ -577,7 +880,11 @@ def main() -> int:
     validate_runtime_dependency_policy()
     validate_release_regressions()
     validate_v014_feature_contracts()
+    validate_v020_feature_contracts()
+    validate_v021_feature_contracts()
+    validate_v022_feature_contracts()
     validate_schema_contract()
+    validate_default_color_contract()
     validate_documentation_contract()
     validate_quality_contracts()
     validate_public_method_documentation()

@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -34,7 +35,7 @@ class GateResult:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run static, import, public-test, showcase-export, and performance gates "
+            "Run static, import, public-test, automation, export-matrix, showcase-export, visual-showcase, and performance gates "
             "in an isolated project copy."
         )
     )
@@ -54,8 +55,12 @@ def parse_args() -> argparse.Namespace:
 
 def copy_project(source: Path, destination: Path) -> None:
     def ignore(_directory: str, names: list[str]) -> set[str]:
-        ignored = {".godot", "validation-artifacts", "__pycache__"}
-        return {name for name in names if name in ignored}
+        generated_directories = {".godot", "validation-artifacts", "__pycache__"}
+        return {
+            name
+            for name in names
+            if name in generated_directories or name.endswith(".uid")
+        }
 
     shutil.copytree(source, destination, ignore=ignore)
 
@@ -90,36 +95,37 @@ def run_gate(
     output: Path,
 ) -> GateResult:
     started = time.monotonic()
-    try:
-        completed = subprocess.run(
-            command,
-            cwd=cwd,
-            env=environment,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=timeout,
-            check=False,
-        )
-        returncode = completed.returncode
-        log_text = completed.stdout
-    except subprocess.TimeoutExpired as error:
-        returncode = 124
-        partial = error.stdout or ""
-        if isinstance(partial, bytes):
-            partial = partial.decode("utf-8", errors="replace")
-        log_text = f"{partial}\nVALIDATION TIMEOUT after {timeout} seconds\n"
+    log_path = output / f"{name}.log"
+    timeout_command = [
+        shutil.which("timeout") or "timeout",
+        "--kill-after=5s",
+        f"{timeout}s",
+        *command,
+    ]
+    shell_command = (
+        f"{shlex.join(timeout_command)} > {shlex.quote(str(log_path))} 2>&1"
+    )
+    completed = subprocess.run(
+        ["bash", "-lc", shell_command],
+        cwd=cwd,
+        env=environment,
+        text=True,
+        check=False,
+    )
+    returncode = completed.returncode
+    if returncode in {124, 137}:
+        with log_path.open("a", encoding="utf-8") as log_file:
+            log_file.write(f"\nVALIDATION TIMEOUT after {timeout} seconds\n")
+    log_text = log_path.read_text(encoding="utf-8", errors="replace")
     duration = time.monotonic() - started
-    result = GateResult(
+    return GateResult(
         name=name,
         command=command,
         returncode=returncode,
         duration_seconds=round(duration, 3),
-        log=str(output / f"{name}.log"),
+        log=str(log_path),
         suspicious_lines=suspicious_output(log_text),
     )
-    (output / f"{name}.log").write_text(log_text, encoding="utf-8")
-    return result
 
 
 def main() -> int:
@@ -138,75 +144,112 @@ def main() -> int:
     godot.chmod(godot.stat().st_mode | 0o111)
 
     temporary_root = Path(tempfile.mkdtemp(prefix="sdi-validation-"))
-    work_project = temporary_root / "project"
-    runtime_home = temporary_root / "home"
-    runtime_home.mkdir()
-    copy_project(project, work_project)
+    base_project = temporary_root / "prepared" / "project"
+    base_home = temporary_root / "prepared" / "home"
+    base_home.mkdir(parents=True)
+    copy_project(project, base_project)
 
-    environment = os.environ.copy()
-    environment.update(
-        {
-            "HOME": str(runtime_home),
-            "XDG_CONFIG_HOME": str(runtime_home / ".config"),
-            "XDG_DATA_HOME": str(runtime_home / ".local" / "share"),
-            "XDG_CACHE_HOME": str(runtime_home / ".cache"),
-            "GODOT_SILENCE_ROOT_WARNING": "1",
-        }
-    )
-
-    commands: list[tuple[str, list[str]]] = [
-        ("version", [str(godot), "--version"]),
-    ]
-    if not args.skip_static:
-        commands.append(("static", [sys.executable, "tools/validate_static.py"]))
-    commands.extend(
-        [
-            (
-                "editor_import",
-                [str(godot), "--headless", "--editor", "--path", ".", "--quit-after", "5"],
-            ),
-            ("public_tests", [str(godot), "--headless", "--path", ".", "--script", "tests/test_runner.gd"]),
-            (
-                "showcase_export",
-                [
-                    str(godot),
-                    "--headless",
-                    "--path",
-                    ".",
-                    "--script",
-                    "tests/generate_showcase_exports.gd",
-                ],
-            ),
-            (
-                "performance",
-                [
-                    str(godot),
-                    "--headless",
-                    "--path",
-                    ".",
-                    "--script",
-                    "tests/performance_runner.gd",
-                ],
-            ),
-        ]
-    )
+    def environment_for(home: Path) -> dict[str, str]:
+        environment = os.environ.copy()
+        environment.update(
+            {
+                "HOME": str(home),
+                "XDG_CONFIG_HOME": str(home / ".config"),
+                "XDG_DATA_HOME": str(home / ".local" / "share"),
+                "XDG_CACHE_HOME": str(home / ".cache"),
+                "GODOT_SILENCE_ROOT_WARNING": "1",
+            }
+        )
+        return environment
 
     results: list[GateResult] = []
-    for name, command in commands:
-        result = run_gate(
-            name, command, work_project, environment, args.timeout, output
-        )
+
+    def record(result: GateResult) -> bool:
         results.append(result)
         status = "PASS" if result.ok else "FAIL"
-        print(f"{status:4} {name:16} {result.duration_seconds:8.3f}s")
-        if not result.ok:
-            break
+        print(f"{status:4} {result.name:16} {result.duration_seconds:8.3f}s")
+        return result.ok
+
+    if not record(
+        run_gate(
+            "version",
+            [str(godot), "--version"],
+            base_project,
+            environment_for(base_home),
+            args.timeout,
+            output,
+        )
+    ):
+        expected_gate_count = 1
+    else:
+        expected_gate_count = 9 if not args.skip_static else 8
+        if not args.skip_static:
+            if not record(
+                run_gate(
+                    "static",
+                    [sys.executable, "tools/validate_static.py"],
+                    base_project,
+                    environment_for(base_home),
+                    args.timeout,
+                    output,
+                )
+            ):
+                expected_gate_count = 2
+        if len(results) == (2 if not args.skip_static else 1) and results[-1].ok:
+            if not record(
+                run_gate(
+                    "editor_import",
+                    [str(godot), "--headless", "--editor", "--path", ".", "--quit-after", "5"],
+                    base_project,
+                    environment_for(base_home),
+                    args.timeout,
+                    output,
+                )
+            ):
+                expected_gate_count = len(results)
+
+    prepared_gates: list[tuple[str, list[str]]] = [
+        ("public_tests", [str(godot), "--headless", "--path", ".", "--script", "tests/test_runner.gd"]),
+        ("automation", [str(godot), "--headless", "--path", ".", "--script", "tests/automation_runner.gd"]),
+        ("export_matrix", [str(godot), "--headless", "--path", ".", "--script", "tests/export_matrix_runner.gd"]),
+        ("showcase_export", [str(godot), "--headless", "--path", ".", "--script", "tests/generate_showcase_exports.gd"]),
+        (
+            "visual_showcase",
+            [
+                shutil.which("xvfb-run") or "xvfb-run", "-a", str(godot),
+                "--path", ".", "--script", "tests/visual_showcase_runner.gd",
+                "--", "--state=scope",
+                f"--output={output / 'visual-validation.png'}",
+            ],
+        ),
+        ("performance", [str(godot), "--headless", "--path", ".", "--script", "tests/performance_runner.gd"]),
+    ]
+    if results and results[-1].ok and any(result.name == "editor_import" for result in results):
+        for name, command in prepared_gates:
+            gate_root = temporary_root / "gates" / name
+            gate_project = gate_root / "project"
+            gate_home = gate_root / "home"
+            gate_home.mkdir(parents=True)
+            shutil.copytree(base_project, gate_project)
+            if not record(
+                run_gate(
+                    name,
+                    command,
+                    gate_project,
+                    environment_for(gate_home),
+                    args.timeout,
+                    output,
+                )
+            ):
+                expected_gate_count = len(results)
+                break
+
 
     summary = {
-        "ok": all(result.ok for result in results) and len(results) == len(commands),
+        "ok": all(result.ok for result in results) and len(results) == expected_gate_count,
         "godot": str(godot),
         "source_project": str(project),
-        "isolated_project": str(work_project) if args.keep_workdir else "removed",
+        "isolated_project": str(temporary_root) if args.keep_workdir else "removed",
         "results": [asdict(result) | {"ok": result.ok} for result in results],
     }
     (output / "summary.json").write_text(
@@ -214,7 +257,7 @@ def main() -> int:
     )
 
     if args.keep_workdir:
-        print(f"Isolated project retained at: {work_project}")
+        print(f"Isolated validation root retained at: {temporary_root}")
     else:
         shutil.rmtree(temporary_root, ignore_errors=True)
 

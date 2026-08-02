@@ -1,4 +1,5 @@
 @tool
+@icon("res://addons/script_dependency_inspector/icon.svg")
 extends EditorPlugin
 
 const ADDON_ROOT: String = "res://addons/script_dependency_inspector/"

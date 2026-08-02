@@ -1,45 +1,15 @@
 # Performance contract
 
-## User-facing expectation
+Version: 0.2.2
 
-Scanning is manual by default. A bounded project should complete without freezing the editor indefinitely or exhausting memory. The current implementation is synchronous, so the primary controls are explicit scan limits and predictable algorithmic behavior rather than background execution.
+Scanning remains synchronous and bounded. Total acquisition cost is proportional to accepted GDScript bytes plus accepted text-scene bytes and graph construction. A selected folder does **not** reduce acquisition cost: v0.2.1 builds one bounded full-project index and then projects it to the selected display/export scope so outside context can be resolved.
 
-## Limits
+Controls include maximum files, directories, script bytes, and scene bytes; symbolic links are disabled by default. Editor events are debounced so save/import bursts produce one scan. Timed rescanning is disabled by default. Search, scope projection, descendant queries, focus, and neighborhood isolation operate in memory and do not rescan.
 
-Default limits are configurable in `default_settings.tres`:
+`SnapshotScope` is linear in snapshot nodes/edges plus retained ancestor traversal. `GraphQuery` builds inheritance indexes and computes presentation sets synchronously. Descendant counts may approach quadratic work for a long inheritance chain because totals are calculated per node; this is acceptable for the current bounded editor graph but remains a measured optimization candidate rather than an assumed scalability guarantee.
 
-- 10,000 scanned files;
-- 20,000 scanned directories;
-- 4 MiB per script;
-- symbolic links skipped.
+The release performance gate analyzes 500 synthetic methods and builds a graph from 1,000 synthetic scripts against budgets of 5,000 ms and 6,000 ms. Per-engine observations belong in [the v0.2.2 compatibility matrix](validation/v0.2.2-compatibility-matrix.md); they are regression evidence for that fixture, not universal latency guarantees or cross-version rankings.
 
-Reaching a limit produces a warning and a marked partial result. It is not silently treated as complete.
+Background work and cancellation require a separate thread-safety and editor-lifecycle design.
 
-## Reproducible gate
-
-`tests/performance_runner.gd` exercises two synthetic but reviewable shapes:
-
-1. 500 typed method declarations through the source analyzer.
-2. 1,000 scripts in a deep inheritance chain through the graph builder.
-
-The gate verifies output completeness and reports elapsed milliseconds as `SDI_PERFORMANCE` JSON. Budgets are intentionally loose enough to tolerate shared CI and old supplied engines; they are regression tripwires, not product latency promises.
-
-```sh
-godot --headless --path . --script tests/performance_runner.gd
-```
-
-Record results per engine in `docs/VALIDATION.md`. A passing microbenchmark does not establish editor responsiveness for all real projects. Representative large-project profiling and cancellable/background scanning remain future work.
-
-## Executed 0.1.6 results
-
-Each supplied Linux engine completed the same fixture with 500 analyzed methods, 1,000 script records, 1,002 graph nodes, and 1,001 graph edges:
-
-| Godot | Analyzer | Graph builder |
-|---|---:|---:|
-| 4.3 | 233.52 ms | 955.21 ms |
-| 4.4.1 | 230.38 ms | 893.69 ms |
-| 4.5.2 | 225.91 ms | 782.08 ms |
-| 4.6.3 | 223.73 ms | 778.18 ms |
-| 4.7 | 238.25 ms | 773.34 ms |
-
-All results are below the deliberately loose 5,000 ms analyzer and 6,000 ms graph budgets. These values were measured in the supplied execution environment and are regression evidence, not portable latency guarantees.
+Graph-off operation avoids GraphNode construction and rendering while retaining scan/validation/export costs. The release tests this behavioral boundary but does not claim universal memory or latency savings.

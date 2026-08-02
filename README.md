@@ -1,138 +1,69 @@
 # Script Dependency Inspector
 
-Godot 4 editor plugin that scans GDScript source files, resolves script and native inheritance, detects literal script loads, type-annotation usage, and direct class-qualified member usage, builds a deterministic dependency graph, displays it in a customizable `GraphEdit` dock, and exports JSON, Mermaid class diagrams, or PlantUML.
+Godot 4 editor add-on for deterministic GDScript inheritance/dependency analysis, scoped architectural inspection, editor navigation, exact text-scene usage, and JSON/Mermaid/PlantUML export.
 
-Release `0.1.6` is runtime-validated with the supplied Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7 Linux executables.
+Release `0.2.2` targets the supplied Linux builds of Godot 4.3–4.7.
 
 ## Install
 
-Copy `addons/script_dependency_inspector` into a Godot 4 project, then enable **Project > Project Settings > Plugins > Script Dependency Inspector**.
+Copy `addons/script_dependency_inspector` into a project and enable **Project > Project Settings > Plugins > Script Dependency Inspector**.
 
-## Use
+## Primary workflow
 
-Open the **Script Dependencies** dock and press **Scan**. Scanning is manual by default so enabling the plugin does not synchronously traverse a large project. Select an export format and press **Export…** to choose a destination.
+The dock scans automatically after saved editor filesystem changes by default, using a one-second quiet-period debounce. Timed rescanning remains available and disabled by default. Press **Scan** for an immediate refresh.
 
-The dock is organized for a narrow right-side placement:
+Choose the entire project or a project folder from the scope selector. A folder scope keeps scripts inside that folder and retains only the outside ancestors and direct dependency targets needed to explain them. Retained nodes are marked **Context** in the graph and in diagram exports. Scope selection changes the displayed/exported projection; the bounded full-project index is still acquired so outside context can be resolved.
 
-- **Content** controls included nodes, edge kinds, members, and compact/full member text.
-- **Appearance** controls minimum and maximum script widths, compact native width, overflow thresholds, spacing, and depth orientation.
-- **Colors** controls script kinds, member categories, inheritance families, and edge kinds.
-- **Summary** provides a non-visual count and relationship description plus the exact-data route.
-- **Log** reports warnings and failures.
+Select a node to emphasize its inheritance path. Optionally include descendants or isolate the selected relationship neighborhood without rescanning. Nodes show direct and total descendant counts. Search matches class names, paths, members, autoloads, scenes, and scene-node paths. Script headers, member rows, dependency references, and scene rows navigate to the recorded source or scene when available.
 
-Display-only changes redraw the existing snapshot without rescanning. The bundled `default_settings.tres` exposes the same defaults and additional scan limits through `@export` fields.
+JSON is the lossless snapshot-v2 output. Mermaid and PlantUML are diagram representations. Independent automatic exports can run after each synchronized, manual, or timed scan.
 
-## Dependency kinds
 
-- `extends`: direct inheritance, including path-based scripts, `class_name` scripts, add-ons, external scripts, and native `ClassDB` chains.
-- `uses`: literal `.gd` references in `load()` or `preload()` calls.
-- `type_uses`: class references found in type annotations, including properties, signals, method parameters and return types, local variables, typed loop variables, and callable/lambda declarations visible in source.
-- direct class-member `uses`: optional detection of expressions such as `DamageService.calculate_damage(...)`, retaining the containing source member and the referenced target member.
+## Interactive or export-only workflow
 
-Dependency provenance is stored in each class-level edge's optional `member_links` array. Literal and type dependencies retain their containing source member where known. Direct class-qualified access can retain both source and target members. This is static source analysis: it does not infer runtime receiver types, follow aliases or ordinary instance calls, evaluate expressions, or resolve dynamically constructed resource paths.
+The **Graph** toggle is on by default. Disable it to keep scanning, save synchronization, summaries, diagnostics, and JSON/Mermaid/PlantUML export without allocating the dock to GraphEdit. Re-enabling the graph renders the retained validated snapshot without another scan.
 
-## Graph presentation
+The built-in graph is suited to in-editor inspection. Exported Mermaid and PlantUML can be opened in dedicated diagram tools for larger canvases, alternate layout engines, themes, and presentation workflows; JSON supports lossless automation or custom renderers. The toolbar identifies whether scanning is save-synchronized, timed, both, or manual.
 
-- A script with `class_name` is titled only by that custom class name. A script without `class_name` is titled by its filename without the `.gd` suffix.
-- Script paths are not concatenated into titles. Hover the title bar or the compact `…` metadata affordance for the complete `res://` path.
-- The GraphNode itself deliberately has no global tooltip, so member and metadata child tooltips remain reachable.
-- Methods and signals default to names only; separate toggles reveal arguments and return types. Properties default to names only; a separate toggle reveals declared types.
-- Properties, signals, methods, metadata, script kinds, inheritance families, and edge kinds have independent colors.
-- Optional member edge anchors attach GraphEdit relationships to visible property, signal, or method rows. Very large scrolled member lists intentionally fall back to class-level ports.
-- Native classes use compact title-only nodes and a separate width setting.
-- Script width grows from a configurable minimum to a configurable maximum according to visible text. Height follows the visible member content and enables scrolling only after the configurable high overflow threshold is exceeded.
-- The deterministic default layout groups nodes by inheritance depth. A top-to-bottom layout is used by default for a narrow dock; left-to-right depth layout remains available.
-- Pressing GraphEdit’s built-in **Arrange** now places bases/dependencies before descendants/dependents. Canonical exports still retain dependent-to-dependency edge direction.
-- Border/title accents distinguish `Object`, `RefCounted`, general `Node`, `Node2D`, `Node3D`, `Control`, and other inheritance families.
+## Analysis boundary
 
-## Native inheritance discovery
+The analyzer does not instantiate project classes and does not claim a general call graph. Dynamic paths, aliases, runtime receiver inference, dependency injection, reflection behavior, binary scenes, and transitive scene/resource effects are omitted rather than guessed. TODO/FIXME/HACK extraction and immediate main-screen placement are explicit non-goals.
 
-For a script’s direct native base, the graph builder creates the native node and repeatedly calls `ClassDB.get_parent_class()` until the native root is reached. This produces intermediary chains such as:
+## Documentation
 
-- `SceneTree -> MainLoop -> Object`
-- `CanvasLayer -> Node -> Object`
-- `Control -> CanvasItem -> Node -> Object`
-
-After inheritance edges are resolved, each script is assigned the most specific configured family using `ClassDB.is_parent_class()`: `Control`, `Node2D`, `Node3D`, `Node`, `RefCounted`, then `Object`.
-
-## Core behavior
-
-- Scans `.gd` files recursively without instantiating user scripts.
-- Uses source parsing for local methods, signals, properties, inner classes, literal dependencies, and declared type references.
-- Uses optional `Script` reflection and `ProjectSettings.get_global_class_list()` to improve base and type resolution.
-- Uses stable IDs and canonical ordering so repeated exports are deterministic.
-- Reports unreadable files, unresolved bases, size/scan limits, unsupported exporters, and write failures through structured log entries and the editor dock.
-- Loads internal scripts, scenes, and settings through explicit resource-path checks instead of `const ... = preload(...)` chains.
-
-## Showcase project
-
-The development project includes `examples/showcase`, plus a small third-party-style base class under `addons/example_dependency_framework`. It covers native/add-on/user inheritance, named and unnamed scripts, all inheritance-family colors, compact and full member representations, exported properties, signals, static methods, literal resource dependencies, and annotation-only dependencies.
-
-Member specificity differs by export format:
-
-- JSON preserves structured `member_links`.
-- PlantUML uses exact `Class::member` relationship endpoints.
-- Mermaid class diagrams do not expose member endpoints, so member provenance is retained in the class-to-class relationship label.
-
-Ready-made representations are included at:
-
-- `examples/showcase/representations/showcase.json`
-- `examples/showcase/representations/showcase.mmd`
-- `examples/showcase/representations/showcase.puml`
-
-Regenerate them with:
-
-```sh
-godot --headless --path . --script tests/generate_showcase_exports.gd
-```
-
-See `examples/showcase/README.md` for the editor workflow and what each script demonstrates.
-
-## Known limitations
-
-- The source analyzer is deliberately lightweight rather than a compiler AST. It handles common declarations, multiline strings, comments, generic/container type expressions, and literal `.gd` resource references, but it does not evaluate dynamic paths or conditional code.
-- Inner classes are captured as metadata on their containing script; they are not emitted as independent graph nodes.
-- Direct member-use detection currently recognizes explicit class-qualified access. It is not a complete call graph and does not resolve instance variables, aliases, dependency injection, virtual dispatch, or dynamically selected members.
-- Mermaid `classDiagram` syntax cannot anchor relationships to individual member rows; labeled class relationships are used instead. PlantUML and GraphEdit support exact member endpoints.
-- Full third-party script chains are most reliable when add-on scanning is enabled. With add-ons excluded, resolution is limited to project global-class metadata and native `ClassDB` information visible to the running editor.
-- Dense projects can still produce crossing edges. Edge kinds and native/external chains can be disabled independently to reduce visual density.
-- Godot’s built-in arranger uses a horizontal dependency layout and may place deep descendants beyond the initially visible width of a narrow dock; minimap and panning remain available.
-- Scanning and layout run on the editor thread. File, directory, script-size, node-size, and member limits are configurable.
-
-## Validation
-
-Run the complete isolated gate set with a Godot executable:
-
-```sh
-python tools/run_validation.py --godot /path/to/godot --output validation-results
-```
-
-The orchestrator records version, static integrity, editor/plugin initialization, public tests, showcase export, and bounded performance evidence. Individual gates remain available for focused development:
-
-```sh
-python tools/validate_static.py
-godot --headless --path . --script tests/test_runner.gd
-godot --headless --path . --script tests/performance_runner.gd
-```
-
-See `docs/VALIDATION.md` for executed evidence and `docs/COMPATIBILITY.md` for the cross-version and resource-loading policy. Deterministic release archives are built with `python tools/build_release.py --output dist`.
-
-## Quality status
-
-Release 0.1.6 adds executable snapshot invariants, exporter capability contracts, structured failures, project-local scan boundaries, deterministic validation, public-method documentation checks, a reproducible performance gate, visible relation decoding, a textual graph summary, and versioned architecture/schema/security/decision records. The detailed review distinguishes resolved defects from remaining design work.
-
-Current unresolved boundaries are synchronous editor-thread scanning/layout, concentrated large modules and legacy test orchestration, compiler-incomplete source analysis by design, untested Godot 4.0–4.2 and non-Linux platforms, independent assistive-technology/comprehension review, and public-release governance.
-
-## Project documentation
-
-- [Architecture and component boundaries](docs/ARCHITECTURE.md)
-- [Canonical snapshot schema](docs/SCHEMA.md)
-- [Security and trust boundaries](docs/SECURITY.md)
-- [Compatibility policy](docs/COMPATIBILITY.md)
-- [Performance contract](docs/PERFORMANCE.md)
-- [Validation evidence](docs/VALIDATION.md)
-- [Quality review and remaining gaps](docs/QUALITY_REVIEW.md)
-- [Contribution and release gates](CONTRIBUTING.md)
+- [User use cases and diagrams](docs/USE_CASES.md)
+- [Design](docs/DESIGN.md)
+- [Behavioral contract](docs/CONTRACT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Snapshot schema](docs/SCHEMA.md)
+- [Security boundary](docs/SECURITY.md)
+- [Performance](docs/PERFORMANCE.md)
+- [Validation](docs/VALIDATION.md)
+- [v0.2.2 compatibility matrix](docs/validation/v0.2.2-compatibility-matrix.md)
+- [v0.2.2 release validation report](docs/validation/v0.2.2-release-validation.md)
+- [Quality review](docs/QUALITY_REVIEW.md)
+- [Guidance applied](docs/GUIDANCE_APPLIED.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Related projects and late considerations](docs/RELATED_PROJECTS.md)
+- [Comprehension protocol](docs/COMPREHENSION_TEST.md)
+- [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
+- [AI usage disclosure](AI_USAGE_NOTICE.md)
 
-The project has not yet selected a distribution license, final publisher identity, support channel, or security contact. Those governance decisions remain owner actions before a public marketplace release.
+## Development validation
+
+```sh
+python3 tools/run_validation.py --godot /path/to/godot --output validation-artifacts
+```
+
+The development project includes a showcase and versioned screenshots under `docs/images`.
+
+## v0.2.2 visual states
+
+| Default graph | Export-only |
+|---|---|
+| ![Default graph and compact toolbar](docs/images/v0.2.2-overview.png) | ![Graph hidden with export controls retained](docs/images/v0.2.2-export-only.png) |
+
+| Folded controls | Scan modes and automatic exports |
+|---|---|
+| ![Folded semantic control groups](docs/images/v0.2.2-folded-controls.png) | ![Synchronization and timed fallback controls](docs/images/v0.2.2-automation.png) |

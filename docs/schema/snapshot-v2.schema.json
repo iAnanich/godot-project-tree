@@ -1,0 +1,435 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Script Dependency Inspector snapshot v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "metadata",
+    "nodes",
+    "edges",
+    "scene_usages",
+    "warnings",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "root_path": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object"
+        },
+        "style": {
+          "type": "object"
+        },
+        "index_root_path": {
+          "type": "string"
+        },
+        "scope_active": {
+          "type": "boolean"
+        },
+        "scope_summary": {
+          "type": "object",
+          "properties": {
+            "in_scope_nodes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "context_nodes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": true,
+          "required": [
+            "in_scope_nodes",
+            "context_nodes"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    },
+    "scene_usages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scene_usage"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "member": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "arguments": {
+          "type": "string"
+        },
+        "return_type": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "declaration": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "array"
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "exported": {
+          "type": "boolean"
+        },
+        "source_location": {
+          "$ref": "#/$defs/source_location"
+        }
+      },
+      "additionalProperties": true
+    },
+    "member_reference": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "property",
+            "signal",
+            "method"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_location": {
+          "$ref": "#/$defs/source_location"
+        }
+      },
+      "dependentRequired": {
+        "kind": [
+          "name"
+        ],
+        "name": [
+          "kind"
+        ]
+      },
+      "additionalProperties": true
+    },
+    "member_link": {
+      "type": "object",
+      "required": [
+        "source_member",
+        "target_member",
+        "evidence"
+      ],
+      "properties": {
+        "source_member": {
+          "$ref": "#/$defs/member_reference"
+        },
+        "target_member": {
+          "$ref": "#/$defs/member_reference"
+        },
+        "source_location": {
+          "$ref": "#/$defs/source_location"
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "properties",
+        "signals",
+        "methods",
+        "inner_classes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "user",
+            "addon",
+            "native",
+            "external"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "class_name": {
+          "type": "string"
+        },
+        "qualified_name": {
+          "type": "string"
+        },
+        "native_base": {
+          "type": "string"
+        },
+        "inheritance_family": {
+          "type": "string"
+        },
+        "has_custom_name": {
+          "type": "boolean"
+        },
+        "base": {
+          "type": "object"
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "inner_classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_location": {
+                "$ref": "#/$defs/source_location"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "source_location": {
+          "$ref": "#/$defs/source_location"
+        },
+        "autoload": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "singleton": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        },
+        "scene_usages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/scene_usage"
+          }
+        },
+        "scope_role": {
+          "enum": [
+            "in_scope",
+            "context"
+          ]
+        },
+        "scope_reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "source",
+        "target",
+        "kind",
+        "member_links"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "extends",
+            "uses",
+            "type_uses"
+          ]
+        },
+        "member_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member_link"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "severity",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source_location": {
+      "type": "object",
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "anyOf": [
+        {
+          "maxProperties": 0
+        },
+        {
+          "required": [
+            "line",
+            "column"
+          ]
+        }
+      ],
+      "additionalProperties": true
+    },
+    "scene_usage": {
+      "type": "object",
+      "required": [
+        "scene_path",
+        "node_path",
+        "script_path",
+        "line",
+        "column",
+        "evidence"
+      ],
+      "properties": {
+        "scene_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "node_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "script_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

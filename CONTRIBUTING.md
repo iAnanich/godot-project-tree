@@ -61,12 +61,18 @@ The builder derives the semantic version from `plugin.cfg`, excludes `.godot`, `
 
 ## Documentation
 
-Update documentation in the same change when behavior, schema, compatibility, security, or architecture changes. Consequential decisions belong in `docs/decisions`. Regenerate showcase exports after changing canonical output or exporters.
+Update documentation in the same change when behavior, use cases, schema, compatibility, security, or architecture changes. Consequential decisions belong in `docs/decisions`. User-facing workflow changes must update `docs/USE_CASES.md` and its traceability; diagram changes require source, rendered output, text alternatives, and a review record. Regenerate showcase exports after changing canonical output or exporters.
 
 ## Review priorities
 
 Review correctness, compatibility, test evidence, security, maintainability, performance, and editor usability separately. Treat file size, lint counts, and coverage as investigation prompts rather than quality conclusions.
 
-## Release ownership gaps
+## Licensing and release ownership
 
-A public release still requires the project owner to choose a license, author/publisher identity, support channel, and security contact. Contributors must not invent those governance decisions.
+Contributions are accepted under Apache License 2.0. Contributors must have the right to submit their material and must review AI-assisted contributions for incompatible copying, provenance risks, correctness, and security. See `AI_USAGE_NOTICE.md`.
+
+A marketplace release still requires the project owner to choose the final publisher identity, support channel, and security contact. Contributors must not invent those governance decisions.
+
+## Design and marketplace knowledge
+
+Substantial behavior or UI changes must update `docs/DESIGN.md`, `docs/USE_CASES.md`, and `docs/ASSET_STORE_DESCRIPTION.md` in the same change. Automation changes must preserve the one-shot completion-to-next-start timing contract and include the dedicated automation gate.

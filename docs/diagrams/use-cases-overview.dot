@@ -1,0 +1,34 @@
+digraph UseCasesOverview {
+  graph [rankdir=LR, bgcolor="transparent", pad=0.25, nodesep=0.32, ranksep=0.65, fontname="DejaVu Sans", label="Script Dependency Inspector — product use cases", labelloc=t, fontsize=18];
+  node [fontname="DejaVu Sans", fontsize=10.5, shape=ellipse, style="filled", fillcolor="#F4F7FB", color="#334155", penwidth=1.2, margin="0.13,0.07"];
+  edge [fontname="DejaVu Sans", fontsize=8.5, color="#475569", arrowsize=0.65];
+
+  developer [shape=box, label="Godot developer", fillcolor="#E8F3FF"];
+  editor [shape=box, label="Godot Editor", fillcolor="#EAF7EF"];
+  tool [shape=box, label="Diagram or\ndocumentation tool", fillcolor="#FFF5E6"];
+  consumer [shape=box, label="Documentation consumer", fillcolor="#FFF5E6"];
+
+  subgraph cluster_inspector {
+    label="Script Dependency Inspector"; color="#94A3B8"; style="rounded";
+    build [label="UC-01\nBuild snapshot"];
+    scope [label="UC-02\nSelect scope"];
+    inspect [label="UC-03–06\nInspect and focus"];
+    navigate [label="UC-07\nOpen evidence"];
+    sync [label="UC-08/11\nSynchronize"];
+    context [label="UC-09\nInspect context"];
+    export [label="UC-10\nExport files"];
+    exportonly [label="UC-12\nExport-only mode"];
+    controls [label="UC-13\nConfigure controls"];
+  }
+
+  developer -> build; developer -> scope; developer -> inspect; developer -> navigate;
+  developer -> export; developer -> exportonly; developer -> controls;
+  editor -> sync; editor -> navigate [dir=both];
+  sync -> build [label="triggers", style=dashed];
+  scope -> build [label="projects", style=dashed];
+  inspect -> context [label="includes", style=dashed];
+  build -> inspect [label="when graph shown", style=dashed];
+  build -> export [label="after validation", style=dashed];
+  exportonly -> export [label="without GraphEdit", style=dashed];
+  export -> tool; tool -> consumer;
+}

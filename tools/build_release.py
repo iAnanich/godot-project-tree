@@ -21,6 +21,15 @@ ROOT = Path(__file__).resolve().parents[1]
 ADDON_RELATIVE = Path("addons/script_dependency_inspector")
 PROJECT_ARCHIVE_ROOT = "script-dependency-inspector-godot4-project"
 DEFAULT_ZIP_EPOCH = 315532800  # 1980-01-01, the minimum representable ZIP date.
+EXCLUDED_DIRECTORY_NAMES = {
+    ".git",
+    ".godot",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "__pycache__",
+    "validation-artifacts",
+}
 
 
 def release_version() -> str:
@@ -38,9 +47,9 @@ def is_release_file(path: Path) -> bool:
     relative = path.relative_to(ROOT)
     if not path.is_file():
         return False
-    if any(part in {".godot", "__pycache__"} for part in relative.parts):
+    if any(part in EXCLUDED_DIRECTORY_NAMES for part in relative.parts):
         return False
-    if path.suffix == ".uid" or path.name in {"MANIFEST.sha256", ".DS_Store"}:
+    if path.suffix in {".uid", ".import"} or path.name in {"MANIFEST.sha256", ".DS_Store"}:
         return False
     return True
 

@@ -3,16 +3,21 @@ extends RefCounted
 
 const ADDON_ROOT: String = "res://addons/script_dependency_inspector/"
 const ANALYZER_SCRIPT_PATH: String = ADDON_ROOT + "core/gdscript_analyzer.gd"
+const SCENE_USAGE_SCANNER_SCRIPT_PATH: String = ADDON_ROOT + "core/scene_usage_scanner.gd"
 const COMPAT_SCRIPT_PATH: String = ADDON_ROOT + "core/compat.gd"
 
 var logger: RefCounted
 var _analyzer
+var _scene_usage_scanner
 var _compat_script: Script
 var _dependency_errors: Array[String] = []
 
 
 func _init() -> void:
 	var analyzer_script = _load_required_script(ANALYZER_SCRIPT_PATH, "source analyzer")
+	var scene_usage_scanner_script = _load_required_script(
+		SCENE_USAGE_SCANNER_SCRIPT_PATH, "scene usage scanner"
+	)
 	_compat_script = _load_required_script(COMPAT_SCRIPT_PATH, "compatibility shim")
 	if analyzer_script != null:
 		_analyzer = analyzer_script.new()
@@ -20,6 +25,22 @@ func _init() -> void:
 			_record_dependency_error(
 				"Could not instantiate source analyzer script: %s" % ANALYZER_SCRIPT_PATH
 			)
+	if scene_usage_scanner_script != null:
+		_scene_usage_scanner = scene_usage_scanner_script.new()
+		if _scene_usage_scanner == null:
+			_record_dependency_error(
+				"Could not instantiate scene usage scanner: %s" % SCENE_USAGE_SCANNER_SCRIPT_PATH
+			)
+
+
+## Validates and normalizes a project-local directory before it is accepted as
+## a user-visible analysis scope.
+func validate_root(root_path: String) -> Dictionary:
+	var normalized: String = root_path.strip_edges().replace("\\", "/").simplify_path()
+	var error: String = _validate_scan_root(root_path, normalized)
+	if error.is_empty() and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(normalized)):
+		error = "Scan root does not exist: %s" % normalized
+	return {"ok": error.is_empty(), "root": normalized, "error": error}
 
 
 ## Recursively scans GDScript files under root_path and resolves each script's
@@ -31,6 +52,7 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 	var result = {
 		"root_path": normalized_root,
 		"scripts": [],
+		"scene_usages": [],
 		"warnings": [],
 		"errors": _dependency_errors.duplicate(),
 		"diagnostics": [],
@@ -58,7 +80,7 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 		_finalize_diagnostics(result)
 		return result
 
-	var files_result = _collect_script_files(root_path, resolved_options)
+	var files_result = _collect_project_files(root_path, resolved_options)
 	result["warnings"].append_array(files_result["warnings"])
 	result["errors"].append_array(files_result["errors"])
 	if not result["errors"].is_empty():
@@ -73,8 +95,9 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 	var path_index = {}
 	var class_index = {}
 	var global_classes = _global_class_index()
+	var autoload_index: Dictionary = _autoload_index()
 
-	for script_path_value in files_result["files"]:
+	for script_path_value in files_result["script_files"]:
 		var script_path = str(script_path_value)
 		var source_result = _read_text_file(
 			script_path, int(resolved_options["maximum_script_bytes"])
@@ -105,12 +128,14 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 		if display_name.is_empty():
 			display_name = script_path.get_file().get_basename()
 
+		var autoload: Dictionary = autoload_index.get(script_path.simplify_path(), {}).duplicate(true)
 		var record = {
 			"id": script_path,
 			"path": script_path,
 			"name": display_name,
 			"class_name": str(analysis["class_name"]),
 			"is_addon": script_path.begins_with("res://addons/"),
+			"autoload": autoload,
 			"analysis": analysis,
 			"reflection": reflection,
 			"direct_base": {"kind": "none", "value": "", "display": ""},
@@ -140,6 +165,12 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 			return str(left["path"]) < str(right["path"])
 	)
 	result["scripts"] = records
+	if resolved_options["include_scene_usages"] and _scene_usage_scanner != null:
+		var scene_result: Dictionary = _scene_usage_scanner.call(
+			"scan", files_result.get("scene_files", []), int(resolved_options["maximum_scene_bytes"])
+		)
+		result["scene_usages"] = scene_result.get("usages", [])
+		result["warnings"].append_array(scene_result.get("warnings", []))
 	_log_info(
 		"Project scan completed.",
 		{"root": root_path, "scripts": records.size(), "warnings": result["warnings"].size()}
@@ -199,6 +230,8 @@ func _with_defaults(options: Dictionary) -> Dictionary:
 		"maximum_scanned_files": 10000,
 		"maximum_scanned_directories": 20000,
 		"maximum_script_bytes": 4194304,
+		"maximum_scene_bytes": 8388608,
+		"include_scene_usages": true,
 		"excluded_path_prefixes":
 		PackedStringArray(["res://.godot/", "res://addons/script_dependency_inspector/"]),
 	}
@@ -207,8 +240,8 @@ func _with_defaults(options: Dictionary) -> Dictionary:
 	return defaults
 
 
-func _collect_script_files(root_path: String, options: Dictionary) -> Dictionary:
-	var output = {"files": [], "warnings": [], "errors": []}
+func _collect_project_files(root_path: String, options: Dictionary) -> Dictionary:
+	var output = {"script_files": [], "scene_files": [], "warnings": [], "errors": []}
 	var normalized_root = root_path.simplify_path()
 	var absolute_root = ProjectSettings.globalize_path(normalized_root)
 	if not DirAccess.dir_exists_absolute(absolute_root):
@@ -219,6 +252,7 @@ func _collect_script_files(root_path: String, options: Dictionary) -> Dictionary
 	var maximum_files = maxi(1, int(options["maximum_scanned_files"]))
 	var maximum_directories = maxi(1, int(options["maximum_scanned_directories"]))
 	var scanned_directories = 0
+	var accepted_files = 0
 
 	while not pending.is_empty():
 		var current_path = str(pending.pop_back()).simplify_path()
@@ -256,31 +290,35 @@ func _collect_script_files(root_path: String, options: Dictionary) -> Dictionary
 			if entry != "." and entry != "..":
 				var entry_path = current_path.path_join(entry).simplify_path()
 				if directory.is_link(entry) and not bool(options["follow_symbolic_links"]):
-					output["warnings"].append(
-						"Skipped symbolic link: %s" % entry_path
-					)
+					output["warnings"].append("Skipped symbolic link: %s" % entry_path)
 					entry = directory.get_next()
 					continue
 				if directory.current_is_dir():
 					if not _is_excluded(entry_path + "/", options):
 						pending.append(entry_path)
-				elif (
-					entry_path.get_extension().to_lower() == "gd"
-					and not _is_excluded(entry_path, options)
-				):
-					if options["include_addons"] or not entry_path.begins_with("res://addons/"):
-						output["files"].append(entry_path)
-						if output["files"].size() >= maximum_files:
-							output["warnings"].append(
-								"Scan stopped at maximum_scanned_files=%s." % maximum_files
-							)
-							directory.list_dir_end()
-							output["files"].sort()
-							return output
+				elif not _is_excluded(entry_path, options):
+					var extension = entry_path.get_extension().to_lower()
+					if extension == "gd":
+						if options["include_addons"] or not entry_path.begins_with("res://addons/"):
+							output["script_files"].append(entry_path)
+							accepted_files += 1
+					elif extension == "tscn" and bool(options["include_scene_usages"]):
+						if options["include_addons"] or not entry_path.begins_with("res://addons/"):
+							output["scene_files"].append(entry_path)
+							accepted_files += 1
+					if accepted_files >= maximum_files:
+						output["warnings"].append(
+							"Scan stopped at maximum_scanned_files=%s." % maximum_files
+						)
+						directory.list_dir_end()
+						output["script_files"].sort()
+						output["scene_files"].sort()
+						return output
 			entry = directory.get_next()
 		directory.list_dir_end()
 
-	output["files"].sort()
+	output["script_files"].sort()
+	output["scene_files"].sort()
 	return output
 
 
@@ -463,6 +501,27 @@ func _record_dependency_error(message: String) -> void:
 	if not _dependency_errors.has(message):
 		_dependency_errors.append(message)
 	push_error(message)
+
+
+func _autoload_index() -> Dictionary:
+	var index: Dictionary = {}
+	for property_value in ProjectSettings.get_property_list():
+		if not property_value is Dictionary:
+			continue
+		var property: Dictionary = property_value
+		var setting_name = str(property.get("name", ""))
+		if not setting_name.begins_with("autoload/"):
+			continue
+		var configured_value = str(ProjectSettings.get_setting(setting_name, ""))
+		var singleton = configured_value.begins_with("*")
+		var configured_path = configured_value.trim_prefix("*").simplify_path()
+		if configured_path.is_empty():
+			continue
+		index[configured_path] = {
+			"name": setting_name.trim_prefix("autoload/"),
+			"singleton": singleton,
+		}
+	return index
 
 
 func _engine_version_string() -> String:

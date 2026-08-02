@@ -2,31 +2,31 @@
 left to right direction
 hide empty members
 skinparam classAttributeIconSize 0
-class "CanvasItem" as C_0 #65737e {
+class "CanvasItem" as C_0 #59616d {
 }
-class "CanvasLayer" as C_1 #65737e {
+class "CanvasLayer" as C_1 #59616d {
 }
-class "Control" as C_2 #65737e {
+class "Control" as C_2 #59616d {
 }
-class "MainLoop" as C_3 #65737e {
+class "MainLoop" as C_3 #59616d {
 }
-class "Node" as C_4 #65737e {
+class "Node" as C_4 #59616d {
 }
-class "Node2D" as C_5 #65737e {
+class "Node2D" as C_5 #59616d {
 }
-class "Node3D" as C_6 #65737e {
+class "Node3D" as C_6 #59616d {
 }
-class "Object" as C_7 #65737e {
+class "Object" as C_7 #59616d {
 }
-class "RefCounted" as C_8 #65737e {
+class "RefCounted" as C_8 #59616d {
 }
-class "Resource" as C_9 #65737e {
+class "Resource" as C_9 #59616d {
 }
-class "SceneTree" as C_10 #65737e {
+class "SceneTree" as C_10 #59616d {
 }
-class "Script" as C_11 #65737e {
+class "Script" as C_11 #59616d {
 }
-class "ShowcaseCombatEntity" as C_12 #8e6c9f {
+class "ShowcaseCombatEntity" as C_12 #8f4f79 {
   +maximum_health
   +current_health
   +signal health_changed
@@ -34,7 +34,7 @@ class "ShowcaseCombatEntity" as C_12 #8e6c9f {
   +receive_damage
   +is_alive
 }
-class "ShowcaseBaseActor" as C_13 #4f7cac {
+class "ShowcaseBaseActor" as C_13 #005a8d {
   +actor_label
   +weapon_profile
   +last_action
@@ -42,18 +42,18 @@ class "ShowcaseBaseActor" as C_13 #4f7cac {
   +request_action
   +attack_power
 }
-class "ShowcaseEnemyActor" as C_14 #4f7cac {
+class "ShowcaseEnemyActor" as C_14 #005a8d {
   +aggression
   +weapon_profile_script
   +choose_action
   +create_default_profile
 }
-class "ShowcasePlayerActor" as C_15 #4f7cac {
+class "ShowcasePlayerActor" as C_15 #005a8d {
   +damage_service_script
   +request_primary_attack
   +preview_damage
 }
-class "ShowcaseBattleController" as C_16 #4f7cac {
+class "ShowcaseBattleController" as C_16 #005a8d {
   +player_path
   +enemy_path
   +turn_index
@@ -62,34 +62,34 @@ class "ShowcaseBattleController" as C_16 #4f7cac {
   +start_battle
   +finish_battle
 }
-class "ShowcaseWeaponProfile" as C_17 #4f7cac {
+class "ShowcaseWeaponProfile" as C_17 #005a8d {
   +display_name
   +base_damage
   +critical_multiplier
 }
-class "ShowcaseMainLoop" as C_18 #4f7cac {
+class "ShowcaseMainLoop" as C_18 #005a8d {
   +_initialize
 }
-class "ShowcaseDamageService" as C_19 #4f7cac {
+class "ShowcaseDamageService" as C_19 #005a8d {
   +{static} calculate_damage
 }
-class "ShowcaseTargetingService" as C_20 #4f7cac {
+class "ShowcaseTargetingService" as C_20 #005a8d {
   +{static} choose_target
 }
-class "ShowcaseBattleHud" as C_21 #4f7cac {
+class "ShowcaseBattleHud" as C_21 #005a8d {
   +status_label_path
   +controller_script
   +controller_type_name
 }
-class "ShowcaseBattlePanel" as C_22 #4f7cac {
+class "ShowcaseBattlePanel" as C_22 #005a8d {
   +headline
   +set_headline
 }
-class "ambient_marker" as C_23 #4f7cac {
+class "ambient_marker" as C_23 #005a8d {
   +marker_radius
   +marker_position
 }
-class "ShowcaseArenaAnchor3D" as C_24 #4f7cac {
+class "ShowcaseArenaAnchor3D" as C_24 #005a8d {
   +anchor_id
   +world_transform
 }

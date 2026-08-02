@@ -1,6 +1,124 @@
 # Changelog
 
+## 0.2.2 — 2026-07-29
+
+### Added
+
+- Default-on **Graph** toggle supporting export-only operation while preserving scans, synchronization, summaries, diagnostics, and all file exports.
+- Adjacent scan-mode indicator showing save synchronization, timed fallback, both, or manual operation.
+- Foldable semantic groups across Content, Appearance, Colors, and Automation tabs.
+- Editor-state schema v4 with persisted graph visibility and fold states, plus migration from schemas 1–3.
+- UC-12 export-only and UC-13 control-configuration use cases with updated diagrams.
+- Explicit AI development notice covering concrete uses, owner direction, quality controls, and residual evidence limits.
+
+### Changed
+
+- Manual export format selection now uses compact width; Scan and Export action groups have explicit spacing and separation.
+- Store copy now explains how Mermaid, PlantUML, and JSON support third-party diagram, publication, and custom-rendering workflows beyond the constrained editor dock.
+- Release construction now excludes generated Godot `.import` sidecars as well as `.uid` files, preventing editor-cache-dependent manifests.
+- The previously proposed v0.3.0 behavioral-evidence work is on hold pending a separately approved improvement set.
+
+### Compatibility
+
+- Snapshot schema remains v2. Export semantics and static-analysis boundaries are unchanged.
+
+## 0.2.1 — 2026-07-29
+
+### Added
+
+- Project-folder scope selector with recent valid roots and project-local path validation.
+- Deterministic scoped projection over a bounded full-project index.
+- Explicit `in_scope` and `context` node roles with retained ancestor/dependency reasons.
+- Textual context labels in graph nodes, Mermaid, and PlantUML.
+- Selected-node inheritance-path emphasis, optional descendant emphasis, direct/total descendant counts, and relationship-neighborhood isolation without rescanning.
+- Editor-state schema v3 with migration from schemas 1 and 2.
+- User use-case catalogue, three rendered use-case diagrams, text alternatives, traceability, and a rendered-review record.
+- Pure `SnapshotScope` and `GraphQuery` seams with behavioral and negative validation tests.
+
+### Fixed after v0.2.0 review
+
+- Automatic-export filesystem-event suppression is no longer opened after scans that cannot write below `res://`.
+- Display-only rerenders preserve the current graph viewport.
+- Persisted state naming and messages now cover scope, focus, synchronization, timer, and export preferences rather than only automation.
+- Missing remembered scope roots fall back to `res://` with a warning instead of blocking the initial scan.
+- Scope roles and declared scope counts are cross-validated before serialization.
+- Neighborhood isolation no longer includes inheritance descendants when **Include descendants** is disabled.
+- Editor-state schema values are type-checked rather than coercing strings to integers.
+
+### Scope decisions
+
+- Folder scope is a display/export projection, not a trust or acquisition boundary; the full bounded project index is scanned to resolve retained context.
+- TODO/FIXME/HACK extraction remains out of scope.
+- General inferred call graphs and immediate main-screen placement remain non-goals.
+- Project Mapper remains documented as a late consideration; selected-folder/context interaction is attributed specifically and no source code was copied.
+
+## 0.2.0 — 2026-07-28
+
+### Added
+
+- Exact script, property, signal, method, and inner-class declaration locations with click-to-open actions.
+- Exact dependency-occurrence locations on canonical member links, exposed as clickable **References** rows.
+- Graph search, previous/next focus, nonmatch dimming, and active Script Editor following.
+- Default-on debounced synchronization with editor filesystem changes.
+- Autoload name/singleton metadata.
+- Bounded exact `.tscn` node script-attachment scanning and scene navigation.
+- Snapshot schema v2 and editor-state schema v2 with v1 state migration.
+- Cross-record validation for duplicate, orphaned, mismatched, or missing scene-usage evidence.
+- Roadmap, related-project provenance, and design decisions for refresh and scene evidence.
+
+### Changed
+
+- Timed rescanning is retained but disabled by default.
+- JSON is documented as the lossless representation for source and scene evidence.
+- Project Mapper is recorded as a late consideration for specific adopted interaction/context features; no source code was copied.
+
+### Out of scope
+
+- TODO extraction, general inferred call graphs, and immediate main-screen placement.
+
 This project follows semantic versioning while the public schema and add-on behavior evolve. Dates refer to completed project revisions, not marketplace publication.
+
+## 0.1.8 — 2026-07-28
+
+### Added
+
+- Optional one-shot auto-rescan with a project-customizable 60-second default. The delay begins after scan, render, and enabled automatic exports complete.
+- Independent automatic JSON, Mermaid, and PlantUML exports with remembered per-format destinations and safe default paths.
+- Project-local editor automation state below `res://.godot`, with type validation and recoverable replacement.
+- Parent-directory creation for manual and automatic exports.
+- Explanation tooltips for every option control in the dock.
+- End-to-end automation test, tooltip contract, state round-trip test, and nested-export-directory regression.
+- Canonical design document, Asset Library page copy, automation ADR, and an expanded feature screenshot set.
+
+### Changed
+
+- A successful manual export now becomes the remembered automatic-export destination for that format.
+- Validation now runs a dedicated automatic-rescan/export gate in addition to public, export-matrix, showcase, and performance gates.
+- Documentation is synchronized with the implemented automation lifecycle, persistence, failure behavior, and owner-approved accessibility scope.
+
+### Quality review
+
+- Applied the supplied software-quality guidance to automation state, observability, determinism, failure isolation, versioned knowledge, and release evidence.
+- Background/cancellable scanning remains explicitly deferred rather than being introduced without a lifecycle and thread-safety contract.
+
+## 0.1.7 — 2026-07-28
+
+### Fixed
+
+- Mermaid and PlantUML full-signature exports no longer emit arbitrary GDScript default expressions such as dictionary literals into diagram member syntax.
+- Export destinations now replace an existing filename extension instead of appending a second extension.
+
+### Added
+
+- Self-scan export matrix covering JSON, Mermaid, and PlantUML across compact/full members, all relation categories, color modes, and the all-options-enabled regression case.
+- Minimal editor icon, Apache License 2.0, NOTICE, and an extensive AI-assistance/provenance disclosure.
+- Color-vision-resilient default palette and automated contrast/distinguishability checks.
+- Reproducible human comprehension-test protocol and feature-focused visual-review states.
+
+### Scope decisions
+
+- Screen-reader and exhaustive keyboard evaluation are outside the current owner-approved acceptance scope.
+- Background/cancellable editor scanning remains a deferred product feature rather than a 0.1.7 release requirement.
 
 ## 0.1.6 — 2026-07-28
 

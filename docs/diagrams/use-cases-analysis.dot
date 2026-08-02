@@ -1,0 +1,30 @@
+digraph UseCasesAnalysis {
+  graph [rankdir=TB, bgcolor="transparent", pad=0.25, nodesep=0.4, ranksep=0.5, fontname="DejaVu Sans", label="Analysis, navigation, and export-only use cases", labelloc=t, fontsize=18, newrank=true];
+  node [fontname="DejaVu Sans", fontsize=10.5, shape=box, style="rounded,filled", fillcolor="#F8FAFC", color="#334155", penwidth=1.15, margin="0.14,0.09"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#475569", arrowsize=0.7];
+
+  developer [shape=box, style="filled", label="Godot developer", fillcolor="#E8F3FF"];
+  acquire [label="Acquire bounded\n.gd and .tscn text"];
+  analyze [label="Recognize supported\nstatic evidence"];
+  build [label="Build canonical\nsnapshot v2"];
+  scope [label="Project selected scope\n+ required context"];
+  validate [label="Validate structural and\ncross-record invariants"];
+  visible [shape=diamond, label="Graph enabled?", fillcolor="#FFF7ED"];
+  render [label="Render GraphEdit"];
+  export [label="Export validated files\nwithout rendering"];
+  search [shape=ellipse, label="Search and center"];
+  focus [shape=ellipse, label="Focus inheritance"];
+  isolate [shape=ellipse, label="Isolate neighborhood"];
+  navigate [shape=ellipse, label="Open stored source or\nscene location"];
+  fallback [shape=note, label="Missing/stale exact location:\nopen safe fallback and diagnose", fillcolor="#FFF7ED"];
+
+  developer -> acquire; acquire -> analyze -> build -> scope -> validate -> visible;
+  visible -> render [label="yes"];
+  visible -> export [label="no / export-only"];
+  developer -> search [style=dashed]; developer -> focus [style=dashed]; developer -> isolate [style=dashed];
+  search -> render [style=dashed, label="presentation only"];
+  focus -> render [style=dashed, label="presentation only"];
+  isolate -> render [style=dashed, label="presentation only"];
+  developer -> navigate; render -> navigate [style=dashed, label="actions carry evidence"];
+  navigate -> fallback [style=dashed, label="when exact action fails"];
+}
