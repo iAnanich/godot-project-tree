@@ -24,7 +24,10 @@ func _init() -> void:
 		_validator = validator_script.new()
 		if _validator == null:
 			_record_initialization_error(
-				"Could not instantiate snapshot validator script: %s" % SNAPSHOT_VALIDATOR_SCRIPT_PATH
+				(
+					"Could not instantiate snapshot validator script: %s"
+					% SNAPSHOT_VALIDATOR_SCRIPT_PATH
+				)
 			)
 	_register_exporter_script(JSON_EXPORTER_SCRIPT_PATH, "JSON")
 	_register_exporter_script(MERMAID_EXPORTER_SCRIPT_PATH, "Mermaid")
@@ -97,7 +100,9 @@ func register_exporter(exporter) -> bool:
 func _validate_exporter_contract(exporter) -> Dictionary:
 	if exporter == null:
 		return _exporter_validation_failure("invalid_exporter", "Exporter instance is null.")
-	for method_name in ["format_id", "display_name", "file_extension", "capabilities", "export_text"]:
+	for method_name in [
+		"format_id", "display_name", "file_extension", "capabilities", "export_text"
+	]:
 		if not exporter.has_method(method_name):
 			return _exporter_validation_failure(
 				"missing_exporter_method",
@@ -118,7 +123,12 @@ func _validate_exporter_contract(exporter) -> Dictionary:
 		return _exporter_validation_failure(
 			"invalid_exporter_name", "Exporter display_name must not be empty."
 		)
-	if extension.is_empty() or extension.begins_with(".") or extension.contains("/") or extension.contains("\\"):
+	if (
+		extension.is_empty()
+		or extension.begins_with(".")
+		or extension.contains("/")
+		or extension.contains("\\")
+	):
 		return _exporter_validation_failure(
 			"invalid_exporter_extension",
 			"Exporter file_extension must omit the period and path separators.",
@@ -174,13 +184,16 @@ func format_descriptors() -> Array:
 	ids.sort()
 	for format_id_value in ids:
 		var exporter = _exporters[format_id_value]
-		result.append(
-			{
-				"id": str(format_id_value),
-				"name": str(exporter.call("display_name")),
-				"extension": str(exporter.call("file_extension")),
-				"capabilities": (exporter.call("capabilities") as Dictionary).duplicate(true),
-			}
+		(
+			result
+			. append(
+				{
+					"id": str(format_id_value),
+					"name": str(exporter.call("display_name")),
+					"extension": str(exporter.call("file_extension")),
+					"capabilities": (exporter.call("capabilities") as Dictionary).duplicate(true),
+				}
+			)
 		)
 	return result
 
@@ -206,7 +219,10 @@ func export_to_string(
 ) -> Dictionary:
 	if not _exporters.has(format_id):
 		return _failure(
-			"unsupported_format", "Unsupported export format: %s" % format_id, "", {"format": format_id}
+			"unsupported_format",
+			"Unsupported export format: %s" % format_id,
+			"",
+			{"format": format_id}
 		)
 	var validation: Dictionary = _validate_snapshot(snapshot)
 	if not validation.get("ok", false):
@@ -278,7 +294,8 @@ func _validate_snapshot(snapshot: Dictionary) -> Dictionary:
 	if _validator == null or not _validator.has_method("validate"):
 		return {
 			"ok": false,
-			"errors": [
+			"errors":
+			[
 				{
 					"code": "validator_unavailable",
 					"message": "Snapshot validator is unavailable.",
@@ -314,7 +331,10 @@ func _write_temporary_file(temporary_path: String, text: String, destination: St
 	if file == null:
 		return _failure(
 			"temporary_open_failed",
-			"Cannot open export destination: %s (error %s)" % [temporary_path, FileAccess.get_open_error()],
+			(
+				"Cannot open export destination: %s (error %s)"
+				% [temporary_path, FileAccess.get_open_error()]
+			),
 			destination
 		)
 	file.store_string(text)
@@ -362,12 +382,18 @@ func _commit_temporary_file(
 	if restore_error == OK:
 		return _failure(
 			"commit_failed_restored",
-			"Cannot commit export: %s (error %s); previous file was restored." % [path, commit_error],
+			(
+				"Cannot commit export: %s (error %s); previous file was restored."
+				% [path, commit_error]
+			),
 			path
 		)
 	return _failure(
 		"commit_and_restore_failed",
-		"Export commit failed (%s) and backup restoration also failed (%s): %s" % [commit_error, restore_error, backup_path],
+		(
+			"Export commit failed (%s) and backup restoration also failed (%s): %s"
+			% [commit_error, restore_error, backup_path]
+		),
 		path,
 		{"backup_path": backup_path, "commit_error": commit_error, "restore_error": restore_error}
 	)

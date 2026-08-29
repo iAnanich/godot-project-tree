@@ -20,6 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ADDON_RELATIVE = Path("addons/script_dependency_inspector")
 PROJECT_ARCHIVE_ROOT = "script-dependency-inspector-godot4-project"
+MEDIA_ARCHIVE_ROOT = "script-dependency-inspector-asset-store-media"
+MEDIA_RELATIVE = Path("docs/asset_store")
 DEFAULT_ZIP_EPOCH = 315532800  # 1980-01-01, the minimum representable ZIP date.
 EXCLUDED_DIRECTORY_NAMES = {
     ".git",
@@ -29,6 +31,7 @@ EXCLUDED_DIRECTORY_NAMES = {
     ".ruff_cache",
     "__pycache__",
     "validation-artifacts",
+    "dist",
 }
 
 
@@ -118,6 +121,27 @@ def write_addon_archive(destination: Path, files: list[Path]) -> None:
             )
 
 
+def write_media_archive(destination: Path, files: list[Path]) -> None:
+    media_root = ROOT / MEDIA_RELATIVE
+    selected = [
+        path
+        for path in files
+        if path in {media_root / "README.md", media_root / "media_manifest.json"}
+        or path.is_relative_to(media_root / "current")
+    ]
+    if not selected:
+        raise RuntimeError("no Asset Library media files were selected")
+    with zipfile.ZipFile(destination, "w") as archive:
+        for path in selected:
+            relative = path.relative_to(media_root).as_posix()
+            add_bytes(
+                archive,
+                f"{MEDIA_ARCHIVE_ROOT}/{relative}",
+                path.read_bytes(),
+                executable=False,
+            )
+
+
 def build(output_directory: Path) -> list[Path]:
     version = release_version()
     output_directory.mkdir(parents=True, exist_ok=True)
@@ -127,18 +151,20 @@ def build(output_directory: Path) -> list[Path]:
 
     addon = output_directory / f"script-dependency-inspector-addon-v{version}.zip"
     project = output_directory / f"script-dependency-inspector-godot4-project-v{version}.zip"
+    media = output_directory / f"script-dependency-inspector-asset-store-media-v{version}.zip"
     checksums = output_directory / f"script-dependency-inspector-v{version}-SHA256SUMS.txt"
-    for path in (addon, project, checksums):
+    for path in (addon, project, media, checksums):
         path.unlink(missing_ok=True)
 
     write_addon_archive(addon, files)
     write_project_archive(project, files, manifest)
+    write_media_archive(media, files)
     checksum_lines = [
         f"{sha256_bytes(path.read_bytes())}  {path.name}"
-        for path in (addon, project)
+        for path in (addon, project, media)
     ]
     checksums.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
-    return [addon, project, checksums]
+    return [addon, project, media, checksums]
 
 
 def main() -> int:

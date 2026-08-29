@@ -1,6 +1,6 @@
 # Behavioral contract
 
-Version: 0.2.2
+Version: 0.2.4
 
 ## Inputs
 
@@ -31,6 +31,11 @@ Version: 0.2.2
 - Automatic exports consume the same completed snapshot and are attempted independently.
 - Validation precedes every public serialization.
 
+
+### Project-folder scope path normalization
+
+The public scope boundary accepts either a `res://` directory or an absolute directory returned by a native `FileDialog`. An absolute selection is accepted only when `ProjectSettings.localize_path()` resolves it inside the current project; the stored, displayed, scanned, and exported root is the normalized `res://` form. Empty paths, `user://`, parent traversal, nonexistent directories, and absolute paths outside the project fail explicitly and do not replace the current scope.
+
 ## Failure behavior
 
 - Invalid selected folders are rejected. Unavailable remembered folders fall back to `res://` with a warning.
@@ -52,3 +57,12 @@ Version: 0.2.2
 - The AI notice identifies uses, human direction, quality controls, and residual evidence limits; the store copy summarizes that disclosure.
 - Store copy explicitly explains that Mermaid, PlantUML, and JSON files support larger-canvas or more presentation-oriented third-party workflows than the dock.
 - All release gates pass under each claimed Godot version.
+
+## Release media contract
+
+- The repository contains the exact current Asset Library thumbnail and featured media.
+- Final upload media is WebP, 16:9, at least 1280×720, no more than 600 KB, and targets 1920×1080.
+- Featured graph/UI images derive from actual Godot-rendered states.
+- The thumbnail may compose text and branding around a real screenshot; it must not substitute a fabricated graph.
+- Each principal dock tab has a current documentation screenshot.
+- Media files and their source scenarios are traceable through the manifest and capture notes.

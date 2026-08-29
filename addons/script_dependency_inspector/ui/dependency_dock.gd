@@ -19,18 +19,22 @@ const GRAPH_NODE_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_graph_node.tsc
 const CONTROL_SECTION_CONFIG: Dictionary = {
 	"content_sources": ["ContentSourcesHeader", "ContentSourcesBody", "Scripts and classes"],
 	"content_members": ["ContentMembersHeader", "ContentMembersBody", "Members and signatures"],
-	"content_relations": ["ContentRelationsHeader", "ContentRelationsBody", "Relationship evidence"],
+	"content_relations":
+	["ContentRelationsHeader", "ContentRelationsBody", "Relationship evidence"],
 	"content_export": ["ContentExportHeader", "ContentExportBody", "Diagram export styling"],
 	"appearance_sizing": ["AppearanceSizingHeader", "AppearanceSizingBody", "Node sizing"],
-	"appearance_density": ["AppearanceDensityHeader", "AppearanceDensityBody", "Member density and overflow"],
+	"appearance_density":
+	["AppearanceDensityHeader", "AppearanceDensityBody", "Member density and overflow"],
 	"appearance_layout": ["AppearanceLayoutHeader", "AppearanceLayoutBody", "Layout and spacing"],
 	"colors_nodes": ["ColorsNodesHeader", "ColorsNodesBody", "Node roles"],
 	"colors_members": ["ColorsMembersHeader", "ColorsMembersBody", "Member and metadata text"],
 	"colors_relations": ["ColorsRelationsHeader", "ColorsRelationsBody", "Relationship lines"],
 	"colors_families": ["ColorsFamiliesHeader", "ColorsFamiliesBody", "Inheritance-family borders"],
-	"automation_editor": ["AutomationEditorHeader", "AutomationEditorBody", "Editor synchronization"],
+	"automation_editor":
+	["AutomationEditorHeader", "AutomationEditorBody", "Editor synchronization"],
 	"automation_timed": ["AutomationTimedHeader", "AutomationTimedBody", "Timed fallback"],
-	"automation_export": ["AutomationExportHeader", "AutomationExportBody", "Automatic file exports"],
+	"automation_export":
+	["AutomationExportHeader", "AutomationExportBody", "Automatic file exports"],
 }
 
 @export var settings: Resource
@@ -199,8 +203,9 @@ func _ready() -> void:
 	export_button.disabled = true
 	_connect_editor_signals()
 	_update_refresh_schedules()
-	if auto_scan_on_open or (
-		_editor_interface != null and sync_on_editor_changes_check.button_pressed
+	if (
+		auto_scan_on_open
+		or (_editor_interface != null and sync_on_editor_changes_check.button_pressed)
 	):
 		call_deferred("scan_project")
 
@@ -214,7 +219,9 @@ func _initialize_dependencies() -> bool:
 	var scope_script = _load_required_script(SNAPSHOT_SCOPE_SCRIPT_PATH, "snapshot scope projector")
 	var graph_query_script = _load_required_script(GRAPH_QUERY_SCRIPT_PATH, "graph query service")
 	var export_service_script = _load_required_script(EXPORT_SERVICE_SCRIPT_PATH, "export service")
-	var state_store_script = _load_required_script(EDITOR_STATE_STORE_SCRIPT_PATH, "editor state store")
+	var state_store_script = _load_required_script(
+		EDITOR_STATE_STORE_SCRIPT_PATH, "editor state store"
+	)
 	_compat_script = _load_required_script(COMPAT_SCRIPT_PATH, "compatibility shim")
 	_load_required_script(GRAPH_NODE_SCRIPT_PATH, "graph node")
 	_graph_node_scene = _load_required_scene(GRAPH_NODE_SCENE_PATH, "graph node")
@@ -248,11 +255,15 @@ func _initialize_dependencies() -> bool:
 	if settings == null:
 		_record_initialization_error("Could not create dependency inspector settings resource.")
 		return false
-	for required_method in ["to_scan_options", "to_graph_options", "to_style_dictionary", "to_editor_state_defaults"]:
+	for required_method in [
+		"to_scan_options", "to_graph_options", "to_style_dictionary", "to_editor_state_defaults"
+	]:
 		if not settings.has_method(required_method):
 			_record_initialization_error(
-				"Settings resource is missing required method '%s': %s"
-				% [required_method, DEFAULT_SETTINGS_PATH]
+				(
+					"Settings resource is missing required method '%s': %s"
+					% [required_method, DEFAULT_SETTINGS_PATH]
+				)
 			)
 	if _export_service.has_method("initialization_errors"):
 		for error_value in _export_service.call("initialization_errors"):
@@ -581,6 +592,10 @@ func _populate_scope_options() -> void:
 
 
 func _open_scope_dialog() -> void:
+	# Keep the chooser project-local where Godot supports it. The selection
+	# handler still accepts an absolute path because native dialogs may return
+	# one on some editor/platform combinations.
+	scope_dialog.access = FileDialog.ACCESS_RESOURCES
 	scope_dialog.current_dir = _scan_root
 	scope_dialog.popup_centered_ratio(0.75)
 
@@ -707,13 +722,16 @@ func _load_editor_state() -> void:
 	if selected_validation.get("ok", false):
 		_scan_root = str(selected_validation.get("root", "res://"))
 	else:
-		_logger.warning(
-			"Remembered scan scope is unavailable; the entire project will be used.",
-			{
-				"code": "remembered_scan_root_unavailable",
-				"root": _scan_root,
-				"reason": selected_validation.get("error", "invalid root"),
-			}
+		(
+			_logger
+			. warning(
+				"Remembered scan scope is unavailable; the entire project will be used.",
+				{
+					"code": "remembered_scan_root_unavailable",
+					"root": _scan_root,
+					"reason": selected_validation.get("error", "invalid root"),
+				}
+			)
 		)
 		_scan_root = "res://"
 	if not _recent_scan_roots.has(_scan_root):
@@ -773,12 +791,14 @@ func _capture_editor_state_controls() -> void:
 		"follow_active_script": follow_active_script_check.button_pressed,
 		"auto_rescan_enabled": auto_rescan_check.button_pressed,
 		"auto_rescan_delay_seconds": auto_rescan_delay_spin.value,
-		"auto_export": {
+		"auto_export":
+		{
 			"json": auto_export_json_check.button_pressed,
 			"mermaid": auto_export_mermaid_check.button_pressed,
 			"plantuml": auto_export_plantuml_check.button_pressed,
 		},
-		"export_paths": {
+		"export_paths":
+		{
 			"json": auto_export_json_path.text.strip_edges(),
 			"mermaid": auto_export_mermaid_path.text.strip_edges(),
 			"plantuml": auto_export_plantuml_path.text.strip_edges(),
@@ -883,7 +903,10 @@ func _update_auto_rescan_status() -> void:
 	if _scan_in_progress:
 		auto_rescan_status.text = "Timed rescan waits for the current scan and exports to finish."
 	elif auto_rescan_check.button_pressed and not auto_rescan_timer.is_stopped():
-		auto_rescan_status.text = "Timed fallback: next scan starts %.0f seconds after completion." % auto_rescan_timer.wait_time
+		auto_rescan_status.text = (
+			"Timed fallback: next scan starts %.0f seconds after completion."
+			% auto_rescan_timer.wait_time
+		)
 	else:
 		auto_rescan_status.text = "Timed rescan disabled"
 
@@ -920,9 +943,7 @@ func _update_scan_mode_indicator() -> void:
 		else "disabled"
 	)
 	var timed_text: String = (
-		"enabled %.0f s after completion" % auto_rescan_delay_spin.value
-		if timed
-		else "disabled"
+		"enabled %.0f s after completion" % auto_rescan_delay_spin.value if timed else "disabled"
 	)
 	scan_mode_indicator.tooltip_text = (
 		"Automatic scan triggers — editor save/import synchronization: %s; timed fallback: %s."
@@ -986,7 +1007,10 @@ func _resolved_automatic_export_path(format_id: String) -> String:
 
 func _automatic_exports_touch_resource_filesystem() -> bool:
 	for format_id in ["json", "mermaid", "plantuml"]:
-		if _automatic_export_enabled(format_id) and _resolved_automatic_export_path(format_id).begins_with("res://"):
+		if (
+			_automatic_export_enabled(format_id)
+			and _resolved_automatic_export_path(format_id).begins_with("res://")
+		):
 			return true
 	return false
 
@@ -1007,21 +1031,26 @@ func _run_automatic_exports() -> Array[String]:
 			)
 			continue
 		var result: Dictionary = _export_service.export_to_file(
-			format_id,
-			path,
-			_snapshot,
-			{"include_colors": export_colors_check.button_pressed}
+			format_id, path, _snapshot, {"include_colors": export_colors_check.button_pressed}
 		)
 		if result.get("ok", false):
 			var written_path: String = str(result.get("path", path))
 			_set_automatic_export_path(format_id, written_path)
 			completed.append(_format_display_name(format_id))
-			filesystem_refresh_needed = filesystem_refresh_needed or written_path.begins_with("res://")
+			filesystem_refresh_needed = (
+				filesystem_refresh_needed or written_path.begins_with("res://")
+			)
 		else:
 			_logger.error(
-				"Automatic %s export failed: %s"
-				% [format_id, str(result.get("error", "unknown error"))],
-				{"code": str(result.get("code", "auto_export_failed")), "format": format_id, "path": path}
+				(
+					"Automatic %s export failed: %s"
+					% [format_id, str(result.get("error", "unknown error"))]
+				),
+				{
+					"code": str(result.get("code", "auto_export_failed")),
+					"format": format_id,
+					"path": path
+				}
 			)
 	_capture_editor_state_controls()
 	_save_editor_state()
@@ -1076,7 +1105,9 @@ func _capture_controls_into_settings() -> void:
 	settings.set("show_signal_signatures", signal_signatures_check.button_pressed)
 	settings.set("show_property_types", property_types_check.button_pressed)
 	settings.set("graph_node_width", graph_node_width_spin.value)
-	settings.set("graph_node_max_width", maxf(graph_node_width_spin.value, graph_node_max_width_spin.value))
+	settings.set(
+		"graph_node_max_width", maxf(graph_node_width_spin.value, graph_node_max_width_spin.value)
+	)
 	settings.set("native_node_width", native_node_width_spin.value)
 	settings.set("graph_max_members_per_section", int(max_members_spin.value))
 	settings.set("graph_max_member_height", max_member_height_spin.value)
@@ -1113,14 +1144,23 @@ func _apply_graph_settings() -> void:
 func _update_legend() -> void:
 	if legend_view == null or settings == null:
 		return
-	var inheritance_color = str(settings.call("to_style_dictionary").get("inheritance_edge_color", "e5e7eb"))
-	var dependency_color = str(settings.call("to_style_dictionary").get("dependency_edge_color", "e69f00"))
-	var type_color = str(settings.call("to_style_dictionary").get("type_dependency_edge_color", "56b4e9"))
+	var inheritance_color = str(
+		settings.call("to_style_dictionary").get("inheritance_edge_color", "e5e7eb")
+	)
+	var dependency_color = str(
+		settings.call("to_style_dictionary").get("dependency_edge_color", "e69f00")
+	)
+	var type_color = str(
+		settings.call("to_style_dictionary").get("type_dependency_edge_color", "56b4e9")
+	)
 	legend_view.text = (
-		"[color=#%s]Inheritance[/color]  ·  [color=#%s]load/preload or class-member use[/color]\n"
-		+ "[color=#%s]Type-annotation use[/color]  ·  Context nodes are labelled and dimmed\n"
-		+ "Rendered direction: base or dependency → derived or dependent"
-	) % [inheritance_color, dependency_color, type_color]
+		(
+			"[color=#%s]Inheritance[/color]  ·  [color=#%s]load/preload or class-member use[/color]\n"
+			+ "[color=#%s]Type-annotation use[/color]  ·  Context nodes are labelled and dimmed\n"
+			+ "Rendered direction: base or dependency → derived or dependent"
+		)
+		% [inheritance_color, dependency_color, type_color]
+	)
 
 
 func _update_summary() -> void:
@@ -1151,20 +1191,32 @@ func _update_summary() -> void:
 		"[b]Dependency graph summary[/b]",
 		"[b]How to read it[/b]: solid = inheritance; orange = load/preload or direct member use; blue = type-only use. Node border colors identify the most specific inheritance family.",
 		"Selected scope: %s" % str(metadata.get("root_path", "res://")),
-		"Indexed root: %s" % str(metadata.get("index_root_path", metadata.get("root_path", "res://"))),
-		"Scope nodes: %s in scope; %s required context." % [
-			int(scope_summary.get("in_scope_nodes", _snapshot.get("nodes", []).size())),
-			int(scope_summary.get("context_nodes", 0)),
-		],
+		(
+			"Indexed root: %s"
+			% str(metadata.get("index_root_path", metadata.get("root_path", "res://")))
+		),
+		(
+			"Scope nodes: %s in scope; %s required context."
+			% [
+				int(scope_summary.get("in_scope_nodes", _snapshot.get("nodes", []).size())),
+				int(scope_summary.get("context_nodes", 0)),
+			]
+		),
 		"Engine: %s" % str(metadata.get("engine_version", "unknown")),
 		"Exact data: choose JSON, then Export, for paths, members, provenance, and diagnostics.",
 		"Nodes: %s (%s)" % [_snapshot.get("nodes", []).size(), _count_summary(node_kind_counts)],
-		"Autoloads: %s; exact scene attachments: %s." % [autoload_count, _snapshot.get("scene_usages", []).size()],
+		(
+			"Autoloads: %s; exact scene attachments: %s."
+			% [autoload_count, _snapshot.get("scene_usages", []).size()]
+		),
 		"Inheritance families: %s" % _count_summary(family_counts),
 		"Edges: %s (%s)" % [_snapshot.get("edges", []).size(), _count_summary(edge_kind_counts)],
 		"Canonical export direction: dependent → dependency.",
 		"Rendered GraphEdit direction: dependency → dependent, for layout.",
-		"Warnings: %s; errors: %s." % [_snapshot.get("warnings", []).size(), _snapshot.get("errors", []).size()],
+		(
+			"Warnings: %s; errors: %s."
+			% [_snapshot.get("warnings", []).size(), _snapshot.get("errors", []).size()]
+		),
 	]
 	summary_view.text = "\n".join(lines)
 
@@ -1195,12 +1247,15 @@ func _format_capability_tooltip(format_id: String, capabilities: Dictionary) -> 
 		if bool(capabilities.get("exact_member_endpoints", false))
 		else "class-level endpoints"
 	)
-	return "%s export: %s; colors: %s; structured member links: %s" % [
-		format_id.to_upper(),
-		endpoint_text,
-		"yes" if bool(capabilities.get("colors", false)) else "no",
-		"yes" if bool(capabilities.get("structured_member_links", false)) else "no",
-	]
+	return (
+		"%s export: %s; colors: %s; structured member links: %s"
+		% [
+			format_id.to_upper(),
+			endpoint_text,
+			"yes" if bool(capabilities.get("colors", false)) else "no",
+			"yes" if bool(capabilities.get("structured_member_links", false)) else "no",
+		]
+	)
 
 
 func _on_scan_option_changed(_pressed: bool) -> void:
@@ -1268,9 +1323,7 @@ func _render_snapshot() -> void:
 		graph_node.name = graph_name
 		graph_edit.add_child(graph_node)
 		var node_display_options: Dictionary = display_options.duplicate(true)
-		node_display_options["member_port_usage"] = member_port_usage_by_node.get(
-			node_id, {}
-		)
+		node_display_options["member_port_usage"] = member_port_usage_by_node.get(node_id, {})
 		graph_node.call("configure", node_display_data, style, node_display_options)
 		if graph_node.has_signal("source_requested"):
 			graph_node.connect("source_requested", Callable(self, "_open_source"))
@@ -1311,10 +1364,16 @@ func _member_port_usage_by_node(snapshot: Dictionary) -> Dictionary:
 		for link_value in edge.get("member_links", []):
 			var link: Dictionary = link_value
 			_register_member_port_usage(
-				usage_by_node, str(edge.get("source", "")), link.get("source_member", {}), relation_kind
+				usage_by_node,
+				str(edge.get("source", "")),
+				link.get("source_member", {}),
+				relation_kind
 			)
 			_register_member_port_usage(
-				usage_by_node, str(edge.get("target", "")), link.get("target_member", {}), relation_kind
+				usage_by_node,
+				str(edge.get("target", "")),
+				link.get("target_member", {}),
+				relation_kind
 			)
 	return usage_by_node
 
@@ -1343,16 +1402,19 @@ func _relationship_occurrences_by_node(snapshot: Dictionary) -> Dictionary:
 			if source_location.is_empty():
 				continue
 			var values: Array = occurrences_by_node.get(source_id, [])
-			values.append(
-				{
-					"kind": str(edge.get("kind", "uses")),
-					"target_id": target_id,
-					"target_name": str(target.get("name", target_id)),
-					"source_member": link.get("source_member", {}).duplicate(true),
-					"target_member": link.get("target_member", {}).duplicate(true),
-					"source_location": source_location.duplicate(true),
-					"evidence": str(link.get("evidence", "dependency")),
-				}
+			(
+				values
+				. append(
+					{
+						"kind": str(edge.get("kind", "uses")),
+						"target_id": target_id,
+						"target_name": str(target.get("name", target_id)),
+						"source_member": link.get("source_member", {}).duplicate(true),
+						"target_member": link.get("target_member", {}).duplicate(true),
+						"source_location": source_location.duplicate(true),
+						"evidence": str(link.get("evidence", "dependency")),
+					}
+				)
 			)
 			occurrences_by_node[source_id] = values
 	for source_id_value in occurrences_by_node:
@@ -1362,17 +1424,26 @@ func _relationship_occurrences_by_node(snapshot: Dictionary) -> Dictionary:
 			func(left: Dictionary, right: Dictionary) -> bool:
 				var left_location: Dictionary = left.get("source_location", {})
 				var right_location: Dictionary = right.get("source_location", {})
-				return "%09d|%09d|%s|%s" % [
-					int(left_location.get("line", 0)),
-					int(left_location.get("column", 0)),
-					str(left.get("target_id", "")),
-					str(left.get("evidence", "")),
-				] < "%09d|%09d|%s|%s" % [
-					int(right_location.get("line", 0)),
-					int(right_location.get("column", 0)),
-					str(right.get("target_id", "")),
-					str(right.get("evidence", "")),
-				]
+				return (
+					(
+						"%09d|%09d|%s|%s"
+						% [
+							int(left_location.get("line", 0)),
+							int(left_location.get("column", 0)),
+							str(left.get("target_id", "")),
+							str(left.get("evidence", "")),
+						]
+					)
+					< (
+						"%09d|%09d|%s|%s"
+						% [
+							int(right_location.get("line", 0)),
+							int(right_location.get("column", 0)),
+							str(right.get("target_id", "")),
+							str(right.get("evidence", "")),
+						]
+					)
+				)
 		)
 	return occurrences_by_node
 
@@ -1498,17 +1569,12 @@ func _layout_positions(snapshot: Dictionary, size_by_id: Dictionary = {}) -> Dic
 
 
 func _layout_top_to_bottom(
-	depth_keys: Array,
-	ids_by_depth: Dictionary,
-	node_by_id: Dictionary,
-	size_by_id: Dictionary
+	depth_keys: Array, ids_by_depth: Dictionary, node_by_id: Dictionary, size_by_id: Dictionary
 ) -> Dictionary:
 	var style: Dictionary = settings.call("to_style_dictionary")
 	var sibling_gap = float(style["graph_sibling_spacing"])
 	var layer_gap = float(style["graph_layer_spacing"])
-	var available_width = maxf(
-		500.0, graph_edit.size.x / graph_edit.zoom - 32.0
-	)
+	var available_width = maxf(500.0, graph_edit.size.x / graph_edit.zoom - 32.0)
 	var positions: Dictionary = {}
 	var layer_y = 70.0
 	for depth_value in depth_keys:
@@ -1533,10 +1599,7 @@ func _layout_top_to_bottom(
 
 
 func _layout_left_to_right(
-	depth_keys: Array,
-	ids_by_depth: Dictionary,
-	node_by_id: Dictionary,
-	size_by_id: Dictionary
+	depth_keys: Array, ids_by_depth: Dictionary, node_by_id: Dictionary, size_by_id: Dictionary
 ) -> Dictionary:
 	var style: Dictionary = settings.call("to_style_dictionary")
 	var sibling_gap = float(style["graph_sibling_spacing"])
@@ -1547,7 +1610,9 @@ func _layout_left_to_right(
 		var height = 0.0
 		var ids: Array = ids_by_depth[depth_value]
 		for index in range(ids.size()):
-			height += _node_layout_size(str(ids[index]), node_by_id[ids[index]], style, size_by_id).y
+			height += (
+				_node_layout_size(str(ids[index]), node_by_id[ids[index]], style, size_by_id).y
+			)
 			if index + 1 < ids.size():
 				height += sibling_gap
 		layer_heights[depth_value] = height
@@ -1576,9 +1641,7 @@ func _node_layout_size(
 		return size_by_id[node_id]
 	var kind = str(node_data.get("kind", "external"))
 	var width = (
-		float(style["native_node_width"])
-		if kind == "native"
-		else float(style["graph_node_width"])
+		float(style["native_node_width"]) if kind == "native" else float(style["graph_node_width"])
 	)
 	if kind == "native":
 		return Vector2(width, 37.0)
@@ -1602,11 +1665,14 @@ func _estimated_member_rows(node_data: Dictionary, maximum_per_section: int) -> 
 func _layout_sort_key(node_data: Dictionary) -> String:
 	var kind_order = {"native": "0", "addon": "1", "user": "2", "external": "3"}
 	var kind = str(node_data.get("kind", "external"))
-	return "%s|%s|%s" % [
-		str(kind_order.get(kind, "9")),
-		str(node_data.get("name", "")).to_lower(),
-		str(node_data.get("id", "")),
-	]
+	return (
+		"%s|%s|%s"
+		% [
+			str(kind_order.get(kind, "9")),
+			str(node_data.get("name", "")).to_lower(),
+			str(node_data.get("id", "")),
+		]
+	)
 
 
 func _depth_for(
@@ -1655,7 +1721,9 @@ func _configure_file_dialog(format_id: String, suggested_path: String) -> void:
 
 
 func _on_export_path_selected(path: String) -> void:
-	var format_id: String = _pending_path_format if not _pending_path_format.is_empty() else _selected_format_id()
+	var format_id: String = (
+		_pending_path_format if not _pending_path_format.is_empty() else _selected_format_id()
+	)
 	if not _pending_manual_export:
 		_set_automatic_export_path(format_id, path)
 		_capture_editor_state_controls()
@@ -1667,10 +1735,7 @@ func _on_export_path_selected(path: String) -> void:
 	if path.begins_with("res://"):
 		_ignore_filesystem_events_until_msec = Time.get_ticks_msec() + 1500
 	var result: Dictionary = _export_service.export_to_file(
-		format_id,
-		path,
-		_snapshot,
-		{"include_colors": export_colors_check.button_pressed}
+		format_id, path, _snapshot, {"include_colors": export_colors_check.button_pressed}
 	)
 	if result.get("ok", false):
 		var written_path: String = str(result.get("path", path))
@@ -1763,9 +1828,7 @@ func _open_source(path: String, line: int = 1, column: int = 1) -> void:
 			{"code": "source_navigation_failed", "path": path, "line": line, "column": column}
 		)
 		return
-	_editor_interface.edit_script(
-		resource as Script, maxi(0, line - 1), maxi(0, column - 1), true
-	)
+	_editor_interface.edit_script(resource as Script, maxi(0, line - 1), maxi(0, column - 1), true)
 
 
 func _open_scene_usage(path: String, _line: int = 1, _column: int = 1) -> void:
@@ -1871,7 +1934,9 @@ func _focus_node_id(node_id: String, update_status: bool = true) -> void:
 	var center: Vector2 = graph_node.position_offset + graph_node.size * 0.5
 	graph_edit.scroll_offset = center * graph_edit.zoom - graph_edit.size * 0.5
 	if update_status:
-		status_label.text = "Focused: %s" % str(_node_data_by_id.get(node_id, {}).get("name", node_id))
+		status_label.text = (
+			"Focused: %s" % str(_node_data_by_id.get(node_id, {}).get("name", node_id))
+		)
 
 
 func _on_graph_node_selected(node: Node) -> void:
@@ -1915,7 +1980,9 @@ func _clear_relationship_focus() -> void:
 func _update_relationship_focus(_update_status: bool = true) -> void:
 	_focus_related_ids.clear()
 	_focus_visible_ids.clear()
-	var focus_active: bool = not _focused_node_id.is_empty() and _snapshot_has_node(_focused_node_id)
+	var focus_active: bool = (
+		not _focused_node_id.is_empty() and _snapshot_has_node(_focused_node_id)
+	)
 	if focus_active:
 		_focus_related_ids = _graph_query.call(
 			"relationship_focus_ids",
@@ -1936,7 +2003,11 @@ func _update_relationship_focus(_update_status: bool = true) -> void:
 		var node_id: String = str(node_id_value)
 		var graph_node = _id_to_graph_node[node_id]
 		if is_instance_valid(graph_node):
-			graph_node.visible = not focus_active or not isolate_neighborhood_check.button_pressed or _focus_visible_ids.has(node_id)
+			graph_node.visible = (
+				not focus_active
+				or not isolate_neighborhood_check.button_pressed
+				or _focus_visible_ids.has(node_id)
+			)
 	_apply_node_presentation_states()
 	_render_visible_edges()
 	clear_focus_button.disabled = not focus_active
@@ -1947,15 +2018,20 @@ func _update_relationship_focus(_update_status: bool = true) -> void:
 		var counts: Dictionary = _graph_query.call("descendant_counts", _snapshot).get(
 			_focused_node_id, {}
 		)
-		focus_status.text = "%s · %s direct · %s descendants%s" % [
-			str(_node_data_by_id.get(_focused_node_id, {}).get("name", _focused_node_id)),
-			int(counts.get("direct", 0)),
-			int(counts.get("transitive", 0)),
-			" · neighborhood isolated" if isolate_neighborhood_check.button_pressed else "",
-		]
+		focus_status.text = (
+			"%s · %s direct · %s descendants%s"
+			% [
+				str(_node_data_by_id.get(_focused_node_id, {}).get("name", _focused_node_id)),
+				int(counts.get("direct", 0)),
+				int(counts.get("transitive", 0)),
+				" · neighborhood isolated" if isolate_neighborhood_check.button_pressed else "",
+			]
+		)
 
 
-func _apply_node_presentation_states(current_search_id: String = "", search_active_override = null) -> void:
+func _apply_node_presentation_states(
+	current_search_id: String = "", search_active_override = null
+) -> void:
 	var search_active: bool = (
 		not search_input.text.strip_edges().is_empty()
 		if search_active_override == null
@@ -1964,7 +2040,9 @@ func _apply_node_presentation_states(current_search_id: String = "", search_acti
 	var current_id: String = current_search_id
 	if current_id.is_empty() and _search_index >= 0 and _search_index < _search_match_ids.size():
 		current_id = _search_match_ids[_search_index]
-	var focus_active: bool = not _focused_node_id.is_empty() and _snapshot_has_node(_focused_node_id)
+	var focus_active: bool = (
+		not _focused_node_id.is_empty() and _snapshot_has_node(_focused_node_id)
+	)
 	for node_id_value in _id_to_graph_node:
 		var node_id: String = str(node_id_value)
 		var graph_node = _id_to_graph_node[node_id]

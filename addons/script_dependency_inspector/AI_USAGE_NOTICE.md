@@ -1,6 +1,6 @@
 # AI-assisted development notice
 
-Script Dependency Inspector was developed with extensive assistance from generative AI systems, principally OpenAI ChatGPT. The v0.2.2 review and implementation work used GPT-5.6 Thinking; earlier revisions may have used different model versions.
+Script Dependency Inspector was developed with extensive assistance from generative AI systems, principally OpenAI ChatGPT. The v0.2.3 maintenance/release-tooling work and v0.2.4 media workflow used GPT-5.6 Thinking; earlier revisions may have used different model versions.
 
 ## How AI was used
 

@@ -16,7 +16,10 @@ func scan(scene_paths: Array, maximum_scene_bytes: int = 4194304) -> Dictionary:
 		var read_result = _read_text_file(scene_path, maximum_scene_bytes)
 		if not read_result.get("ok", false):
 			warnings.append(
-				"Could not inspect scene %s: %s" % [scene_path, read_result.get("error", "read failed")]
+				(
+					"Could not inspect scene %s: %s"
+					% [scene_path, read_result.get("error", "read failed")]
+				)
 			)
 			continue
 		usages.append_array(_scan_text(scene_path, str(read_result.get("text", ""))))
@@ -52,15 +55,18 @@ func _scan_text(scene_path: String, text: String) -> Array:
 		var resource_id = _ext_resource_id(line)
 		if resource_id.is_empty() or not external_scripts.has(resource_id):
 			continue
-		usages.append(
-			{
-				"scene_path": scene_path,
-				"node_path": current_node_path,
-				"script_path": str(external_scripts[resource_id]),
-				"line": line_index + 1,
-				"column": _first_non_whitespace_column(raw_line),
-				"evidence": "tscn_node_script_attachment",
-			}
+		(
+			usages
+			. append(
+				{
+					"scene_path": scene_path,
+					"node_path": current_node_path,
+					"script_path": str(external_scripts[resource_id]),
+					"line": line_index + 1,
+					"column": _first_non_whitespace_column(raw_line),
+					"evidence": "tscn_node_script_attachment",
+				}
+			)
 		)
 	return usages
 
@@ -130,9 +136,12 @@ func _read_text_file(path: String, maximum_bytes: int) -> Dictionary:
 
 
 func _usage_sort_key(usage: Dictionary) -> String:
-	return "%s|%s|%s|%09d" % [
-		usage.get("script_path", ""),
-		usage.get("scene_path", ""),
-		usage.get("node_path", ""),
-		int(usage.get("line", 0)),
-	]
+	return (
+		"%s|%s|%s|%09d"
+		% [
+			usage.get("script_path", ""),
+			usage.get("scene_path", ""),
+			usage.get("node_path", ""),
+			int(usage.get("line", 0)),
+		]
+	)

@@ -79,8 +79,15 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			var signal_name = _escape(str(signal_data.get("name", "signal")))
 			if bool(display_options.get("show_signal_signatures", false)):
 				lines.append(
-					"  +signal %s(%s)"
-					% [signal_name, _escape(_arguments_without_defaults(str(signal_data.get("arguments", ""))))]
+					(
+						"  +signal %s(%s)"
+						% [
+							signal_name,
+							_escape(
+								_arguments_without_defaults(str(signal_data.get("arguments", "")))
+							)
+						]
+					)
 				)
 			else:
 				lines.append("  +signal %s" % signal_name)
@@ -95,13 +102,15 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 					else ""
 				)
 				lines.append(
-					"  +%s%s(%s)%s"
-					% [
-						static_prefix,
-						method_name,
-						_escape(_arguments_without_defaults(str(method.get("arguments", "")))),
-						suffix
-					]
+					(
+						"  +%s%s(%s)%s"
+						% [
+							static_prefix,
+							method_name,
+							_escape(_arguments_without_defaults(str(method.get("arguments", "")))),
+							suffix
+						]
+					)
 				)
 			else:
 				lines.append("  +%s%s" % [static_prefix, method_name])

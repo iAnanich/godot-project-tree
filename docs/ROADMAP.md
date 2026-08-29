@@ -1,6 +1,22 @@
 # Release roadmap
 
-Status date: 2026-07-29
+Status date: 2026-08-04
+
+## v0.2.4 — Asset Library media refresh
+
+Delivered repository-owned, validated Asset Library media and real-runtime interface documentation without changing snapshot semantics.
+
+## v0.2.3 — scope-path correction and release automation
+
+Status: implemented.
+
+- Normalize absolute native-dialog folder selections to canonical `res://` roots when they are inside the project.
+- Reject absolute paths outside the project, `user://`, parent traversal, missing directories, and empty selections.
+- Add deterministic add-on-only packaging and documented installation shape.
+- Add pinned pre-commit `gdformat` and `gdlint` checks plus matching GitHub quality checks.
+- Add tag-triggered GitHub Release packaging.
+- Add verified binary-capable release patches generated from Git refs.
+- Remove internal review documents and broad related-project survey material from the public source tree while preserving necessary narrow attribution.
 
 ## v0.2.2 — export-oriented UI and development disclosure
 

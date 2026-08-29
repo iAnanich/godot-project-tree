@@ -34,11 +34,17 @@ func _init() -> void:
 
 
 ## Validates and normalizes a project-local directory before it is accepted as
-## a user-visible analysis scope.
+## a user-visible analysis scope. FileDialog may return either a res:// path or
+## an absolute filesystem path; absolute paths are localized only when they are
+## inside the current project.
 func validate_root(root_path: String) -> Dictionary:
-	var normalized: String = root_path.strip_edges().replace("\\", "/").simplify_path()
-	var error: String = _validate_scan_root(root_path, normalized)
-	if error.is_empty() and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(normalized)):
+	var normalization: Dictionary = _normalize_scan_root(root_path)
+	var normalized: String = str(normalization.get("root", ""))
+	var error: String = str(normalization.get("error", ""))
+	if (
+		error.is_empty()
+		and not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(normalized))
+	):
 		error = "Scan root does not exist: %s" % normalized
 	return {"ok": error.is_empty(), "root": normalized, "error": error}
 
@@ -48,7 +54,8 @@ func validate_root(root_path: String) -> Dictionary:
 ## ClassDB, and optional Script reflection. It never instantiates user scripts.
 func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 	var resolved_options = _with_defaults(options)
-	var normalized_root = root_path.simplify_path()
+	var root_validation: Dictionary = validate_root(root_path)
+	var normalized_root: String = str(root_validation.get("root", ""))
 	var result = {
 		"root_path": normalized_root,
 		"scripts": [],
@@ -58,16 +65,19 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 		"diagnostics": [],
 		"engine_version": _engine_version_string(),
 	}
-	var root_error = _validate_scan_root(root_path, normalized_root)
+	var root_error: String = str(root_validation.get("error", ""))
 	if not root_error.is_empty():
 		result["errors"].append(root_error)
-		result["diagnostics"].append(
-			{
-				"severity": "error",
-				"code": "invalid_scan_root",
-				"message": root_error,
-				"context": {"root": root_path},
-			}
+		(
+			result["diagnostics"]
+			. append(
+				{
+					"severity": "error",
+					"code": "invalid_scan_root",
+					"message": root_error,
+					"context": {"root": root_path},
+				}
+			)
 		)
 		_log_error(root_error, {"root": root_path, "code": "invalid_scan_root"})
 		_finalize_diagnostics(result)
@@ -80,7 +90,7 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 		_finalize_diagnostics(result)
 		return result
 
-	var files_result = _collect_project_files(root_path, resolved_options)
+	var files_result = _collect_project_files(normalized_root, resolved_options)
 	result["warnings"].append_array(files_result["warnings"])
 	result["errors"].append_array(files_result["errors"])
 	if not result["errors"].is_empty():
@@ -128,7 +138,9 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 		if display_name.is_empty():
 			display_name = script_path.get_file().get_basename()
 
-		var autoload: Dictionary = autoload_index.get(script_path.simplify_path(), {}).duplicate(true)
+		var autoload: Dictionary = autoload_index.get(script_path.simplify_path(), {}).duplicate(
+			true
+		)
 		var record = {
 			"id": script_path,
 			"path": script_path,
@@ -167,7 +179,9 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 	result["scripts"] = records
 	if resolved_options["include_scene_usages"] and _scene_usage_scanner != null:
 		var scene_result: Dictionary = _scene_usage_scanner.call(
-			"scan", files_result.get("scene_files", []), int(resolved_options["maximum_scene_bytes"])
+			"scan",
+			files_result.get("scene_files", []),
+			int(resolved_options["maximum_scene_bytes"])
 		)
 		result["scene_usages"] = scene_result.get("usages", [])
 		result["warnings"].append_array(scene_result.get("warnings", []))
@@ -188,35 +202,54 @@ func _finalize_diagnostics(result: Dictionary) -> void:
 	for message_value in result.get("warnings", []):
 		var message = str(message_value)
 		if not known_messages.has(message):
-			diagnostics.append(
-				{
-					"severity": "warning",
-					"code": "scan_warning",
-					"message": message,
-					"context": {},
-				}
+			(
+				diagnostics
+				. append(
+					{
+						"severity": "warning",
+						"code": "scan_warning",
+						"message": message,
+						"context": {},
+					}
+				)
 			)
 	for message_value in result.get("errors", []):
 		var message = str(message_value)
 		if not known_messages.has(message):
-			diagnostics.append(
-				{
-					"severity": "error",
-					"code": "scan_error",
-					"message": message,
-					"context": {},
-				}
+			(
+				diagnostics
+				. append(
+					{
+						"severity": "error",
+						"code": "scan_error",
+						"message": message,
+						"context": {},
+					}
+				)
 			)
 	result["diagnostics"] = diagnostics
 
 
-func _validate_scan_root(original_root: String, normalized_root: String) -> String:
-	if original_root.strip_edges().is_empty():
-		return "Scan root is empty; expected a res:// project path."
-	var normalized_separators = original_root.replace("\\", "/")
+func _normalize_scan_root(root_path: String) -> Dictionary:
+	var stripped: String = root_path.strip_edges()
+	if stripped.is_empty():
+		return {"root": "", "error": "Scan root is empty; expected a project folder."}
+	var normalized_separators: String = stripped.replace("\\", "/")
 	for segment in normalized_separators.split("/", false):
 		if segment == "..":
-			return "Scan root must not contain parent traversal segments: %s" % original_root
+			return {
+				"root": "",
+				"error": "Scan root must not contain parent traversal segments: %s" % root_path,
+			}
+
+	var normalized: String = normalized_separators.simplify_path()
+	if normalized.is_absolute_path():
+		normalized = ProjectSettings.localize_path(normalized).replace("\\", "/").simplify_path()
+	var error: String = _validate_scan_root(root_path, normalized)
+	return {"root": normalized, "error": error}
+
+
+func _validate_scan_root(original_root: String, normalized_root: String) -> String:
 	if normalized_root != "res://" and not normalized_root.begins_with("res://"):
 		return "Scan root must be inside the current project (res://): %s" % original_root
 	return ""

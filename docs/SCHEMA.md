@@ -1,8 +1,8 @@
 # Snapshot schema
 
-Version: 0.2.2
+Version: 0.2.4
 
-The current public model remains **snapshot v2**, formally described by [`schema/snapshot-v2.schema.json`](schema/snapshot-v2.schema.json). The v1 schema is retained for historical consumers. v0.2.1 added optional scope fields; v0.2.2 changes only editor state and UI behavior without changing `schema_version` or relationship semantics.
+The current public model remains **snapshot v2**, formally described by [`schema/snapshot-v2.schema.json`](schema/snapshot-v2.schema.json). The v1 schema is retained for historical consumers. v0.2.1 added optional scope fields; v0.2.4 changes only repository media and release documentation without changing `schema_version`, editor-state semantics, or relationship semantics.
 
 ## Root
 

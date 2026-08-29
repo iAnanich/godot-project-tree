@@ -1,8 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://bhdcgbjdxu7uh"]
 
-[ext_resource type="Script" path="res://addons/script_dependency_inspector/ui/dependency_dock.gd" id="1_dock"]
+[ext_resource type="Script" uid="uid://1671jnva2eas" path="res://addons/script_dependency_inspector/ui/dependency_dock.gd" id="1_dock"]
+[ext_resource type="Script" uid="uid://bfk0ljefllq8u" path="res://addons/script_dependency_inspector/core/settings.gd" id="2_vh15q"]
 
-[node name="DependencyDock" type="VBoxContainer"]
+[sub_resource type="Resource" id="Resource_6xsn6"]
+script = ExtResource("2_vh15q")
+excluded_path_prefixes = PackedStringArray("res://.godot/", "res://addons/script_dependency_inspector/")
+
+[node name="DependencyDock" type="VBoxContainer" unique_id=320162189]
 custom_minimum_size = Vector2(430, 420)
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,950 +15,1036 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_dock")
+settings = SubResource("Resource_6xsn6")
 
-[node name="Toolbar" type="HBoxContainer" parent="."]
+[node name="Toolbar" type="HBoxContainer" parent="." unique_id=1186285485]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ScanButton" type="Button" parent="Toolbar"]
+[node name="ScanButton" type="Button" parent="Toolbar" unique_id=810052171]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Scan"
 tooltip_text = "Scan the selected scope now, rebuild the validated dependency snapshot, update the optional graph, and run enabled automatic exports."
+text = "Scan"
 
-[node name="ScanModeIndicator" type="Label" parent="Toolbar"]
+[node name="ScanModeIndicator" type="Label" parent="Toolbar" unique_id=1396133548]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(78, 0)
+custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
+tooltip_text = "Automatic scan triggers — editor save/import synchronization: enabled after 3.00 s quiet period; timed fallback: disabled."
 text = "Save sync"
 text_overrun_behavior = 3
-tooltip_text = "Shows which automatic scan triggers are active: editor save/import synchronization, timed fallback, both, or manual only."
 
-[node name="ToolbarActionGap" type="Control" parent="Toolbar"]
-custom_minimum_size = Vector2(8, 0)
+[node name="ToolbarActionGap" type="Control" parent="Toolbar" unique_id=1555314487]
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="ToolbarSeparator" type="VSeparator" parent="Toolbar"]
+[node name="ToolbarSeparator" type="VSeparator" parent="Toolbar" unique_id=384772228]
 layout_mode = 2
 
-[node name="ExportButton" type="Button" parent="Toolbar"]
+[node name="ExportButton" type="Button" parent="Toolbar" unique_id=1433709461]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-text = "Export…"
 tooltip_text = "Export the current validated snapshot in the selected format and remember the successful destination for that format."
+disabled = true
+text = "Export"
 
-[node name="FormatOption" type="OptionButton" parent="Toolbar"]
+[node name="FormatOption" type="OptionButton" parent="Toolbar" unique_id=1269720622]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-fit_to_longest_item = false
+tooltip_text = "JSON export: exact member endpoints; colors: yes; structured member links: yes"
 clip_text = true
-tooltip_text = "Choose JSON, Mermaid, or PlantUML. The tooltip updates to show the selected format's capabilities."
+selected = 0
+fit_to_longest_item = false
+item_count = 3
+popup/item_0/text = "JSON"
+popup/item_0/id = 0
+popup/item_1/text = "Mermaid class diagram"
+popup/item_1/id = 1
+popup/item_2/text = "PlantUML"
+popup/item_2/id = 2
 
-[node name="ToolbarFlexibleSpacer" type="Control" parent="Toolbar"]
+[node name="ToolbarFlexibleSpacer" type="Control" parent="Toolbar" unique_id=1943612283]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ShowGraph" type="CheckButton" parent="Toolbar"]
+[node name="ShowGraph" type="CheckButton" parent="Toolbar" unique_id=1461183245]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Show or hide the interactive GraphEdit view. Disable it for an export-only workflow; scanning, summaries, diagnostics, and file export remain available."
 button_pressed = true
 text = "Graph"
-tooltip_text = "Show or hide the interactive GraphEdit view. Disable it for an export-only workflow; scanning, summaries, diagnostics, and file export remain available."
 
-[node name="StatusLabel" type="Label" parent="."]
+[node name="StatusLabel" type="Label" parent="." unique_id=1570677778]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Not scanned"
 text_overrun_behavior = 3
 
-[node name="ScopeBar" type="HBoxContainer" parent="."]
+[node name="ScopeBar" type="HBoxContainer" parent="." unique_id=521708964]
 layout_mode = 2
 
-[node name="ScopeLabel" type="Label" parent="ScopeBar"]
+[node name="ScopeLabel" type="Label" parent="ScopeBar" unique_id=704033698]
 layout_mode = 2
-text = "Scope"
 tooltip_text = "The selected project folder included in the snapshot. Required ancestors and direct dependency targets outside it remain as marked context."
+text = "Scope"
 
-[node name="ScopeOption" type="OptionButton" parent="ScopeBar"]
+[node name="ScopeOption" type="OptionButton" parent="ScopeBar" unique_id=2070223268]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "Choose the entire project or a recently used project folder. Scope changes rebuild from a full bounded project index so required context remains resolvable."
+selected = 0
+item_count = 1
+popup/item_0/text = "Entire project — res://"
+popup/item_0/id = 0
 
-[node name="ChooseScope" type="Button" parent="ScopeBar"]
+[node name="ChooseScope" type="Button" parent="ScopeBar" unique_id=582821222]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Choose…"
 tooltip_text = "Choose a res:// project folder as the analysis scope."
+text = "Choose…"
 
-[node name="SearchBar" type="HBoxContainer" parent="."]
+[node name="SearchBar" type="HBoxContainer" parent="." unique_id=1887400205]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="SearchInput" type="LineEdit" parent="SearchBar"]
+[node name="SearchInput" type="LineEdit" parent="SearchBar" unique_id=1171236749]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Filter and focus the existing graph without rescanning. Searches class names, paths, members, autoload names, and exact scene usages."
 placeholder_text = "Search classes, paths, members, autoloads, or scenes"
 clear_button_enabled = true
-tooltip_text = "Filter and focus the existing graph without rescanning. Searches class names, paths, members, autoload names, and exact scene usages."
 
-[node name="PreviousMatch" type="Button" parent="SearchBar"]
+[node name="PreviousMatch" type="Button" parent="SearchBar" unique_id=1990194058]
 unique_name_in_owner = true
 layout_mode = 2
-text = "‹"
 tooltip_text = "Focus the previous graph search match."
+text = "‹"
 
-[node name="NextMatch" type="Button" parent="SearchBar"]
+[node name="NextMatch" type="Button" parent="SearchBar" unique_id=1788580662]
 unique_name_in_owner = true
 layout_mode = 2
-text = "›"
 tooltip_text = "Focus the next graph search match."
+text = "›"
 
-[node name="SearchStatus" type="Label" parent="SearchBar"]
+[node name="SearchStatus" type="Label" parent="SearchBar" unique_id=1226120866]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(58, 0)
 layout_mode = 2
-text = "0 matches"
 tooltip_text = "Current match position and total number of graph search matches."
+text = "0 matches"
 
-[node name="FocusBar" type="HBoxContainer" parent="."]
+[node name="FocusBar" type="HBoxContainer" parent="." unique_id=956333865]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="IncludeDescendants" type="CheckBox" parent="FocusBar"]
+[node name="IncludeDescendants" type="CheckBox" parent="FocusBar" unique_id=255746123]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Descendants"
 tooltip_text = "When a node is selected, include all inherited descendants in relationship emphasis and neighborhood isolation. Ancestors are always included."
+text = "Descendants"
 
-[node name="IsolateNeighborhood" type="CheckBox" parent="FocusBar"]
+[node name="IsolateNeighborhood" type="CheckBox" parent="FocusBar" unique_id=882794817]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Isolate neighborhood"
 tooltip_text = "Hide unrelated nodes without rescanning. The neighborhood contains the selected node, its inheritance context, and directly connected dependencies or dependents."
+text = "Isolate neighborhood"
 
-[node name="ClearFocus" type="Button" parent="FocusBar"]
+[node name="ClearFocus" type="Button" parent="FocusBar" unique_id=1274375878]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Clear"
 tooltip_text = "Clear relationship focus and restore all nodes in the current scope."
+text = "Clear"
 
-[node name="FocusStatus" type="Label" parent="FocusBar"]
+[node name="FocusStatus" type="Label" parent="FocusBar" unique_id=1224009898]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Selected class plus direct and transitive descendant counts."
 text = "Select a node to inspect inheritance context"
 text_overrun_behavior = 3
-tooltip_text = "Selected class plus direct and transitive descendant counts."
 
-[node name="LegendPanel" type="PanelContainer" parent="."]
+[node name="LegendPanel" type="PanelContainer" parent="." unique_id=2045357315]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LegendView" type="RichTextLabel" parent="LegendPanel"]
+[node name="LegendView" type="RichTextLabel" parent="LegendPanel" unique_id=1007094234]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
+tooltip_text = "Edge colors and rendered direction. Exact graph data is available through JSON export and the Summary tab."
 bbcode_enabled = true
+text = "[color=#e5e7eb]Inheritance[/color]  ·  [color=#e69f00]load/preload or class-member use[/color]
+[color=#56b4e9]Type-annotation use[/color]  ·  Context nodes are labelled and dimmed
+Rendered direction: base or dependency → derived or dependent"
 fit_content = true
 scroll_active = false
-text = "Edge legend not initialized."
-tooltip_text = "Edge colors and rendered direction. Exact graph data is available through JSON export and the Summary tab."
 
-[node name="MainSplit" type="VSplitContainer" parent="."]
+[node name="MainSplit" type="VSplitContainer" parent="." unique_id=510194767]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+split_offsets = PackedInt32Array(230)
 split_offset = 230
 
-[node name="ControlsTabs" type="TabContainer" parent="MainSplit"]
+[node name="ControlsTabs" type="TabContainer" parent="MainSplit" unique_id=1896913604]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
+current_tab = 0
 
-[node name="Content" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+[node name="Content" type="ScrollContainer" parent="MainSplit/ControlsTabs" unique_id=1862055753]
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 0
 
-[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Content"]
+[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Content" unique_id=595796086]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="ContentSourcesHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox"]
+[node name="ContentSourcesHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=1037992877]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-button_pressed = true
-alignment = 0
-text = "▾ Scripts and classes"
 tooltip_text = "Expand or collapse script acquisition and inheritance-context options."
-
-[node name="ContentSourcesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-columns = 2
-
-[node name="IncludeAddons" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Include add-ons"
-tooltip_text = "Include GDScript files below res://addons, except this inspector itself. Disable to focus on project-owned scripts."
-
-[node name="IncludeNative" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Native bases"
-tooltip_text = "Add Godot ClassDB base classes and intermediary inheritance nodes such as CanvasItem, Node, and Object."
-
-[node name="IncludeExternal" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "External bases"
-tooltip_text = "Show unresolved or project-global base classes as external placeholders instead of omitting them."
-
-[node name="SourcesSpacer" type="Control" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody"]
-layout_mode = 2
-
-[node name="ContentMembersHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
 toggle_mode = true
-button_pressed = true
+text = "▸ Scripts and classes"
 alignment = 0
-text = "▾ Members and signatures"
-tooltip_text = "Expand or collapse property, signal, method, and signature presentation options."
 
-[node name="ContentMembersBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-columns = 2
-
-[node name="IncludeMethods" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Methods"
-tooltip_text = "Show methods declared by each scanned script. Use Method signatures to include arguments and return types."
-
-[node name="MethodSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Method signatures"
-tooltip_text = "Display method arguments and return types. Disable for compact method-name-only nodes."
-
-[node name="IncludeSignals" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Signals"
-tooltip_text = "Show signals declared by each scanned script. Use Signal signatures to include argument lists."
-
-[node name="SignalSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Signal signatures"
-tooltip_text = "Display signal arguments. Disable for compact signal-name-only nodes."
-
-[node name="IncludeProperties" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Properties"
-tooltip_text = "Show constants and variables declared by each scanned script. Use Property types to include type annotations."
-
-[node name="PropertyTypes" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Property types"
-tooltip_text = "Display declared property types. Disable for compact property-name-only nodes."
-
-[node name="ContentRelationsHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-toggle_mode = true
-button_pressed = true
-alignment = 0
-text = "▾ Relationship evidence"
-tooltip_text = "Expand or collapse dependency categories and exact member-edge anchoring."
-
-[node name="ContentRelationsBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-columns = 2
-
-[node name="IncludeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "load/preload uses"
-tooltip_text = "Detect literal .gd paths passed to load() or preload() and draw direct script-use dependencies."
-
-[node name="IncludeTypeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Type annotation uses"
-tooltip_text = "Detect class references in property, signal, method, local-variable, loop, and callable type annotations."
-
-[node name="IncludeMemberAccessDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Class member uses"
-tooltip_text = "Detect statically resolvable class-qualified access such as DamageService.calculate_damage(). This is not a complete runtime call graph."
-
-[node name="ShowMemberDependencyEdges" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Member edge anchors"
-tooltip_text = "Attach dependency edges to visible member rows when exact provenance exists. Hidden or scrolled members fall back to class-level ports."
-
-[node name="ContentExportHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Diagram export styling"
-tooltip_text = "Expand or collapse presentation options that affect Mermaid and PlantUML output."
-
-[node name="ContentExportBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox"]
+[node name="ContentSourcesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=403984197]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 columns = 2
 
-[node name="ExportColors" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentExportBody"]
+[node name="IncludeAddons" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody" unique_id=1475937214]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Include GDScript files below res://addons, except this inspector itself. Disable to focus on project-owned scripts."
 button_pressed = true
-text = "Export colors"
-tooltip_text = "Include supported node and relation colors in Mermaid or PlantUML output. Disabled automatically for formats without color support."
+text = "Include add-ons"
 
-[node name="ExportStyleSpacer" type="Control" parent="MainSplit/ControlsTabs/Content/VBox/ContentExportBody"]
+[node name="IncludeNative" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody" unique_id=1789075856]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Add Godot ClassDB base classes and intermediary inheritance nodes such as CanvasItem, Node, and Object."
+button_pressed = true
+text = "Native bases"
+
+[node name="IncludeExternal" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody" unique_id=594491475]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Show unresolved or project-global base classes as external placeholders instead of omitting them."
+button_pressed = true
+text = "External bases"
+
+[node name="SourcesSpacer" type="Control" parent="MainSplit/ControlsTabs/Content/VBox/ContentSourcesBody" unique_id=6787050]
 layout_mode = 2
 
-[node name="Appearance" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+[node name="ContentMembersHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=86047436]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Expand or collapse property, signal, method, and signature presentation options."
+toggle_mode = true
+button_pressed = true
+text = "▾ Members and signatures"
+alignment = 0
+
+[node name="ContentMembersBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=1302564832]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+
+[node name="IncludeMethods" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=1526956119]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Show methods declared by each scanned script. Use Method signatures to include arguments and return types."
+button_pressed = true
+text = "Methods"
+
+[node name="MethodSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=501545704]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Display method arguments and return types. Disable for compact method-name-only nodes."
+text = "Method signatures"
+
+[node name="IncludeSignals" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=543352388]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Show signals declared by each scanned script. Use Signal signatures to include argument lists."
+button_pressed = true
+text = "Signals"
+
+[node name="SignalSignatures" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=1201718848]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Display signal arguments. Disable for compact signal-name-only nodes."
+text = "Signal signatures"
+
+[node name="IncludeProperties" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=718397917]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Show constants and variables declared by each scanned script. Use Property types to include type annotations."
+button_pressed = true
+text = "Properties"
+
+[node name="PropertyTypes" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentMembersBody" unique_id=1275985299]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Display declared property types. Disable for compact property-name-only nodes."
+text = "Property types"
+
+[node name="ContentRelationsHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=119743416]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Expand or collapse dependency categories and exact member-edge anchoring."
+toggle_mode = true
+button_pressed = true
+text = "▾ Relationship evidence"
+alignment = 0
+
+[node name="ContentRelationsBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=533584165]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+
+[node name="IncludeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody" unique_id=1652889521]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Detect literal .gd paths passed to load() or preload() and draw direct script-use dependencies."
+text = "load/preload uses"
+
+[node name="IncludeTypeDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody" unique_id=2009992198]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Detect class references in property, signal, method, local-variable, loop, and callable type annotations."
+button_pressed = true
+text = "Type annotation uses"
+
+[node name="IncludeMemberAccessDependencies" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody" unique_id=2061599490]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Detect statically resolvable class-qualified access such as DamageService.calculate_damage(). This is not a complete runtime call graph."
+text = "Class member uses"
+
+[node name="ShowMemberDependencyEdges" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentRelationsBody" unique_id=18574414]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Attach dependency edges to visible member rows when exact provenance exists. Hidden or scrolled members fall back to class-level ports."
+text = "Member edge anchors"
+
+[node name="ContentExportHeader" type="Button" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=2069039010]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Expand or collapse presentation options that affect Mermaid and PlantUML output."
+toggle_mode = true
+text = "▸ Diagram export styling"
+alignment = 0
+
+[node name="ContentExportBody" type="GridContainer" parent="MainSplit/ControlsTabs/Content/VBox" unique_id=1142217461]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+columns = 2
+
+[node name="ExportColors" type="CheckBox" parent="MainSplit/ControlsTabs/Content/VBox/ContentExportBody" unique_id=1823476247]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Include supported node and relation colors in Mermaid or PlantUML output. Disabled automatically for formats without color support."
+button_pressed = true
+text = "Export colors"
+
+[node name="ExportStyleSpacer" type="Control" parent="MainSplit/ControlsTabs/Content/VBox/ContentExportBody" unique_id=826585844]
+layout_mode = 2
+
+[node name="Appearance" type="ScrollContainer" parent="MainSplit/ControlsTabs" unique_id=1536362819]
+visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 1
 
-[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Appearance"]
+[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Appearance" unique_id=1898376413]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="AppearanceSizingHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceSizingHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=1808793847]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Expand or collapse script and native-node width controls."
 toggle_mode = true
 button_pressed = true
-alignment = 0
 text = "▾ Node sizing"
-tooltip_text = "Expand or collapse script and native-node width controls."
+alignment = 0
 
-[node name="AppearanceSizingBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceSizingBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=1228830759]
 unique_name_in_owner = true
 layout_mode = 2
 columns = 2
 
-[node name="NodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="NodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=827443280]
 layout_mode = 2
 text = "Minimum script width"
 
-[node name="GraphNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="GraphNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=57043661]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Minimum width for script GraphNodes. Nodes may grow up to Maximum script width when visible text requires it."
 min_value = 160.0
 max_value = 600.0
 step = 10.0
-tooltip_text = "Minimum width for script GraphNodes. Nodes may grow up to Maximum script width when visible text requires it."
+value = 230.0
 
-[node name="MaxNodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="MaxNodeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=1726449690]
 layout_mode = 2
 text = "Maximum script width"
 
-[node name="GraphNodeMaxWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="GraphNodeMaxWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=864298885]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Maximum adaptive width for script GraphNodes before text is truncated with a full-value tooltip."
 min_value = 180.0
 max_value = 1000.0
 step = 10.0
-tooltip_text = "Maximum adaptive width for script GraphNodes before text is truncated with a full-value tooltip."
+value = 420.0
 
-[node name="NativeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="NativeWidthLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=539561289]
 layout_mode = 2
 text = "Native node width"
 
-[node name="NativeNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody"]
+[node name="NativeNodeWidth" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceSizingBody" unique_id=1423998925]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Fixed compact width for native ClassDB nodes, which normally contain only a title."
 min_value = 100.0
 max_value = 360.0
 step = 10.0
-tooltip_text = "Fixed compact width for native ClassDB nodes, which normally contain only a title."
+value = 150.0
 
-[node name="AppearanceDensityHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceDensityHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=563661489]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Member density and overflow"
 tooltip_text = "Expand or collapse controls for long member sections and scrolling thresholds."
+toggle_mode = true
+text = "▸ Member density and overflow"
+alignment = 0
 
-[node name="AppearanceDensityBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceDensityBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=653221214]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 columns = 2
 
-[node name="MaxRowsLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody"]
+[node name="MaxRowsLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody" unique_id=546621246]
 layout_mode = 2
 text = "Members per section"
 
-[node name="MaxMembers" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody"]
+[node name="MaxMembers" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody" unique_id=1017085377]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Maximum visible members in each properties, signals, or methods section before an omission row is shown."
 min_value = 1.0
 max_value = 200.0
-step = 1.0
-tooltip_text = "Maximum visible members in each properties, signals, or methods section before an omission row is shown."
+value = 50.0
 
-[node name="MaxHeightLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody"]
+[node name="MaxHeightLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody" unique_id=930211717]
 layout_mode = 2
 text = "Member area height"
 
-[node name="MaxMemberHeight" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody"]
+[node name="MaxMemberHeight" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceDensityBody" unique_id=2143406721]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Height threshold at which very long member content switches to a scroll container. Ordinary nodes grow dynamically without scrolling."
 min_value = 80.0
 max_value = 1200.0
 step = 10.0
-tooltip_text = "Height threshold at which very long member content switches to a scroll container. Ordinary nodes grow dynamically without scrolling."
+value = 520.0
 
-[node name="AppearanceLayoutHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceLayoutHeader" type="Button" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=290734581]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Expand or collapse hierarchy orientation and node-spacing controls."
 toggle_mode = true
 button_pressed = true
-alignment = 0
 text = "▾ Layout and spacing"
-tooltip_text = "Expand or collapse hierarchy orientation and node-spacing controls."
+alignment = 0
 
-[node name="AppearanceLayoutBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox"]
+[node name="AppearanceLayoutBody" type="GridContainer" parent="MainSplit/ControlsTabs/Appearance/VBox" unique_id=1267769835]
 unique_name_in_owner = true
 layout_mode = 2
 columns = 2
 
-[node name="SiblingGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="SiblingGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=1323039887]
 layout_mode = 2
 text = "Sibling gap"
 
-[node name="SiblingSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="SiblingSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=1831169375]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Gap between nodes that occupy the same inheritance-depth layer."
 min_value = 8.0
 max_value = 200.0
 step = 4.0
-tooltip_text = "Gap between nodes that occupy the same inheritance-depth layer."
+value = 36.0
 
-[node name="LayerGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="LayerGapLabel" type="Label" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=812396896]
 layout_mode = 2
 text = "Depth-layer gap"
 
-[node name="LayerSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="LayerSpacing" type="SpinBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=835179520]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Gap between consecutive inheritance-depth layers."
 min_value = 24.0
 max_value = 400.0
 step = 4.0
-tooltip_text = "Gap between consecutive inheritance-depth layers."
+value = 80.0
 
-[node name="DepthTopToBottom" type="CheckBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="DepthTopToBottom" type="CheckBox" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=1346193291]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Depth top-to-bottom"
 tooltip_text = "Place inheritance depth in horizontal layers from top to bottom. Disable for a left-to-right hierarchy."
+button_pressed = true
+text = "Depth top-to-bottom"
 
-[node name="AppearanceLayoutSpacer" type="Control" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody"]
+[node name="AppearanceLayoutSpacer" type="Control" parent="MainSplit/ControlsTabs/Appearance/VBox/AppearanceLayoutBody" unique_id=278885549]
 layout_mode = 2
 
-[node name="Colors" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+[node name="Colors" type="ScrollContainer" parent="MainSplit/ControlsTabs" unique_id=278434842]
+visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 2
 
-[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Colors"]
+[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Colors" unique_id=1414647681]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="ColorsNodesHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsNodesHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=2585700]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Expand or collapse background colors for project, add-on, native, and unresolved nodes."
 toggle_mode = true
 button_pressed = true
-alignment = 0
 text = "▾ Node roles"
-tooltip_text = "Expand or collapse background colors for project, add-on, native, and unresolved nodes."
+alignment = 0
 
-[node name="ColorsNodesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsNodesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=1861451077]
 unique_name_in_owner = true
 layout_mode = 2
 columns = 2
 
-[node name="UserLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+[node name="UserLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=1456734862]
 layout_mode = 2
 text = "User scripts"
-[node name="UserColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+
+[node name="UserColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=2100759922]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Background color for project-owned script nodes."
+color = Color(0, 0.3529412, 0.5529412, 1)
 
-[node name="AddonLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+[node name="AddonLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=174771595]
 layout_mode = 2
 text = "Add-on scripts"
-[node name="AddonColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+
+[node name="AddonColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=1250609137]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Background color for third-party or add-on script nodes."
+color = Color(0.56078434, 0.30980393, 0.4745098, 1)
 
-[node name="NativeLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+[node name="NativeLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=259913132]
 layout_mode = 2
 text = "Native classes"
-[node name="NativeColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+
+[node name="NativeColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=258086535]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Background color for native Godot ClassDB nodes."
+color = Color(0.34901962, 0.38039216, 0.42745098, 1)
 
-[node name="ExternalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+[node name="ExternalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=1527538011]
 layout_mode = 2
 text = "External classes"
-[node name="ExternalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody"]
+
+[node name="ExternalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsNodesBody" unique_id=473143133]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Background color for unresolved or external class placeholders."
+color = Color(0.6039216, 0.39607844, 0, 1)
 
-[node name="ColorsMembersHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsMembersHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=1589085572]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Member and metadata text"
 tooltip_text = "Expand or collapse colors for properties, signals, methods, and metadata."
+toggle_mode = true
+text = "▸ Member and metadata text"
+alignment = 0
 
-[node name="ColorsMembersBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsMembersBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=284373129]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 columns = 2
 
-[node name="PropertyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+[node name="PropertyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=1008501225]
 layout_mode = 2
 text = "Properties"
-[node name="PropertyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+
+[node name="PropertyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=1310157824]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Text and marker color for property rows."
+color = Color(0.29803923, 0.7882353, 0.64705884, 1)
 
-[node name="SignalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+[node name="SignalLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=224841315]
 layout_mode = 2
 text = "Signals"
-[node name="SignalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+
+[node name="SignalColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=1696559292]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Text and marker color for signal rows."
+color = Color(0.84313726, 0.54509807, 0.7176471, 1)
 
-[node name="MethodLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+[node name="MethodLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=142336844]
 layout_mode = 2
 text = "Methods"
-[node name="MethodColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+
+[node name="MethodColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=603177524]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Text and marker color for method rows."
+color = Color(0.43137255, 0.78039217, 0.9490196, 1)
 
-[node name="MetadataLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+[node name="MetadataLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=1468788292]
 layout_mode = 2
 text = "Metadata"
-[node name="MetadataColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody"]
+
+[node name="MetadataColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsMembersBody" unique_id=2135696267]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Text color for node metadata and path affordances."
+color = Color(0.74509805, 0.76862746, 0.80784315, 1)
 
-[node name="ColorsRelationsHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsRelationsHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=758181845]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Relationship lines"
 tooltip_text = "Expand or collapse colors for inheritance, load/member-use, and type-use edges."
+toggle_mode = true
+text = "▸ Relationship lines"
+alignment = 0
 
-[node name="ColorsRelationsBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsRelationsBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=1829151765]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 columns = 2
 
-[node name="InheritanceLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+[node name="InheritanceLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=1999465007]
 layout_mode = 2
 text = "Inheritance edges"
-[node name="InheritanceColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+
+[node name="InheritanceColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=512754222]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Color for inheritance relationships."
+color = Color(0.8980392, 0.90588236, 0.92156863, 1)
 
-[node name="DependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+[node name="DependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=525049129]
 layout_mode = 2
 text = "load/preload edges"
-[node name="DependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+
+[node name="DependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=1592691268]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Color for literal load/preload and direct class-member-use relationships."
+color = Color(0.9019608, 0.62352943, 0, 1)
 
-[node name="TypeDependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+[node name="TypeDependencyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=791645333]
 layout_mode = 2
 text = "Type-use edges"
-[node name="TypeDependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+
+[node name="TypeDependencyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=185997721]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Color for type-annotation-only relationships."
+color = Color(0.3372549, 0.7058824, 0.9137255, 1)
 
-[node name="RelationsSpacer" type="Control" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody"]
+[node name="RelationsSpacer" type="Control" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsRelationsBody" unique_id=716287475]
 layout_mode = 2
 
-[node name="ColorsFamiliesHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsFamiliesHeader" type="Button" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=1167402168]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Inheritance-family borders"
 tooltip_text = "Expand or collapse border colors for Object, RefCounted, Node, Node2D, Node3D, Control, and other families."
+toggle_mode = true
+text = "▸ Inheritance-family borders"
+alignment = 0
 
-[node name="ColorsFamiliesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox"]
+[node name="ColorsFamiliesBody" type="GridContainer" parent="MainSplit/ControlsTabs/Colors/VBox" unique_id=1895524742]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 columns = 2
 
-[node name="ObjectFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="ObjectFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=2097245023]
 layout_mode = 2
 text = "Object family border"
-[node name="ObjectFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="ObjectFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1261729376]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for classes whose most specific configured family is Object."
+color = Color(0.6039216, 0.627451, 0.6509804, 1)
 
-[node name="RefCountedFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="RefCountedFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1928849831]
 layout_mode = 2
 text = "RefCounted family border"
-[node name="RefCountedFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="RefCountedFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1566329333]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for RefCounted-family classes and resources."
+color = Color(0.9019608, 0.62352943, 0, 1)
 
-[node name="NodeFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="NodeFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1694874519]
 layout_mode = 2
 text = "Node family border"
-[node name="NodeFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="NodeFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=901766175]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for general Node descendants that are not Node2D, Node3D, or Control."
+color = Color(0, 0.44705883, 0.69803923, 1)
 
-[node name="Node2DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="Node2DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1370716173]
 layout_mode = 2
 text = "Node2D family border"
-[node name="Node2DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="Node2DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=240161463]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for Node2D descendants."
+color = Color(0, 0.61960787, 0.4509804, 1)
 
-[node name="Node3DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="Node3DFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1896516897]
 layout_mode = 2
 text = "Node3D family border"
-[node name="Node3DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="Node3DFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1205731674]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for Node3D descendants."
+color = Color(0.8, 0.4745098, 0.654902, 1)
 
-[node name="ControlFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="ControlFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=754406774]
 layout_mode = 2
 text = "Control family border"
-[node name="ControlFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="ControlFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=897653579]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for Control descendants."
+color = Color(0.8352941, 0.36862746, 0, 1)
 
-[node name="OtherFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="OtherFamilyLabel" type="Label" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=227029916]
 layout_mode = 2
 text = "Other family border"
-[node name="OtherFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+
+[node name="OtherFamilyColor" type="ColorPickerButton" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=1519852848]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
 tooltip_text = "Border accent for classes outside the configured Object, RefCounted, and Node families."
+color = Color(0.43529412, 0.4627451, 0.50980395, 1)
 
-[node name="FamiliesSpacer" type="Control" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody"]
+[node name="FamiliesSpacer" type="Control" parent="MainSplit/ControlsTabs/Colors/VBox/ColorsFamiliesBody" unique_id=2082734916]
 layout_mode = 2
 
-[node name="Automation" type="ScrollContainer" parent="MainSplit/ControlsTabs"]
+[node name="Automation" type="ScrollContainer" parent="MainSplit/ControlsTabs" unique_id=501972103]
+visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 3
 
-[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation"]
+[node name="VBox" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation" unique_id=1520633260]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="AutomationEditorHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationEditorHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=378082931]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Expand or collapse default save/import synchronization and active-script following."
 toggle_mode = true
 button_pressed = true
-alignment = 0
 text = "▾ Editor synchronization"
-tooltip_text = "Expand or collapse default save/import synchronization and active-script following."
+alignment = 0
 
-[node name="AutomationEditorBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationEditorBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=537395046]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="EditorSyncRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody"]
+[node name="EditorSyncRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody" unique_id=1258652202]
 layout_mode = 2
 
-[node name="SyncOnEditorChanges" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow"]
+[node name="SyncOnEditorChanges" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow" unique_id=292160338]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Sync on editor changes"
 tooltip_text = "Default refresh mode. Debounce Godot filesystem changes, then scan once after editing becomes quiet. Changes arriving during a scan schedule one follow-up scan."
+button_pressed = true
+text = "Sync on editor changes"
 
-[node name="EditorSyncDebounceLabel" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow"]
+[node name="EditorSyncDebounceLabel" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow" unique_id=1903708342]
 layout_mode = 2
-text = "Quiet period"
 tooltip_text = "How long the editor filesystem must remain unchanged before one synchronized scan starts."
+text = "Quiet period"
 
-[node name="EditorSyncDebounce" type="SpinBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow"]
+[node name="EditorSyncDebounce" type="SpinBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody/EditorSyncRow" unique_id=465273657]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Debounce delay after the latest editor filesystem change. Default: 1 second."
 min_value = 0.25
 max_value = 30.0
 step = 0.25
+value = 3.0
 suffix = " s"
-tooltip_text = "Debounce delay after the latest editor filesystem change. Default: 1 second."
 
-[node name="FollowActiveScript" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody"]
+[node name="FollowActiveScript" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody" unique_id=1817481738]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Follow active Script Editor file"
 tooltip_text = "When a scanned script becomes active in the Script Editor, focus its graph node. This has no effect while the graph view is hidden."
+button_pressed = true
+text = "Follow active Script Editor file"
 
-[node name="EditorSyncStatus" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody"]
+[node name="EditorSyncStatus" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationEditorBody" unique_id=292212907]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Editor synchronization enabled"
-autowrap_mode = 2
 tooltip_text = "Shows whether event-driven synchronization is enabled, waiting for changes, or waiting for an active scan."
+text = "Editor synchronization enabled; waiting for changes."
+autowrap_mode = 2
 
-[node name="AutomationTimedHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationTimedHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=1100653005]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-alignment = 0
-text = "▸ Timed fallback"
 tooltip_text = "Expand or collapse the optional one-shot timed rescan fallback, which is disabled by default."
+toggle_mode = true
+text = "▸ Timed fallback"
+alignment = 0
 
-[node name="AutomationTimedBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationTimedBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=1710914526]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="AutoRescanRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody"]
+[node name="AutoRescanRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody" unique_id=1874357166]
 layout_mode = 2
 
-[node name="AutoRescan" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow"]
+[node name="AutoRescan" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow" unique_id=1036700685]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Auto-rescan"
 tooltip_text = "Run another full scan after the configured delay. The one-shot delay starts only after the previous scan and automatic exports finish."
+text = "Auto-rescan"
 
-[node name="AutoRescanDelayLabel" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow"]
+[node name="AutoRescanDelayLabel" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow" unique_id=2092087827]
 layout_mode = 2
-text = "Delay"
 tooltip_text = "Seconds from completion of one scan and its automatic exports until the next scan begins."
+text = "Delay"
 
-[node name="AutoRescanDelay" type="SpinBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow"]
+[node name="AutoRescanDelay" type="SpinBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody/AutoRescanRow" unique_id=574685914]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+tooltip_text = "Seconds from completion of one scan and its automatic exports until the next scan begins. Default: 60 seconds."
 min_value = 5.0
 max_value = 86400.0
-step = 1.0
+value = 60.0
+editable = false
 suffix = " s"
-tooltip_text = "Seconds from completion of one scan and its automatic exports until the next scan begins. Default: 60 seconds."
 
-[node name="AutoRescanStatus" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody"]
+[node name="AutoRescanStatus" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationTimedBody" unique_id=1717836670]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Timed rescan disabled"
 tooltip_text = "Shows whether the one-shot automatic rescan timer is active."
+text = "Timed rescan disabled"
 
-[node name="AutomationExportHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationExportHeader" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=539986684]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-button_pressed = true
-alignment = 0
-text = "▾ Automatic file exports"
 tooltip_text = "Expand or collapse independent JSON, Mermaid, and PlantUML synchronization settings."
+toggle_mode = true
+text = "▸ Automatic file exports"
+alignment = 0
 
-[node name="AutomationExportBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox"]
+[node name="AutomationExportBody" type="VBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox" unique_id=1287976215]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="AutoExportHelp" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody"]
+[node name="AutoExportHelp" type="Label" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody" unique_id=205150405]
 layout_mode = 2
+tooltip_text = "Automatic exports use the paths below. Parent directories are created when possible. Paths are persisted below res://.godot and are not packaged."
 text = "After every completed scan, update each enabled format. A successful manual export becomes that format's remembered path."
 autowrap_mode = 2
-tooltip_text = "Automatic exports use the paths below. Parent directories are created when possible. Paths are persisted below res://.godot and are not packaged."
 
-[node name="JsonExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody"]
+[node name="JsonExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody" unique_id=1564526944]
 layout_mode = 2
-[node name="AutoExportJson" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow"]
+
+[node name="AutoExportJson" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow" unique_id=973603276]
 unique_name_in_owner = true
 layout_mode = 2
-text = "JSON"
 tooltip_text = "Automatically write the validated canonical JSON snapshot after each completed scan."
-[node name="AutoExportJsonPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow"]
+text = "JSON"
+
+[node name="AutoExportJsonPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow" unique_id=638601240]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "res://script_dependency_exports/script_dependencies.json"
 tooltip_text = "Destination for automatic JSON export. A successful manual JSON export replaces this remembered path."
-[node name="BrowseAutoExportJson" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow"]
+text = "res://script_dependency_exports/script_dependencies.json"
+placeholder_text = "res://script_dependency_exports/script_dependencies.json"
+editable = false
+
+[node name="BrowseAutoExportJson" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/JsonExportRow" unique_id=921807782]
 unique_name_in_owner = true
 layout_mode = 2
-text = "…"
 tooltip_text = "Choose the automatic JSON export destination."
+disabled = true
+text = "…"
 
-[node name="MermaidExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody"]
+[node name="MermaidExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody" unique_id=386309148]
 layout_mode = 2
-[node name="AutoExportMermaid" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow"]
+
+[node name="AutoExportMermaid" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow" unique_id=1324013990]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Mermaid"
 tooltip_text = "Automatically update a Mermaid classDiagram after each completed scan."
-[node name="AutoExportMermaidPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow"]
+text = "Mermaid"
+
+[node name="AutoExportMermaidPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow" unique_id=1479547055]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "res://script_dependency_exports/script_dependencies.mmd"
 tooltip_text = "Destination for automatic Mermaid export. A successful manual Mermaid export replaces this remembered path."
-[node name="BrowseAutoExportMermaid" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "…"
-tooltip_text = "Choose the automatic Mermaid export destination."
+text = "res://script_dependency_exports/script_dependencies.mmd"
+placeholder_text = "res://script_dependency_exports/script_dependencies.mmd"
+editable = false
 
-[node name="PlantUMLExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody"]
-layout_mode = 2
-[node name="AutoExportPlantUML" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow"]
+[node name="BrowseAutoExportMermaid" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/MermaidExportRow" unique_id=1425646055]
 unique_name_in_owner = true
 layout_mode = 2
-text = "PlantUML"
+tooltip_text = "Choose the automatic Mermaid export destination."
+disabled = true
+text = "…"
+
+[node name="PlantUMLExportRow" type="HBoxContainer" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody" unique_id=580471228]
+layout_mode = 2
+
+[node name="AutoExportPlantUML" type="CheckBox" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow" unique_id=487846976]
+unique_name_in_owner = true
+layout_mode = 2
 tooltip_text = "Automatically update a PlantUML class diagram after each completed scan."
-[node name="AutoExportPlantUMLPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow"]
+text = "PlantUML"
+
+[node name="AutoExportPlantUMLPath" type="LineEdit" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow" unique_id=242818744]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "res://script_dependency_exports/script_dependencies.puml"
 tooltip_text = "Destination for automatic PlantUML export. A successful manual PlantUML export replaces this remembered path."
-[node name="BrowseAutoExportPlantUML" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow"]
+text = "res://script_dependency_exports/script_dependencies.puml"
+placeholder_text = "res://script_dependency_exports/script_dependencies.puml"
+editable = false
+
+[node name="BrowseAutoExportPlantUML" type="Button" parent="MainSplit/ControlsTabs/Automation/VBox/AutomationExportBody/PlantUMLExportRow" unique_id=1601524415]
 unique_name_in_owner = true
 layout_mode = 2
-text = "…"
 tooltip_text = "Choose the automatic PlantUML export destination."
+disabled = true
+text = "…"
 
-[node name="Summary" type="MarginContainer" parent="MainSplit/ControlsTabs"]
+[node name="Summary" type="MarginContainer" parent="MainSplit/ControlsTabs" unique_id=204890415]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 4
 
-[node name="SummaryView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Summary"]
+[node name="SummaryView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Summary" unique_id=1510896344]
 unique_name_in_owner = true
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
-scroll_active = true
 text = "Scan the project to populate this non-visual graph summary."
 
-[node name="Log" type="MarginContainer" parent="MainSplit/ControlsTabs"]
+[node name="Log" type="MarginContainer" parent="MainSplit/ControlsTabs" unique_id=1003542166]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 5
 
-[node name="LogView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Log"]
+[node name="LogView" type="RichTextLabel" parent="MainSplit/ControlsTabs/Log" unique_id=1631200854]
 unique_name_in_owner = true
 layout_mode = 2
-fit_content = false
-scroll_active = true
 
-[node name="GraphEdit" type="GraphEdit" parent="MainSplit"]
+[node name="GraphEdit" type="GraphEdit" parent="MainSplit" unique_id=193757777]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-show_zoom_label = true
-minimap_enabled = true
-right_disconnects = false
+tooltip_text = "Interactive dependency graph. Pan, zoom, select nodes, inspect child tooltips, use the minimap, or press GraphEdit Arrange. Hide it with the Graph toggle for export-only use."
 connection_lines_thickness = 3.0
 zoom = 0.7
-tooltip_text = "Interactive dependency graph. Pan, zoom, select nodes, inspect child tooltips, use the minimap, or press GraphEdit Arrange. Hide it with the Graph toggle for export-only use."
+show_zoom_label = true
 
-[node name="AutoRescanTimer" type="Timer" parent="."]
+[node name="AutoRescanTimer" type="Timer" parent="." unique_id=38721843]
 unique_name_in_owner = true
 wait_time = 60.0
 one_shot = true
 
-[node name="EditorChangeTimer" type="Timer" parent="."]
+[node name="EditorChangeTimer" type="Timer" parent="." unique_id=317715389]
 unique_name_in_owner = true
-wait_time = 1.0
 one_shot = true
 
-[node name="FileDialog" type="FileDialog" parent="."]
+[node name="FileDialog" type="FileDialog" parent="." unique_id=1012416218]
 unique_name_in_owner = true
 title = "Export script dependency graph"
 size = Vector2i(900, 600)
-access = 2
-file_mode = 4
-tooltip_text = "Choose a destination for manual or automatic export. The selected path is remembered per format."
+access = 0
 
-[node name="ScopeDialog" type="FileDialog" parent="."]
+[node name="ScopeDialog" type="FileDialog" parent="." unique_id=1472465650]
 unique_name_in_owner = true
-title = "Choose dependency analysis scope"
+title = "Open a Directory"
 size = Vector2i(900, 600)
-access = 2
 file_mode = 2
-tooltip_text = "Choose a project folder below res://. Required external context remains visible and marked."
+access = 2

@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.2.4 — 2026-08-04
+
+- Added repository-owned Godot Asset Library thumbnail and seven focused featured WebP images at 1920×1080.
+- Added real runtime capture scenarios for the default dock, maximum information, complex projects, exact editor navigation, export-only operation, scoped context, search, and every principal control tab.
+- Added a small media-specific example project slice to avoid test/tool clutter in focused screenshots.
+- Added reproducible capture, WebP build, manifest, media-validation tooling, and a deterministic Asset Library upload-media release archive.
+- Added an interface gallery and release-owned media provenance notes.
+- The thumbnail embeds a real runtime screenshot; no synthetic replacement graph or AI-generated diagram is used.
+
+## 0.2.3 — 2026-08-02
+
+### Fixed
+
+- Folder selections returned as absolute paths by native `FileDialog` implementations are localized to canonical `res://` paths when they are inside the current project.
+- The scope dialog now explicitly uses resource access; outside-project, traversal, `user://`, empty, and missing paths remain rejected.
+- Release output directories are excluded from release-source enumeration, preventing stale `dist` artifacts from entering subsequent archives.
+
+### Development and release tooling
+
+- Added deterministic add-on-only packaging through `tools/package_addon.py`.
+- Added pinned `gdformat`/`gdlint` pre-commit hooks and matching GitHub quality checks.
+- Added tag-triggered GitHub Release packaging and upload workflow.
+- Added verified binary-capable Git patch generation between release refs.
+- Local patch generation now infers the nearest preceding release tag and defaults to `dist`, reducing the normal command to `python tools/build_patch.py`.
+- Patch verification applies into the Git index and compares the reconstructed tree object, so added and deleted paths are validated as well as modified files.
+- Added release setup, packaging, tagging, and patch-application instructions.
+
+### Repository documentation policy
+
+- Removed internal quality-review reports, rendered-review notes, and the broad related-project survey from the public repository. Product contracts, ADRs, use cases, schemas, validation evidence, and narrow required attribution remain.
+
 ## 0.2.2 — 2026-07-29
 
 ### Added

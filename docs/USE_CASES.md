@@ -1,6 +1,6 @@
 # User use cases
 
-Version: 0.2.2
+Version: 0.2.4
 Status: implemented use cases are linked to the behavioral contract and release validation
 
 ## Purpose
@@ -63,6 +63,6 @@ This layer describes the outcomes a Godot developer seeks from Script Dependency
 | UC-08, UC-11 | ADR 0003/0004 | Automation runner and non-overlap tests |
 | UC-09 | ADR 0005 | Scene/autoload scanner-builder-validator tests |
 | UC-10 | `SCHEMA.md`; exporter contracts | Exporter suite, export matrix, file-integrity checks |
-| UC-12, UC-13 | ADR 0007; v0.2.2 UI contract | Export-only rerender test, compact-toolbar and fold-state contracts, rendered screenshots |
+| UC-12, UC-13 | ADR 0007; current UI contract | Export-only rerender test, compact-toolbar and fold-state contracts, rendered screenshots |
 
 Independent unfamiliar-user comprehension remains unverified. These diagrams represent intended use, not evidence that every user will discover or understand each workflow unaided.

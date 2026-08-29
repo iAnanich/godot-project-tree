@@ -1,6 +1,6 @@
 # Script Dependency Inspector — design document
 
-Version: 0.2.2
+Version: 0.2.4
 Status: implemented; release evidence recorded in `VALIDATION.md`
 
 ## 1. Product purpose
@@ -128,6 +128,28 @@ Schemas 1–3 are accepted and merged with v4 defaults. Unknown fold keys are ig
 
 Required evidence includes compact-toolbar scene contracts; default and combined indicator states; graph-off retention and graph-on rerender tests; state schema v4 round-trip and schema 1–3 migration; tooltip presence for all option/fold controls; rendered overview, export-only, folded-control, and automation states; parser/import and all existing behavioral/export/performance gates under Godot 4.3–4.7; and documentation/AI-disclosure consistency checks.
 
-## 9. Provenance
+## 9. Project-local scope normalization
 
-Project Mapper remains a late consideration for previously attributed interaction features. The v0.2.2 toolbar, folding, export-only mode, AI disclosure, and external-tool messaging arose from owner requirements in this project; no Project Mapper source was copied.
+The scope chooser is configured for resource access, but native dialogs may still report an absolute filesystem path on some editor/platform combinations. `ProjectScanner.validate_root()` is the single normalization boundary: it rejects parent traversal first, localizes absolute paths through `ProjectSettings.localize_path()`, requires the result to be `res://`-local, verifies directory existence, and returns only the canonical project path. The scan method uses the same boundary, so UI and programmatic callers cannot diverge.
+
+## 10. Repository and release tooling
+
+The public repository retains product documentation, contracts, ADRs, use cases, schemas, security/performance guidance, compatibility evidence, and release instructions. Internal quality-review reports, rendered-review notes, and broad related-project surveys are not release-source documents. Necessary third-party consideration/provenance is retained narrowly in the relevant ADR and NOTICE.
+
+Redistribution and upgrades are repository-owned operations:
+
+- `tools/package_addon.py` creates the installable add-on ZIP;
+- `tools/build_release.py` creates deterministic add-on, full-project, and Asset Library upload-media archives;
+- `tools/build_patch.py` creates and verifies a binary-capable Git patch between release refs;
+- pre-commit runs pinned `gdformat` and `gdlint`;
+- tag-triggered GitHub Actions verify, package, patch, and attach artifacts to a GitHub Release.
+
+## 11. Provenance
+
+Project Mapper remains a late consideration for the interaction features attributed in ADR 0006 and NOTICE. No Project Mapper source was copied.
+
+## Asset Library media pipeline
+
+Release media is a source-controlled documentation subsystem. A deliberately small `examples/media_showcase` slice produces focused dock captures, while the existing showcase provides the complex-project view. The editor-navigation state is captured from the actual Godot Script Editor through a temporary, disabled-by-default helper plugin. Approved PNG captures are transformed to 1920×1080 WebP files, declared in `docs/asset_store/media_manifest.json`, and rejected when they are not 16:9, fall below 1280×720, exceed 600 KB, or diverge from the manifest.
+
+The thumbnail may add titles and callouts, but must embed a real runtime screenshot. Synthetic or AI-generated replacement graphs are outside the media contract.

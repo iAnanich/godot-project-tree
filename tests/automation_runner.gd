@@ -35,8 +35,13 @@ func _run() -> void:
 	var editor_timer: Timer = dock.get_node("%EditorChangeTimer")
 	var mode_indicator: Label = dock.get_node("%ScanModeIndicator")
 
-	_check(sync_on_changes.button_pressed, "Editor-change synchronization must be enabled by default.")
-	_check(mode_indicator.text == "Save sync", "Toolbar scan mode must show the default save-synchronized trigger.")
+	_check(
+		sync_on_changes.button_pressed, "Editor-change synchronization must be enabled by default."
+	)
+	_check(
+		mode_indicator.text == "Save sync",
+		"Toolbar scan mode must show the default save-synchronized trigger."
+	)
 	_check(follow_active.button_pressed, "Active-script following must be enabled by default.")
 	_check(not auto_rescan.button_pressed, "Timed rescanning must remain disabled by default.")
 	dock.set("_ignore_filesystem_events_until_msec", Time.get_ticks_msec() + 10000)
@@ -57,8 +62,13 @@ func _run() -> void:
 	dock.set("_editor_change_pending", false)
 	sync_debounce.value = 0.5
 	dock.call("_on_editor_filesystem_changed")
-	_check(not editor_timer.is_stopped(), "An editor filesystem change must start the debounce timer.")
-	_check(is_equal_approx(editor_timer.wait_time, 0.5), "Editor synchronization must use the configured quiet period.")
+	_check(
+		not editor_timer.is_stopped(), "An editor filesystem change must start the debounce timer."
+	)
+	_check(
+		is_equal_approx(editor_timer.wait_time, 0.5),
+		"Editor synchronization must use the configured quiet period."
+	)
 	editor_timer.stop()
 
 	_check(
@@ -81,7 +91,10 @@ func _run() -> void:
 	auto_rescan.button_pressed = true
 	delay.value = 5.0
 	dock.call("_update_refresh_schedules")
-	_check(mode_indicator.text == "Save + timed", "Toolbar scan mode must show both enabled automatic triggers.")
+	_check(
+		mode_indicator.text == "Save + timed",
+		"Toolbar scan mode must show both enabled automatic triggers."
+	)
 	json_check.button_pressed = true
 	mermaid_check.button_pressed = true
 	plantuml_check.button_pressed = true
@@ -106,8 +119,12 @@ func _run() -> void:
 		"Automatic PlantUML export is missing its start marker."
 	)
 	_check(timer.one_shot, "Auto-rescan timer must be one-shot.")
-	_check(not timer.is_stopped(), "Auto-rescan timer must restart after scan and exports complete.")
-	_check(is_equal_approx(timer.wait_time, 5.0), "Auto-rescan timer must use the configured delay.")
+	_check(
+		not timer.is_stopped(), "Auto-rescan timer must restart after scan and exports complete."
+	)
+	_check(
+		is_equal_approx(timer.wait_time, 5.0), "Auto-rescan timer must use the configured delay."
+	)
 	_check(
 		status.text.contains("auto-exported JSON, Mermaid, PlantUML"),
 		"Scan status must report completed automatic exports."

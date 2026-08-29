@@ -130,7 +130,10 @@ func _merge_known_fields(target: Dictionary, source: Dictionary) -> void:
 		target["control_section_expanded"] = section_target
 	if source.get("sync_on_editor_changes") is bool:
 		target["sync_on_editor_changes"] = source["sync_on_editor_changes"]
-	if source.get("editor_change_debounce_seconds") is float or source.get("editor_change_debounce_seconds") is int:
+	if (
+		source.get("editor_change_debounce_seconds") is float
+		or source.get("editor_change_debounce_seconds") is int
+	):
 		target["editor_change_debounce_seconds"] = clampf(
 			float(source["editor_change_debounce_seconds"]), 0.25, 30.0
 		)
@@ -138,7 +141,10 @@ func _merge_known_fields(target: Dictionary, source: Dictionary) -> void:
 		target["follow_active_script"] = source["follow_active_script"]
 	if source.get("auto_rescan_enabled") is bool:
 		target["auto_rescan_enabled"] = source["auto_rescan_enabled"]
-	if source.get("auto_rescan_delay_seconds") is float or source.get("auto_rescan_delay_seconds") is int:
+	if (
+		source.get("auto_rescan_delay_seconds") is float
+		or source.get("auto_rescan_delay_seconds") is int
+	):
 		target["auto_rescan_delay_seconds"] = clampf(
 			float(source["auto_rescan_delay_seconds"]), 5.0, 86400.0
 		)
@@ -163,7 +169,8 @@ func _normalized_state(state: Dictionary) -> Dictionary:
 		"focus_include_descendants": false,
 		"isolate_neighborhood": false,
 		"graph_view_enabled": true,
-		"control_section_expanded": {
+		"control_section_expanded":
+		{
 			"content_sources": true,
 			"content_members": true,
 			"content_relations": true,

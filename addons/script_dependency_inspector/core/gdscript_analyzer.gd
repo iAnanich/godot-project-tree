@@ -110,7 +110,10 @@ func analyze(source: String, script_path: String = "") -> Dictionary:
 		if declaration.begins_with("class ") and declaration.ends_with(":"):
 			var inner_tail = declaration.trim_prefix("class ").trim_suffix(":").strip_edges()
 			result["inner_classes"].append(
-				{"name": _first_identifier(inner_tail), "source_location": _location(line_index + 1, 1)}
+				{
+					"name": _first_identifier(inner_tail),
+					"source_location": _location(line_index + 1, 1)
+				}
 			)
 
 		line_index += 1
@@ -484,18 +487,22 @@ func _collect_resource_dependency_details(source: String) -> Array:
 			var detail = {
 				"path": dependency_path,
 				"source_member": source_member.duplicate(true),
-				"source_location": _location(
+				"source_location":
+				_location(
 					_source_line_number(source, token_start) + 1,
 					_source_column_number(source, token_start)
 				),
 				"evidence": token,
 			}
-			var detail_key = "%s|%s|%s|%s" % [
-				dependency_path,
-				str(source_member.get("kind", "")),
-				str(source_member.get("name", "")),
-				token,
-			]
+			var detail_key = (
+				"%s|%s|%s|%s"
+				% [
+					dependency_path,
+					str(source_member.get("kind", "")),
+					str(source_member.get("name", "")),
+					token,
+				]
+			)
 			if not detail_keys.has(detail_key):
 				detail_keys[detail_key] = true
 				details.append(detail)
@@ -503,7 +510,10 @@ func _collect_resource_dependency_details(source: String) -> Array:
 
 	details.sort_custom(
 		func(left: Dictionary, right: Dictionary) -> bool:
-			return _dependency_detail_sort_key(left, "path") < _dependency_detail_sort_key(right, "path")
+			return (
+				_dependency_detail_sort_key(left, "path")
+				< _dependency_detail_sort_key(right, "path")
+			)
 	)
 	return details
 
@@ -544,14 +554,19 @@ func _collect_declared_type_reference_details(analysis: Dictionary, source: Stri
 		var detail: Dictionary = detail_value
 		if str(detail.get("symbol", "")) == own_name:
 			continue
-		var key = _dependency_detail_sort_key(detail, "symbol") + "|" + str(detail.get("evidence", ""))
+		var key = (
+			_dependency_detail_sort_key(detail, "symbol") + "|" + str(detail.get("evidence", ""))
+		)
 		if unique.has(key):
 			continue
 		unique[key] = true
 		filtered.append(detail)
 	filtered.sort_custom(
 		func(left: Dictionary, right: Dictionary) -> bool:
-			return _dependency_detail_sort_key(left, "symbol") < _dependency_detail_sort_key(right, "symbol")
+			return (
+				_dependency_detail_sort_key(left, "symbol")
+				< _dependency_detail_sort_key(right, "symbol")
+			)
 	)
 	return filtered
 
@@ -561,7 +576,9 @@ func _collect_source_scope_type_reference_details(source: String, details: Array
 	var lexical_state = {"multiline_delimiter": ""}
 	var scope_by_line = _member_scope_by_line(source)
 	for line_index in range(lines.size()):
-		var without_comment = _strip_comment_and_multiline_string(str(lines[line_index]), lexical_state)
+		var without_comment = _strip_comment_and_multiline_string(
+			str(lines[line_index]), lexical_state
+		)
 		var declaration = without_comment.strip_edges()
 		if declaration.is_empty() or _indent_width(without_comment) <= 0:
 			continue
@@ -590,10 +607,16 @@ func _collect_source_scope_type_reference_details(source: String, details: Array
 			var lambda_declaration = declaration.substr(function_position)
 			var lambda_data = _parse_function(lambda_declaration, [])
 			_append_argument_type_details(
-				str(lambda_data.get("arguments", "")), source_member, "lambda_argument_type", details
+				str(lambda_data.get("arguments", "")),
+				source_member,
+				"lambda_argument_type",
+				details
 			)
 			_append_type_expression_details(
-				str(lambda_data.get("return_type", "")), source_member, "lambda_return_type", details
+				str(lambda_data.get("return_type", "")),
+				source_member,
+				"lambda_return_type",
+				details
 			)
 
 
@@ -616,13 +639,16 @@ func _append_type_expression_details(
 	expression: String, source_member: Dictionary, evidence: String, details: Array
 ) -> void:
 	for symbol_value in _type_symbols(expression):
-		details.append(
-			{
-				"symbol": str(symbol_value),
-				"source_member": source_member.duplicate(true),
-				"source_location": source_member.get("source_location", {}).duplicate(true),
-				"evidence": evidence,
-			}
+		(
+			details
+			. append(
+				{
+					"symbol": str(symbol_value),
+					"source_member": source_member.duplicate(true),
+					"source_location": source_member.get("source_location", {}).duplicate(true),
+					"evidence": evidence,
+				}
+			)
 		)
 
 
@@ -691,19 +717,23 @@ func _collect_member_accesses(source: String) -> Array:
 			"target_symbol": target_symbol,
 			"target_member": {"kind": member_kind, "name": member_name},
 			"source_member": source_member.duplicate(true),
-			"source_location": _location(
+			"source_location":
+			_location(
 				_source_line_number(source, symbol_start) + 1,
 				_source_column_number(source, symbol_start)
 			),
 			"evidence": "class_member_access",
 		}
-		var key = "%s|%s|%s|%s|%s" % [
-			target_symbol,
-			member_kind,
-			member_name,
-			str(source_member.get("kind", "")),
-			str(source_member.get("name", "")),
-		]
+		var key = (
+			"%s|%s|%s|%s|%s"
+			% [
+				target_symbol,
+				member_kind,
+				member_name,
+				str(source_member.get("kind", "")),
+				str(source_member.get("name", "")),
+			]
+		)
 		if not access_keys.has(key):
 			access_keys[key] = true
 			accesses.append(access)
@@ -722,7 +752,9 @@ func _member_scope_by_line(source: String) -> Dictionary:
 	var current_member: Dictionary = {}
 	var current_indent = -1
 	for line_index in range(lines.size()):
-		var without_comment = _strip_comment_and_multiline_string(str(lines[line_index]), lexical_state)
+		var without_comment = _strip_comment_and_multiline_string(
+			str(lines[line_index]), lexical_state
+		)
 		var trimmed = without_comment.strip_edges()
 		if trimmed.is_empty():
 			if not current_member.is_empty():
@@ -809,24 +841,30 @@ func _unique_detail_values(details: Array, key_name: String) -> Array:
 
 func _dependency_detail_sort_key(detail: Dictionary, value_key: String) -> String:
 	var member: Dictionary = detail.get("source_member", {})
-	return "%s|%s|%s|%s" % [
-		str(detail.get(value_key, "")),
-		str(member.get("kind", "")),
-		str(member.get("name", "")),
-		str(detail.get("evidence", "")),
-	]
+	return (
+		"%s|%s|%s|%s"
+		% [
+			str(detail.get(value_key, "")),
+			str(member.get("kind", "")),
+			str(member.get("name", "")),
+			str(detail.get("evidence", "")),
+		]
+	)
 
 
 func _member_access_sort_key(access: Dictionary) -> String:
 	var source_member: Dictionary = access.get("source_member", {})
 	var target_member: Dictionary = access.get("target_member", {})
-	return "%s|%s|%s|%s|%s" % [
-		str(access.get("target_symbol", "")),
-		str(target_member.get("kind", "")),
-		str(target_member.get("name", "")),
-		str(source_member.get("kind", "")),
-		str(source_member.get("name", "")),
-	]
+	return (
+		"%s|%s|%s|%s|%s"
+		% [
+			str(access.get("target_symbol", "")),
+			str(target_member.get("kind", "")),
+			str(target_member.get("name", "")),
+			str(source_member.get("kind", "")),
+			str(source_member.get("name", "")),
+		]
+	)
 
 
 func _split_top_level(text: String, separator: String) -> Array:
@@ -868,12 +906,7 @@ func _split_top_level(text: String, separator: String) -> Array:
 				curly_depth = maxi(0, curly_depth - 1)
 			_:
 				pass
-		if (
-			character == separator
-			and round_depth == 0
-			and square_depth == 0
-			and curly_depth == 0
-		):
+		if character == separator and round_depth == 0 and square_depth == 0 and curly_depth == 0:
 			parts.append(text.substr(start, index - start))
 			start = index + 1
 	parts.append(text.substr(start))
@@ -923,17 +956,53 @@ func _find_top_level_character(text: String, target: String) -> int:
 
 
 func _is_builtin_type_name(symbol: String) -> bool:
-	return symbol in [
-		"Variant", "void", "bool", "int", "float", "String", "StringName",
-		"NodePath", "RID", "Callable", "Signal", "Array", "Dictionary",
-		"Vector2", "Vector2i", "Rect2", "Rect2i", "Vector3", "Vector3i",
-		"Transform2D", "Vector4", "Vector4i", "Plane", "Quaternion", "AABB",
-		"Basis", "Transform3D", "Projection", "Color", "PackedByteArray",
-		"PackedInt32Array", "PackedInt64Array", "PackedFloat32Array",
-		"PackedFloat64Array", "PackedStringArray", "PackedVector2Array",
-		"PackedVector3Array", "PackedColorArray", "PackedVector4Array",
-		"null", "true", "false"
-	]
+	return (
+		symbol
+		in [
+			"Variant",
+			"void",
+			"bool",
+			"int",
+			"float",
+			"String",
+			"StringName",
+			"NodePath",
+			"RID",
+			"Callable",
+			"Signal",
+			"Array",
+			"Dictionary",
+			"Vector2",
+			"Vector2i",
+			"Rect2",
+			"Rect2i",
+			"Vector3",
+			"Vector3i",
+			"Transform2D",
+			"Vector4",
+			"Vector4i",
+			"Plane",
+			"Quaternion",
+			"AABB",
+			"Basis",
+			"Transform3D",
+			"Projection",
+			"Color",
+			"PackedByteArray",
+			"PackedInt32Array",
+			"PackedInt64Array",
+			"PackedFloat32Array",
+			"PackedFloat64Array",
+			"PackedStringArray",
+			"PackedVector2Array",
+			"PackedVector3Array",
+			"PackedColorArray",
+			"PackedVector4Array",
+			"null",
+			"true",
+			"false"
+		]
+	)
 
 
 func _skip_whitespace(text: String, start_index: int) -> int:

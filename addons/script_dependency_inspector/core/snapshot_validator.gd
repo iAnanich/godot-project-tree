@@ -6,9 +6,7 @@ const REQUIRED_NODE_FIELDS: Array[String] = [
 	"id", "name", "kind", "properties", "signals", "methods", "inner_classes"
 ]
 const REQUIRED_EDGE_FIELDS: Array[String] = ["source", "target", "kind", "member_links"]
-const REQUIRED_MEMBER_LINK_FIELDS: Array[String] = [
-	"source_member", "target_member", "evidence"
-]
+const REQUIRED_MEMBER_LINK_FIELDS: Array[String] = ["source_member", "target_member", "evidence"]
 
 
 ## Validates a canonical dependency snapshot at a public serialization boundary.
@@ -29,9 +27,7 @@ func validate(snapshot: Dictionary) -> Dictionary:
 	_validate_scope_consistency(snapshot.get("metadata", {}), node_index, errors)
 	_validate_edges(snapshot.get("edges", []), node_index, errors, warnings)
 	_validate_scene_usages(snapshot.get("scene_usages", []), node_index, errors)
-	_validate_node_scene_usage_consistency(
-		snapshot.get("scene_usages", []), node_index, errors
-	)
+	_validate_node_scene_usage_consistency(snapshot.get("scene_usages", []), node_index, errors)
 	_validate_diagnostics(snapshot.get("diagnostics", []), errors)
 	return {"ok": errors.is_empty(), "errors": errors, "warnings": warnings}
 
@@ -105,8 +101,9 @@ func _validate_metadata(metadata: Dictionary, errors: Array, warnings: Array) ->
 				"Snapshot metadata field '%s' must be text." % field_name,
 				{"field": field_name}
 			)
-	if not metadata.has("root_path") or (
-		metadata["root_path"] is String and (metadata["root_path"] as String).is_empty()
+	if (
+		not metadata.has("root_path")
+		or (metadata["root_path"] is String and (metadata["root_path"] as String).is_empty())
 	):
 		_add_issue(
 			warnings,
@@ -116,15 +113,30 @@ func _validate_metadata(metadata: Dictionary, errors: Array, warnings: Array) ->
 			"warning"
 		)
 	if metadata.has("scope_active") and not metadata["scope_active"] is bool:
-		_add_issue(errors, "invalid_metadata_field", "Snapshot metadata field 'scope_active' must be boolean.", {"field": "scope_active"})
+		_add_issue(
+			errors,
+			"invalid_metadata_field",
+			"Snapshot metadata field 'scope_active' must be boolean.",
+			{"field": "scope_active"}
+		)
 	if metadata.has("scope_summary"):
 		if not metadata["scope_summary"] is Dictionary:
-			_add_issue(errors, "invalid_metadata_field", "Snapshot metadata field 'scope_summary' must be a dictionary.", {"field": "scope_summary"})
+			_add_issue(
+				errors,
+				"invalid_metadata_field",
+				"Snapshot metadata field 'scope_summary' must be a dictionary.",
+				{"field": "scope_summary"}
+			)
 		else:
 			var scope_summary: Dictionary = metadata["scope_summary"]
 			for count_field in ["in_scope_nodes", "context_nodes"]:
 				if scope_summary.has(count_field) and not scope_summary[count_field] is int:
-					_add_issue(errors, "invalid_scope_summary", "Scope summary field '%s' must be an integer." % count_field, {"field": count_field})
+					_add_issue(
+						errors,
+						"invalid_scope_summary",
+						"Scope summary field '%s' must be an integer." % count_field,
+						{"field": count_field}
+					)
 	for field_name in ["options", "style"]:
 		if metadata.has(field_name) and not metadata[field_name] is Dictionary:
 			_add_issue(
@@ -135,9 +147,7 @@ func _validate_metadata(metadata: Dictionary, errors: Array, warnings: Array) ->
 			)
 
 
-func _validate_scope_consistency(
-	metadata_value, node_index: Dictionary, errors: Array
-) -> void:
+func _validate_scope_consistency(metadata_value, node_index: Dictionary, errors: Array) -> void:
 	if not metadata_value is Dictionary:
 		return
 	var metadata: Dictionary = metadata_value
@@ -203,9 +213,7 @@ func _validate_scope_consistency(
 			)
 
 
-func _validate_nodes(
-	nodes_value, node_index: Dictionary, errors: Array, warnings: Array
-) -> void:
+func _validate_nodes(nodes_value, node_index: Dictionary, errors: Array, warnings: Array) -> void:
 	if not nodes_value is Array:
 		return
 	var index: int = 0
@@ -248,10 +256,7 @@ func _validate_nodes(
 				)
 			elif node_index.has(node_id):
 				_add_issue(
-					errors,
-					"duplicate_node_id",
-					"Duplicate node id: %s." % node_id,
-					{"id": node_id}
+					errors, "duplicate_node_id", "Duplicate node id: %s." % node_id, {"id": node_id}
 				)
 			else:
 				node_index[node_id] = node
@@ -291,7 +296,13 @@ func _validate_nodes(
 			)
 
 		for text_field in [
-			"path", "class_name", "qualified_name", "native_base", "inheritance_family", "scope_role", "scope_reason"
+			"path",
+			"class_name",
+			"qualified_name",
+			"native_base",
+			"inheritance_family",
+			"scope_role",
+			"scope_reason"
 		]:
 			if node.has(text_field) and not node[text_field] is String:
 				_add_issue(
@@ -332,8 +343,9 @@ func _validate_nodes(
 			)
 		elif node.has("autoload"):
 			var autoload: Dictionary = node["autoload"]
-			if autoload.has("name") and (
-				not autoload["name"] is String or str(autoload["name"]).is_empty()
+			if (
+				autoload.has("name")
+				and (not autoload["name"] is String or str(autoload["name"]).is_empty())
 			):
 				_add_issue(
 					errors,
@@ -341,7 +353,11 @@ func _validate_nodes(
 					"Node '%s' autoload name must be non-empty text." % node_id
 				)
 			if autoload.has("singleton") and not autoload["singleton"] is bool:
-				_add_issue(errors, "invalid_autoload", "Node '%s' autoload singleton must be boolean." % node_id)
+				_add_issue(
+					errors,
+					"invalid_autoload",
+					"Node '%s' autoload singleton must be boolean." % node_id
+				)
 		if node.has("scene_usages") and not node["scene_usages"] is Array:
 			_add_issue(
 				errors,
@@ -357,11 +373,7 @@ func _validate_nodes(
 
 
 func _validate_member_collection(
-	node: Dictionary,
-	node_id: String,
-	collection_name: String,
-	member_kind: String,
-	errors: Array
+	node: Dictionary, node_id: String, collection_name: String, member_kind: String, errors: Array
 ) -> void:
 	if not node.has(collection_name):
 		return
@@ -381,8 +393,10 @@ func _validate_member_collection(
 			_add_issue(
 				errors,
 				"invalid_member",
-				"Node '%s' %s at index %s must be a dictionary."
-				% [node_id, member_kind, member_index],
+				(
+					"Node '%s' %s at index %s must be a dictionary."
+					% [node_id, member_kind, member_index]
+				),
 				{"id": node_id, "kind": member_kind, "index": member_index}
 			)
 			member_index += 1
@@ -393,16 +407,17 @@ func _validate_member_collection(
 			_add_issue(
 				errors,
 				"missing_member_name",
-				"Node '%s' %s at index %s has no name."
-				% [node_id, member_kind, member_index],
+				"Node '%s' %s at index %s has no name." % [node_id, member_kind, member_index],
 				{"id": node_id, "kind": member_kind, "index": member_index}
 			)
 		elif not member["name"] is String:
 			_add_issue(
 				errors,
 				"invalid_member_field",
-				"Node '%s' %s at index %s field 'name' must be text."
-				% [node_id, member_kind, member_index],
+				(
+					"Node '%s' %s at index %s field 'name' must be text."
+					% [node_id, member_kind, member_index]
+				),
 				{"id": node_id, "kind": member_kind, "index": member_index, "field": "name"}
 			)
 		else:
@@ -411,16 +426,14 @@ func _validate_member_collection(
 				_add_issue(
 					errors,
 					"missing_member_name",
-					"Node '%s' %s at index %s has no name."
-					% [node_id, member_kind, member_index],
+					"Node '%s' %s at index %s has no name." % [node_id, member_kind, member_index],
 					{"id": node_id, "kind": member_kind, "index": member_index}
 				)
 			elif names.has(member_name):
 				_add_issue(
 					errors,
 					"duplicate_member",
-					"Node '%s' contains duplicate %s '%s'."
-					% [node_id, member_kind, member_name],
+					"Node '%s' contains duplicate %s '%s'." % [node_id, member_kind, member_name],
 					{"id": node_id, "kind": member_kind, "name": member_name}
 				)
 			else:
@@ -435,8 +448,10 @@ func _validate_member_collection(
 			_add_issue(
 				errors,
 				"invalid_member_field",
-				"Node '%s' %s '%s' annotations must be an array."
-				% [node_id, member_kind, member_name],
+				(
+					"Node '%s' %s '%s' annotations must be an array."
+					% [node_id, member_kind, member_name]
+				),
 				{"id": node_id, "kind": member_kind, "name": member_name, "field": "annotations"}
 			)
 		for text_field in ["arguments", "return_type", "signature", "declaration", "type"]:
@@ -444,8 +459,10 @@ func _validate_member_collection(
 				_add_issue(
 					errors,
 					"invalid_member_field",
-					"Node '%s' %s '%s' field '%s' must be text."
-					% [node_id, member_kind, member_name, text_field],
+					(
+						"Node '%s' %s '%s' field '%s' must be text."
+						% [node_id, member_kind, member_name, text_field]
+					),
 					{
 						"id": node_id,
 						"kind": member_kind,
@@ -458,8 +475,10 @@ func _validate_member_collection(
 				_add_issue(
 					errors,
 					"invalid_member_field",
-					"Node '%s' %s '%s' field '%s' must be boolean."
-					% [node_id, member_kind, member_name, boolean_field],
+					(
+						"Node '%s' %s '%s' field '%s' must be boolean."
+						% [node_id, member_kind, member_name, boolean_field]
+					),
 					{
 						"id": node_id,
 						"kind": member_kind,
@@ -493,7 +512,11 @@ func _validate_inner_classes(node: Dictionary, node_id: String, errors: Array) -
 			)
 			continue
 		var item: Dictionary = item_value
-		if not item.has("name") or not item["name"] is String or (item["name"] as String).is_empty():
+		if (
+			not item.has("name")
+			or not item["name"] is String
+			or (item["name"] as String).is_empty()
+		):
 			_add_issue(
 				errors,
 				"invalid_inner_class",
@@ -508,9 +531,7 @@ func _validate_inner_classes(node: Dictionary, node_id: String, errors: Array) -
 			)
 
 
-func _validate_edges(
-	edges_value, node_index: Dictionary, errors: Array, warnings: Array
-) -> void:
+func _validate_edges(edges_value, node_index: Dictionary, errors: Array, warnings: Array) -> void:
 	if not edges_value is Array:
 		return
 	var edge_keys: Dictionary = {}
@@ -638,8 +659,10 @@ func _validate_member_links(
 				_add_issue(
 					errors,
 					"missing_member_link_field",
-					"Edge %s member link %s is missing required field '%s'."
-					% [edge_index, link_index, required_field],
+					(
+						"Edge %s member link %s is missing required field '%s'."
+						% [edge_index, link_index, required_field]
+					),
 					{
 						"edge_index": edge_index,
 						"link_index": link_index,
@@ -684,15 +707,18 @@ func _validate_member_links(
 				node_index[target_id], target_member, edge_index, link_index, "target", errors
 			)
 		var source_location: Dictionary = link.get("source_location", {})
-		var link_key: String = "%s|%s|%s|%s|%s|%s|%s" % [
-			str(source_member.get("kind", "")),
-			str(source_member.get("name", "")),
-			str(target_member.get("kind", "")),
-			str(target_member.get("name", "")),
-			evidence,
-			str(source_location.get("line", "")),
-			str(source_location.get("column", "")),
-		]
+		var link_key: String = (
+			"%s|%s|%s|%s|%s|%s|%s"
+			% [
+				str(source_member.get("kind", "")),
+				str(source_member.get("name", "")),
+				str(target_member.get("kind", "")),
+				str(target_member.get("name", "")),
+				evidence,
+				str(source_location.get("line", "")),
+				str(source_location.get("column", "")),
+			]
+		)
 		if link_keys.has(link_key):
 			_add_issue(
 				errors,
@@ -705,18 +731,16 @@ func _validate_member_links(
 
 
 func _validate_member_reference(
-	member_value,
-	edge_index: int,
-	link_index: int,
-	field_name: String,
-	errors: Array
+	member_value, edge_index: int, link_index: int, field_name: String, errors: Array
 ) -> Dictionary:
 	if not member_value is Dictionary:
 		_add_issue(
 			errors,
 			"invalid_member_reference",
-			"Edge %s member link %s field '%s' must be a dictionary."
-			% [edge_index, link_index, field_name],
+			(
+				"Edge %s member link %s field '%s' must be a dictionary."
+				% [edge_index, link_index, field_name]
+			),
 			{"edge_index": edge_index, "link_index": link_index, "field": field_name}
 		)
 		return {}
@@ -727,8 +751,10 @@ func _validate_member_reference(
 		_add_issue(
 			errors,
 			"invalid_member_reference",
-			"Edge %s member link %s field '%s' must contain kind and name together."
-			% [edge_index, link_index, field_name],
+			(
+				"Edge %s member link %s field '%s' must contain kind and name together."
+				% [edge_index, link_index, field_name]
+			),
 			{"edge_index": edge_index, "link_index": link_index, "field": field_name}
 		)
 		return {}
@@ -736,8 +762,10 @@ func _validate_member_reference(
 		_add_issue(
 			errors,
 			"invalid_member_reference",
-			"Edge %s member link %s field '%s' kind and name must be text."
-			% [edge_index, link_index, field_name],
+			(
+				"Edge %s member link %s field '%s' kind and name must be text."
+				% [edge_index, link_index, field_name]
+			),
 			{"edge_index": edge_index, "link_index": link_index, "field": field_name}
 		)
 		return {}
@@ -747,8 +775,7 @@ func _validate_member_reference(
 		_add_issue(
 			errors,
 			"invalid_member_reference",
-			"Edge %s member link %s has an invalid %s."
-			% [edge_index, link_index, field_name],
+			"Edge %s member link %s has an invalid %s." % [edge_index, link_index, field_name],
 			{
 				"edge_index": edge_index,
 				"link_index": link_index,
@@ -774,8 +801,10 @@ func _validate_member_exists(
 	_add_issue(
 		errors,
 		"unknown_member_reference",
-		"Edge %s member link %s references an unknown %s member '%s'."
-		% [edge_index, link_index, endpoint, member["name"]],
+		(
+			"Edge %s member link %s references an unknown %s member '%s'."
+			% [edge_index, link_index, endpoint, member["name"]]
+		),
 		{
 			"edge_index": edge_index,
 			"link_index": link_index,
@@ -819,8 +848,10 @@ func _validate_scene_usages(usages_value, node_index: Dictionary, errors: Array)
 				_add_issue(
 					errors,
 					"invalid_scene_usage_field",
-					"Scene usage at index %s field '%s' must be non-empty text."
-					% [index, field_name],
+					(
+						"Scene usage at index %s field '%s' must be non-empty text."
+						% [index, field_name]
+					),
 					{"index": index, "field": field_name}
 				)
 		for numeric_field in ["line", "column"]:
@@ -832,8 +863,10 @@ func _validate_scene_usages(usages_value, node_index: Dictionary, errors: Array)
 				_add_issue(
 					errors,
 					"invalid_scene_usage_field",
-					"Scene usage at index %s %s must be a positive integer."
-					% [index, numeric_field],
+					(
+						"Scene usage at index %s %s must be a positive integer."
+						% [index, numeric_field]
+					),
 					{"index": index, "field": numeric_field}
 				)
 		var script_path = str(usage.get("script_path", ""))
@@ -878,8 +911,10 @@ func _validate_node_scene_usage_consistency(
 				_add_issue(
 					errors,
 					"invalid_node_scene_usage",
-					"Node '%s' scene usage at index %s must be a dictionary."
-					% [node_id, usage_index],
+					(
+						"Node '%s' scene usage at index %s must be a dictionary."
+						% [node_id, usage_index]
+					),
 					{"id": node_id, "index": usage_index}
 				)
 				continue
@@ -888,8 +923,7 @@ func _validate_node_scene_usage_consistency(
 				_add_issue(
 					errors,
 					"node_scene_usage_script_mismatch",
-					"Node '%s' contains scene evidence for a different script."
-					% node_id,
+					"Node '%s' contains scene evidence for a different script." % node_id,
 					{"id": node_id, "index": usage_index}
 				)
 			var usage_key = _scene_usage_key(usage)
@@ -897,8 +931,7 @@ func _validate_node_scene_usage_consistency(
 				_add_issue(
 					errors,
 					"invalid_node_scene_usage",
-					"Node '%s' scene usage at index %s is incomplete."
-					% [node_id, usage_index],
+					"Node '%s' scene usage at index %s is incomplete." % [node_id, usage_index],
 					{"id": node_id, "index": usage_index}
 				)
 				continue
@@ -915,8 +948,10 @@ func _validate_node_scene_usage_consistency(
 				_add_issue(
 					errors,
 					"orphan_node_scene_usage",
-					"Node '%s' contains scene evidence missing from the top-level collection."
-					% node_id,
+					(
+						"Node '%s' contains scene evidence missing from the top-level collection."
+						% node_id
+					),
 					{"id": node_id, "index": usage_index}
 				)
 		for usage_value in top_level_value:
@@ -930,8 +965,10 @@ func _validate_node_scene_usage_consistency(
 				_add_issue(
 					errors,
 					"missing_node_scene_usage",
-					"Node '%s' is missing scene evidence present in the top-level collection."
-					% node_id,
+					(
+						"Node '%s' is missing scene evidence present in the top-level collection."
+						% node_id
+					),
 					{"id": node_id}
 				)
 
@@ -943,14 +980,17 @@ func _scene_usage_key(usage: Dictionary) -> String:
 	for numeric_field in ["line", "column"]:
 		if not usage.get(numeric_field) is int or int(usage.get(numeric_field, 0)) < 1:
 			return ""
-	return "%s|%s|%s|%09d|%09d|%s" % [
-		str(usage.get("scene_path", "")),
-		str(usage.get("node_path", "")),
-		str(usage.get("script_path", "")),
-		int(usage.get("line", 0)),
-		int(usage.get("column", 0)),
-		str(usage.get("evidence", "")),
-	]
+	return (
+		"%s|%s|%s|%09d|%09d|%s"
+		% [
+			str(usage.get("scene_path", "")),
+			str(usage.get("node_path", "")),
+			str(usage.get("script_path", "")),
+			int(usage.get("line", 0)),
+			int(usage.get("column", 0)),
+			str(usage.get("evidence", "")),
+		]
+	)
 
 
 func _validate_source_location(value, owner: String, errors: Array) -> void:
@@ -969,8 +1009,10 @@ func _validate_source_location(value, owner: String, errors: Array) -> void:
 			_add_issue(
 				errors,
 				"invalid_source_location",
-				"Source location for %s field '%s' must be a positive integer."
-				% [owner, field_name],
+				(
+					"Source location for %s field '%s' must be a positive integer."
+					% [owner, field_name]
+				),
 				{"owner": owner, "field": field_name}
 			)
 
@@ -994,11 +1036,12 @@ func _validate_diagnostics(diagnostics_value, errors: Array) -> void:
 				_add_issue(
 					errors,
 					"invalid_diagnostic_field",
-					"Diagnostic at index %s field '%s' must be text."
-					% [index, field_name],
+					"Diagnostic at index %s field '%s' must be text." % [index, field_name],
 					{"index": index, "field": field_name}
 				)
-		var severity: String = diagnostic["severity"] if diagnostic.get("severity", null) is String else ""
+		var severity: String = (
+			diagnostic["severity"] if diagnostic.get("severity", null) is String else ""
+		)
 		if severity != "warning" and severity != "error" and severity != "info":
 			_add_issue(
 				errors,
@@ -1007,7 +1050,10 @@ func _validate_diagnostics(diagnostics_value, errors: Array) -> void:
 				{"index": index, "severity": severity}
 			)
 		for field_name in ["code", "message"]:
-			if diagnostic.get(field_name, null) is String and (diagnostic[field_name] as String).is_empty():
+			if (
+				diagnostic.get(field_name, null) is String
+				and (diagnostic[field_name] as String).is_empty()
+			):
 				_add_issue(
 					errors,
 					"invalid_diagnostic",
@@ -1042,11 +1088,14 @@ func _add_issue(
 	context: Dictionary = {},
 	severity: String = "error"
 ) -> void:
-	issues.append(
-		{
-			"severity": severity,
-			"code": code,
-			"message": message,
-			"context": context.duplicate(true),
-		}
+	(
+		issues
+		. append(
+			{
+				"severity": severity,
+				"code": code,
+				"message": message,
+				"context": context.duplicate(true),
+			}
+		)
 	)

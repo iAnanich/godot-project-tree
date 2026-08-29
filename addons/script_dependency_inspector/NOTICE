@@ -5,4 +5,4 @@ This product includes software developed with extensive generative-AI assistance
 See AI_USAGE_NOTICE.md for the project's disclosure and provenance position.
 
 Related-project provenance:
-Project Mapper by Eefschmeef2310 was reviewed late in development as a related tool. Specific v0.2.0 interaction/context features influenced by that review are documented in docs/RELATED_PROJECTS.md. No Project Mapper source code is included.
+Project Mapper by Eefschmeef2310 was reviewed late in development as a related tool. Specific interaction/context features considered after that review are attributed in the relevant design decision record. No Project Mapper source code is included.

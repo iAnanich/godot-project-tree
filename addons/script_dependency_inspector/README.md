@@ -1,4 +1,4 @@
-# Script Dependency Inspector 0.2.2
+# Script Dependency Inspector 0.2.4
 
 Editor-only Godot 4 add-on that scans GDScript and exact text-scene script attachments, builds a validated dependency snapshot, optionally renders an interactive searchable graph, and exports JSON, Mermaid, or PlantUML.
 
@@ -6,7 +6,7 @@ The **Graph** toggle is enabled by default. Disable it for export-only operation
 
 Exported Mermaid and PlantUML files can be opened in dedicated diagram applications for larger canvases, alternate layout engines, themes, or presentation workflows. JSON is the lossless machine-readable representation for automation and custom renderers.
 
-Folder scopes retain required outside ancestors and direct dependency targets as labelled **Context**. Search, focus, source navigation, autoload metadata, and exact text-scene attachments remain available when the graph is shown.
+Folder scopes accept either `res://` selections or absolute paths returned by native dialogs, normalize project-local paths to `res://`, and retain required outside ancestors and direct dependency targets as labelled **Context**. Search, focus, source navigation, autoload metadata, and exact text-scene attachments remain available when the graph is shown.
 
 Generative AI was used extensively under owner-directed scope and documented automated quality controls. See `AI_USAGE_NOTICE.md` for uses, supervision, executed checks, and residual evidence limits.
 

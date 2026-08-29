@@ -62,8 +62,10 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 			var signal_name = _escape_member(str(signal_data.get("name", "signal")))
 			if bool(display_options.get("show_signal_signatures", false)):
 				lines.append(
-					"  +signal %s(%s)"
-					% [signal_name, _mermaid_arguments(str(signal_data.get("arguments", "")))]
+					(
+						"  +signal %s(%s)"
+						% [signal_name, _mermaid_arguments(str(signal_data.get("arguments", "")))]
+					)
 				)
 			else:
 				lines.append("  +signal %s" % signal_name)
@@ -78,13 +80,15 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 					else ""
 				)
 				lines.append(
-					"  +%s(%s)%s%s"
-					% [
-						method_name,
-						_mermaid_arguments(str(method.get("arguments", ""))),
-						return_suffix,
-						static_suffix
-					]
+					(
+						"  +%s(%s)%s%s"
+						% [
+							method_name,
+							_mermaid_arguments(str(method.get("arguments", ""))),
+							return_suffix,
+							static_suffix
+						]
+					)
 				)
 			else:
 				lines.append("  +%s%s" % [method_name, static_suffix])
@@ -109,10 +113,7 @@ func export_text(snapshot: Dictionary, options: Dictionary = {}) -> String:
 					lines,
 					emitted_relations,
 					_relation_line(
-						source,
-						target,
-						str(edge.get("kind", "uses")),
-						_member_relation_label(link)
+						source, target, str(edge.get("kind", "uses")), _member_relation_label(link)
 					)
 				)
 			continue

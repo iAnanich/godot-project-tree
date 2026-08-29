@@ -24,6 +24,17 @@ godot --headless --editor --path . --quit-after 5
 godot --headless --path . --script tests/test_runner.gd
 ```
 
+## Commit-time formatting and linting
+
+Install the pinned development tools and Git hook once per clone:
+
+```sh
+python -m pip install --requirement requirements-dev.txt
+pre-commit install --install-hooks
+```
+
+The hook runs `gdformat` and then `gdlint` for staged GDScript files. Formatting modifications stop the commit so they can be reviewed and staged. Run every hook across the repository with `pre-commit run --all-files --show-diff-on-failure`.
+
 ## Required validation
 
 Run the narrowest focused test while iterating, then the release gates:
@@ -50,6 +61,8 @@ For compatibility changes, execute the same gates on every supported minor versi
 Add one coherent behavioral claim per test helper. Failure messages must identify the contract and failed condition. Do not weaken a current-version contract merely to make a historical version pass; isolate a genuine compatibility branch instead.
 
 ## Reproducible release packaging
+
+See [`docs/RELEASING.md`](docs/RELEASING.md) for add-on-only packaging, verified patch generation, tagging, and GitHub Release automation.
 
 Build both archives and their checksums through the repository-owned builder:
 

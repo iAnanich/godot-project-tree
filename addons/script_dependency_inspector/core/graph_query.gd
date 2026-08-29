@@ -78,7 +78,10 @@ func neighborhood_ids(
 func _parent_by_child(snapshot: Dictionary) -> Dictionary:
 	var index: Dictionary = {}
 	for edge_value in snapshot.get("edges", []):
-		if edge_value is Dictionary and str((edge_value as Dictionary).get("kind", "")) == "extends":
+		if (
+			edge_value is Dictionary
+			and str((edge_value as Dictionary).get("kind", "")) == "extends"
+		):
 			index[str((edge_value as Dictionary).get("source", ""))] = str(
 				(edge_value as Dictionary).get("target", "")
 			)

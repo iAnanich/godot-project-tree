@@ -40,6 +40,7 @@ func export_text(_snapshot: Dictionary, _options: Dictionary = {}) -> String:
 	push_error("Exporter.export_text() must be overridden.")
 	return ""
 
+
 ## Returns a diagram-safe argument list that omits default expressions.
 ## JSON remains the lossless representation; textual diagram grammars cannot
 ## reliably represent arbitrary GDScript expressions such as dictionary literals.
@@ -130,14 +131,8 @@ func _split_top_level(value: String, delimiter: String) -> Array[String]:
 				curly_depth += 1
 			"}":
 				curly_depth = maxi(0, curly_depth - 1)
-		if (
-			character == delimiter
-			and round_depth == 0
-			and square_depth == 0
-			and curly_depth == 0
-		):
+		if character == delimiter and round_depth == 0 and square_depth == 0 and curly_depth == 0:
 			parts.append(value.substr(start, index - start))
 			start = index + 1
 	parts.append(value.substr(start))
 	return parts
-

@@ -12,7 +12,9 @@ func project(snapshot: Dictionary, scope_root: String) -> Dictionary:
 	for collection_name in ["nodes", "edges", "scene_usages", "warnings", "errors", "diagnostics"]:
 		if not projected.get(collection_name) is Array:
 			projected[collection_name] = []
-	var metadata: Dictionary = projected.get("metadata", {}) if projected.get("metadata") is Dictionary else {}
+	var metadata: Dictionary = (
+		projected.get("metadata", {}) if projected.get("metadata") is Dictionary else {}
+	)
 	var index_root: String = str(metadata.get("root_path", "res://"))
 	metadata["index_root_path"] = index_root
 	metadata["root_path"] = normalized_root
@@ -101,7 +103,10 @@ func project(snapshot: Dictionary, scope_root: String) -> Dictionary:
 
 	var filtered_scene_usages: Array = []
 	for usage_value in projected.get("scene_usages", []):
-		if usage_value is Dictionary and kept.has(str((usage_value as Dictionary).get("script_path", ""))):
+		if (
+			usage_value is Dictionary
+			and kept.has(str((usage_value as Dictionary).get("script_path", "")))
+		):
 			filtered_scene_usages.append(usage_value)
 
 	projected["nodes"] = filtered_nodes
@@ -112,22 +117,30 @@ func project(snapshot: Dictionary, scope_root: String) -> Dictionary:
 		"context_nodes": maxi(0, filtered_nodes.size() - in_scope.size()),
 	}
 	if in_scope.is_empty():
-		var warning: String = "No scanned scripts were found in selected scope: %s" % normalized_root
+		var warning: String = (
+			"No scanned scripts were found in selected scope: %s" % normalized_root
+		)
 		if not projected.get("warnings", []).has(warning):
 			projected["warnings"].append(warning)
-		projected["diagnostics"].append(
-			{
-				"severity": "warning",
-				"code": "empty_selected_scope",
-				"message": warning,
-				"context": {"scope_root": normalized_root},
-			}
+		(
+			projected["diagnostics"]
+			. append(
+				{
+					"severity": "warning",
+					"code": "empty_selected_scope",
+					"message": warning,
+					"context": {"scope_root": normalized_root},
+				}
+			)
 		)
 	return projected
 
 
 func _is_project_script(node: Dictionary) -> bool:
-	return str(node.get("kind", "")) in ["user", "addon"] and str(node.get("path", "")).begins_with("res://")
+	return (
+		str(node.get("kind", "")) in ["user", "addon"]
+		and str(node.get("path", "")).begins_with("res://")
+	)
 
 
 func _path_is_within(path: String, root: String) -> bool:

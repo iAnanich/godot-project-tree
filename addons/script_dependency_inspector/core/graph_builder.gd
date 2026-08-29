@@ -129,7 +129,8 @@ func _script_node(record: Dictionary, options: Dictionary) -> Dictionary:
 		"class_name": class_name_value,
 		"has_custom_name": not class_name_value.is_empty(),
 		"path": str(record["path"]),
-		"source_location": analysis.get("class_name_location", {"line": 1, "column": 1}).duplicate(true),
+		"source_location":
+		analysis.get("class_name_location", {"line": 1, "column": 1}).duplicate(true),
 		"kind": "addon" if record["is_addon"] else "user",
 		"autoload": record.get("autoload", {}).duplicate(true),
 		"scene_usages": [],
@@ -144,9 +145,7 @@ func _script_node(record: Dictionary, options: Dictionary) -> Dictionary:
 	}
 
 
-func _attach_scene_usages(
-	snapshot: Dictionary, node_index: Dictionary, usage_values
-) -> void:
+func _attach_scene_usages(snapshot: Dictionary, node_index: Dictionary, usage_values) -> void:
 	if not usage_values is Array:
 		return
 	for usage_value in usage_values:
@@ -164,17 +163,26 @@ func _attach_scene_usages(
 			node["scene_usages"] = node_usages
 	snapshot["scene_usages"].sort_custom(
 		func(left: Dictionary, right: Dictionary) -> bool:
-			return "%s|%s|%s|%09d" % [
-				left.get("script_path", ""),
-				left.get("scene_path", ""),
-				left.get("node_path", ""),
-				int(left.get("line", 0)),
-			] < "%s|%s|%s|%09d" % [
-				right.get("script_path", ""),
-				right.get("scene_path", ""),
-				right.get("node_path", ""),
-				int(right.get("line", 0)),
-			]
+			return (
+				(
+					"%s|%s|%s|%09d"
+					% [
+						left.get("script_path", ""),
+						left.get("scene_path", ""),
+						left.get("node_path", ""),
+						int(left.get("line", 0)),
+					]
+				)
+				< (
+					"%s|%s|%s|%09d"
+					% [
+						right.get("script_path", ""),
+						right.get("scene_path", ""),
+						right.get("node_path", ""),
+						int(right.get("line", 0)),
+					]
+				)
+			)
 	)
 
 
@@ -409,10 +417,7 @@ func _existing_member_reference(
 
 
 func _member_link(
-	source_member_value,
-	target_member_value,
-	evidence: String,
-	source_location_value = {}
+	source_member_value, target_member_value, evidence: String, source_location_value = {}
 ) -> Dictionary:
 	var source_member: Dictionary = (
 		source_member_value.duplicate(true) if source_member_value is Dictionary else {}
@@ -421,9 +426,7 @@ func _member_link(
 		target_member_value.duplicate(true) if target_member_value is Dictionary else {}
 	)
 	var source_location: Dictionary = (
-		source_location_value.duplicate(true)
-		if source_location_value is Dictionary
-		else {}
+		source_location_value.duplicate(true) if source_location_value is Dictionary else {}
 	)
 	if source_member.is_empty() and target_member.is_empty() and source_location.is_empty():
 		return {}
@@ -512,7 +515,8 @@ func _external_node(
 		"kind": kind,
 		"base": {},
 		"native_base": resolved_name if kind == "native" else "",
-		"inheritance_family": _classify_native_family(resolved_name) if kind == "native" else "other",
+		"inheritance_family":
+		_classify_native_family(resolved_name) if kind == "native" else "other",
 		"methods": [],
 		"signals": [],
 		"properties": [],
@@ -589,11 +593,7 @@ func _add_node(snapshot: Dictionary, node_index: Dictionary, node: Dictionary) -
 
 
 func _add_edge(
-	snapshot: Dictionary,
-	source: String,
-	target: String,
-	kind: String,
-	member_link: Dictionary = {}
+	snapshot: Dictionary, source: String, target: String, kind: String, member_link: Dictionary = {}
 ) -> void:
 	if source.is_empty() or target.is_empty() or source == target:
 		return
@@ -628,15 +628,18 @@ func _member_link_sort_key(link: Dictionary) -> String:
 	var source_member: Dictionary = link.get("source_member", {})
 	var target_member: Dictionary = link.get("target_member", {})
 	var source_location: Dictionary = link.get("source_location", {})
-	return "%s|%s|%s|%s|%s|%09d|%09d" % [
-		str(source_member.get("kind", "")),
-		str(source_member.get("name", "")),
-		str(target_member.get("kind", "")),
-		str(target_member.get("name", "")),
-		str(link.get("evidence", "")),
-		int(source_location.get("line", 0)),
-		int(source_location.get("column", 0)),
-	]
+	return (
+		"%s|%s|%s|%s|%s|%09d|%09d"
+		% [
+			str(source_member.get("kind", "")),
+			str(source_member.get("name", "")),
+			str(target_member.get("kind", "")),
+			str(target_member.get("name", "")),
+			str(link.get("evidence", "")),
+			int(source_location.get("line", 0)),
+			int(source_location.get("column", 0)),
+		]
+	)
 
 
 func _sort_snapshot(snapshot: Dictionary) -> void:
@@ -674,13 +677,16 @@ func _detect_inheritance_cycles(snapshot: Dictionary) -> void:
 				var warning = "Inheritance cycle detected at %s." % current
 				if not snapshot["warnings"].has(warning):
 					snapshot["warnings"].append(warning)
-					snapshot["diagnostics"].append(
-						{
-							"severity": "warning",
-							"code": "inheritance_cycle",
-							"message": warning,
-							"context": {"node_id": current},
-						}
+					(
+						snapshot["diagnostics"]
+						. append(
+							{
+								"severity": "warning",
+								"code": "inheritance_cycle",
+								"message": warning,
+								"context": {"node_id": current},
+							}
+						)
 					)
 				break
 			chain[current] = true

@@ -61,4 +61,4 @@ This is not a runtime profiler or complete call graph. It does not infer aliases
 
 Generative AI was used extensively for requirements synthesis, code and refactoring drafts, tests, documentation, diagrams, review suggestions, and release support. The project owner directed scope and feature decisions. AI output was treated as proposed work and checked through documented contracts, review, Godot parser/import and runtime tests across the claimed engine matrix, negative and boundary tests, deterministic builds, checksums, patch reconstruction, and rendered-artifact inspection. This does not claim an independent human line-by-line audit or independent accessibility/security certification. Full details and provenance limits are in `AI_USAGE_NOTICE.md`.
 
-Licensed under Apache License 2.0. Project Mapper is documented as a late consideration for individually attributed interaction features; no source code was copied.
+Licensed under Apache License 2.0.

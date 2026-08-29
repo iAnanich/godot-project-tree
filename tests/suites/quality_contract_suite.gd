@@ -33,15 +33,21 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	if validator == null:
 		return
 	var valid_result: Dictionary = validator.validate(valid_snapshot)
-	_check(valid_result.get("ok", false), "Snapshot validator rejected a valid canonical snapshot.", failures)
+	_check(
+		valid_result.get("ok", false),
+		"Snapshot validator rejected a valid canonical snapshot.",
+		failures
+	)
 
 	var typed_schema_snapshot: Dictionary = valid_snapshot.duplicate(true)
 	typed_schema_snapshot["schema_version"] = "1"
 	var typed_schema_result: Dictionary = validator.validate(typed_schema_snapshot)
 	_check(
-		not typed_schema_result.get("ok", true)
-		and _has_issue_code(
-			typed_schema_result.get("errors", []), "invalid_schema_version_type"
+		(
+			not typed_schema_result.get("ok", true)
+			and _has_issue_code(
+				typed_schema_result.get("errors", []), "invalid_schema_version_type"
+			)
 		),
 		"Snapshot validator must reject a string schema version instead of coercing it.",
 		failures
@@ -51,8 +57,10 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	missing_node_field_snapshot["nodes"][0].erase("methods")
 	var missing_node_field_result: Dictionary = validator.validate(missing_node_field_snapshot)
 	_check(
-		not missing_node_field_result.get("ok", true)
-		and _has_issue_code(missing_node_field_result.get("errors", []), "missing_node_field"),
+		(
+			not missing_node_field_result.get("ok", true)
+			and _has_issue_code(missing_node_field_result.get("errors", []), "missing_node_field")
+		),
 		"Snapshot validator must enforce the schema-required node collections.",
 		failures
 	)
@@ -61,8 +69,10 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	invalid_node_id_snapshot["nodes"][0]["id"] = 123
 	var invalid_node_id_result: Dictionary = validator.validate(invalid_node_id_snapshot)
 	_check(
-		not invalid_node_id_result.get("ok", true)
-		and _has_issue_code(invalid_node_id_result.get("errors", []), "invalid_node_field"),
+		(
+			not invalid_node_id_result.get("ok", true)
+			and _has_issue_code(invalid_node_id_result.get("errors", []), "invalid_node_field")
+		),
 		"Snapshot validator must reject non-string node IDs instead of coercing them.",
 		failures
 	)
@@ -71,18 +81,26 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	missing_edge_field_snapshot["edges"][0].erase("member_links")
 	var missing_edge_field_result: Dictionary = validator.validate(missing_edge_field_snapshot)
 	_check(
-		not missing_edge_field_result.get("ok", true)
-		and _has_issue_code(missing_edge_field_result.get("errors", []), "missing_edge_field"),
+		(
+			not missing_edge_field_result.get("ok", true)
+			and _has_issue_code(missing_edge_field_result.get("errors", []), "missing_edge_field")
+		),
 		"Snapshot validator must enforce the schema-required edge member_links collection.",
 		failures
 	)
 
 	var invalid_edge_endpoint_snapshot: Dictionary = valid_snapshot.duplicate(true)
 	invalid_edge_endpoint_snapshot["edges"][0]["source"] = 123
-	var invalid_edge_endpoint_result: Dictionary = validator.validate(invalid_edge_endpoint_snapshot)
+	var invalid_edge_endpoint_result: Dictionary = validator.validate(
+		invalid_edge_endpoint_snapshot
+	)
 	_check(
-		not invalid_edge_endpoint_result.get("ok", true)
-		and _has_issue_code(invalid_edge_endpoint_result.get("errors", []), "invalid_edge_field"),
+		(
+			not invalid_edge_endpoint_result.get("ok", true)
+			and _has_issue_code(
+				invalid_edge_endpoint_result.get("errors", []), "invalid_edge_field"
+			)
+		),
 		"Snapshot validator must reject non-string edge endpoints instead of coercing them.",
 		failures
 	)
@@ -91,8 +109,12 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	invalid_message_snapshot["warnings"] = [42]
 	var invalid_message_result: Dictionary = validator.validate(invalid_message_snapshot)
 	_check(
-		not invalid_message_result.get("ok", true)
-		and _has_issue_code(invalid_message_result.get("errors", []), "invalid_snapshot_message"),
+		(
+			not invalid_message_result.get("ok", true)
+			and _has_issue_code(
+				invalid_message_result.get("errors", []), "invalid_snapshot_message"
+			)
+		),
 		"Snapshot validator must reject non-string warning and error entries.",
 		failures
 	)
@@ -101,8 +123,10 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	duplicate_snapshot["nodes"].append(duplicate_snapshot["nodes"][0].duplicate(true))
 	var duplicate_result: Dictionary = validator.validate(duplicate_snapshot)
 	_check(
-		not duplicate_result.get("ok", true)
-		and _has_issue_code(duplicate_result.get("errors", []), "duplicate_node_id"),
+		(
+			not duplicate_result.get("ok", true)
+			and _has_issue_code(duplicate_result.get("errors", []), "duplicate_node_id")
+		),
 		"Snapshot validator must reject duplicate node IDs with a stable code.",
 		failures
 	)
@@ -111,20 +135,29 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	invalid_scope_snapshot["nodes"][0]["scope_role"] = "maybe"
 	var invalid_scope_result: Dictionary = validator.validate(invalid_scope_snapshot)
 	_check(
-		not invalid_scope_result.get("ok", true)
-		and _has_issue_code(invalid_scope_result.get("errors", []), "invalid_scope_role"),
+		(
+			not invalid_scope_result.get("ok", true)
+			and _has_issue_code(invalid_scope_result.get("errors", []), "invalid_scope_role")
+		),
 		"Snapshot validator must reject unsupported node scope roles.",
 		failures
 	)
 
 	var dangling_snapshot: Dictionary = valid_snapshot.duplicate(true)
 	dangling_snapshot["edges"].append(
-		{"source": str(valid_snapshot["nodes"][0]["id"]), "target": "missing://node", "kind": "uses", "member_links": []}
+		{
+			"source": str(valid_snapshot["nodes"][0]["id"]),
+			"target": "missing://node",
+			"kind": "uses",
+			"member_links": []
+		}
 	)
 	var dangling_result: Dictionary = validator.validate(dangling_snapshot)
 	_check(
-		not dangling_result.get("ok", true)
-		and _has_issue_code(dangling_result.get("errors", []), "dangling_edge_target"),
+		(
+			not dangling_result.get("ok", true)
+			and _has_issue_code(dangling_result.get("errors", []), "dangling_edge_target")
+		),
 		"Snapshot validator must reject dangling edge targets with a stable code.",
 		failures
 	)
@@ -140,8 +173,10 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	]
 	var unknown_member_result: Dictionary = validator.validate(unknown_member_snapshot)
 	_check(
-		not unknown_member_result.get("ok", true)
-		and _has_issue_code(unknown_member_result.get("errors", []), "unknown_member_reference"),
+		(
+			not unknown_member_result.get("ok", true)
+			and _has_issue_code(unknown_member_result.get("errors", []), "unknown_member_reference")
+		),
 		"Snapshot validator must reject member provenance that contradicts its endpoint node.",
 		failures
 	)
@@ -152,9 +187,11 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	]
 	var invalid_diagnostic_result: Dictionary = validator.validate(invalid_diagnostic_snapshot)
 	_check(
-		not invalid_diagnostic_result.get("ok", true)
-		and _has_issue_code(
-			invalid_diagnostic_result.get("errors", []), "invalid_diagnostic_severity"
+		(
+			not invalid_diagnostic_result.get("ok", true)
+			and _has_issue_code(
+				invalid_diagnostic_result.get("errors", []), "invalid_diagnostic_severity"
+			)
 		),
 		"Snapshot validator must reject unsupported diagnostic severities.",
 		failures
@@ -167,9 +204,11 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 			invalid_scene_usage_snapshot
 		)
 		_check(
-			not invalid_scene_usage_result.get("ok", true)
-			and _has_issue_code(
-				invalid_scene_usage_result.get("errors", []), "invalid_scene_usage_field"
+			(
+				not invalid_scene_usage_result.get("ok", true)
+				and _has_issue_code(
+					invalid_scene_usage_result.get("errors", []), "invalid_scene_usage_field"
+				)
 			),
 			"Snapshot validator must reject scene evidence without an exact positive column.",
 			failures
@@ -195,9 +234,11 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 			missing_node_scene_usage_snapshot
 		)
 		_check(
-			not missing_node_scene_usage_result.get("ok", true)
-			and _has_issue_code(
-				missing_node_scene_usage_result.get("errors", []), "missing_node_scene_usage"
+			(
+				not missing_node_scene_usage_result.get("ok", true)
+				and _has_issue_code(
+					missing_node_scene_usage_result.get("errors", []), "missing_node_scene_usage"
+				)
 			),
 			"Snapshot validator must reject canonical scene evidence missing from its script node.",
 			failures
@@ -218,9 +259,11 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	if occurrence_mutated:
 		var invalid_occurrence_result: Dictionary = validator.validate(invalid_occurrence_snapshot)
 		_check(
-			not invalid_occurrence_result.get("ok", true)
-			and _has_issue_code(
-				invalid_occurrence_result.get("errors", []), "invalid_source_location"
+			(
+				not invalid_occurrence_result.get("ok", true)
+				and _has_issue_code(
+					invalid_occurrence_result.get("errors", []), "invalid_source_location"
+				)
 			),
 			"Snapshot validator must reject dependency evidence without an exact positive line.",
 			failures
@@ -230,7 +273,10 @@ func _test_snapshot_validation(valid_snapshot: Dictionary, failures: Array[Strin
 	if export_service != null:
 		var export_result: Dictionary = export_service.export_to_string("json", dangling_snapshot)
 		_check(
-			not export_result.get("ok", true) and export_result.get("code", "") == "invalid_snapshot",
+			(
+				not export_result.get("ok", true)
+				and export_result.get("code", "") == "invalid_snapshot"
+			),
 			"Export service must reject invalid snapshots before serialization.",
 			failures
 		)
@@ -242,11 +288,19 @@ func _test_exporter_contracts(valid_snapshot: Dictionary, failures: Array[String
 	if service == null or contract == null:
 		return
 	var descriptors: Array = service.format_descriptors()
-	_check(descriptors.size() == 3, "Built-in exporter descriptor count changed unexpectedly.", failures)
+	_check(
+		descriptors.size() == 3,
+		"Built-in exporter descriptor count changed unexpectedly.",
+		failures
+	)
 	for descriptor_value in descriptors:
 		var descriptor: Dictionary = descriptor_value
 		var capabilities_value = descriptor.get("capabilities", {})
-		_check(capabilities_value is Dictionary, "Exporter descriptors must expose capabilities.", failures)
+		_check(
+			capabilities_value is Dictionary,
+			"Exporter descriptors must expose capabilities.",
+			failures
+		)
 		var format_id: String = str(descriptor.get("id", ""))
 		var exporter_path: String = ADDON_ROOT + "export/%s_exporter.gd" % format_id
 		var exporter = _new_script_instance(exporter_path, failures)
@@ -288,8 +342,10 @@ func _test_exporter_contracts(valid_snapshot: Dictionary, failures: Array[String
 		)
 		var empty_result: Dictionary = service.export_to_string("empty", valid_snapshot)
 		_check(
-			not empty_result.get("ok", true)
-			and empty_result.get("code", "") == "empty_export_output",
+			(
+				not empty_result.get("ok", true)
+				and empty_result.get("code", "") == "empty_export_output"
+			),
 			"Export service must diagnose an exporter that produces empty output.",
 			failures
 		)
@@ -299,12 +355,37 @@ func _test_scan_root_boundary(failures: Array[String]) -> void:
 	var scanner = _new_script_instance(SCANNER_PATH, failures)
 	if scanner == null:
 		return
+
+	var project_absolute_root: String = ProjectSettings.globalize_path("res://tests/fixtures")
+	var localized: Dictionary = scanner.validate_root(project_absolute_root)
+	_check(
+		localized.get("ok", false) and str(localized.get("root", "")) == "res://tests/fixtures",
+		"Absolute folders selected by a native FileDialog must normalize to their res:// project path.",
+		failures
+	)
+	var absolute_scan: Dictionary = scanner.scan(
+		project_absolute_root, {"use_runtime_reflection": false, "include_scene_usages": false}
+	)
+	_check(
+		(
+			absolute_scan.get("errors", []).is_empty()
+			and str(absolute_scan.get("root_path", "")) == "res://tests/fixtures"
+		),
+		"The public scanner must accept an absolute path when it resolves inside the current project.",
+		failures
+	)
+
 	for invalid_root in ["/tmp", "user://", "res://../outside"]:
 		var result: Dictionary = scanner.scan(invalid_root, {"use_runtime_reflection": false})
 		_check(
-			not result.get("errors", []).is_empty()
-			and _has_issue_code(result.get("diagnostics", []), "invalid_scan_root"),
-			"Scanner must reject paths outside res:// with a structured diagnostic: %s" % invalid_root,
+			(
+				not result.get("errors", []).is_empty()
+				and _has_issue_code(result.get("diagnostics", []), "invalid_scan_root")
+			),
+			(
+				"Scanner must reject paths outside res:// with a structured diagnostic: %s"
+				% invalid_root
+			),
 			failures
 		)
 
@@ -321,17 +402,21 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 	var legend: RichTextLabel = dock.get_node("%LegendView")
 	var summary: RichTextLabel = dock.get_node("%SummaryView")
 	_check(
-		legend.text.contains("Inheritance")
-		and legend.text.contains("load/preload or class-member use")
-		and legend.text.contains("Type-annotation use")
-		and legend.text.contains("Rendered direction"),
+		(
+			legend.text.contains("Inheritance")
+			and legend.text.contains("load/preload or class-member use")
+			and legend.text.contains("Type-annotation use")
+			and legend.text.contains("Rendered direction")
+		),
 		"The initial graph view must visibly decode edge colors and direction.",
 		failures
 	)
 	_check(
-		summary.text.contains("Dependency graph summary")
-		and summary.text.contains("Canonical export direction")
-		and summary.text.contains("Exact data"),
+		(
+			summary.text.contains("Dependency graph summary")
+			and summary.text.contains("Canonical export direction")
+			and summary.text.contains("Exact data")
+		),
 		"The dock must provide a non-visual graph summary and exact-data route.",
 		failures
 	)
@@ -344,10 +429,12 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 	var match_ids: Array = dock.get("_search_match_ids")
 	var rendered_node: GraphNode = dock.get("_id_to_graph_node").get(first_node_id)
 	_check(
-		match_ids.has(first_node_id)
-		and search_status.text.contains("/")
-		and rendered_node != null
-		and rendered_node.selected,
+		(
+			match_ids.has(first_node_id)
+			and search_status.text.contains("/")
+			and rendered_node != null
+			and rendered_node.selected
+		),
 		"Search must index node names, report a match count, and focus the current result.",
 		failures
 	)
@@ -362,25 +449,69 @@ func _test_control_tooltips(failures: Array[String]) -> void:
 	var dock: Control = (scene_resource as PackedScene).instantiate()
 	Engine.get_main_loop().root.add_child(dock)
 	var required_names: Array[String] = [
-		"ScanButton", "ScanModeIndicator", "ExportButton", "FormatOption", "ShowGraph",
-		"ScopeOption", "ChooseScope", "IncludeDescendants", "IsolateNeighborhood",
-		"ClearFocus", "IncludeAddons", "IncludeNative", "IncludeExternal",
-		"IncludeMethods", "IncludeSignals", "IncludeProperties", "IncludeDependencies",
-		"IncludeTypeDependencies", "IncludeMemberAccessDependencies",
-		"ShowMemberDependencyEdges", "MethodSignatures", "SignalSignatures",
-		"PropertyTypes", "ExportColors", "GraphNodeWidth", "GraphNodeMaxWidth",
-		"NativeNodeWidth", "MaxMembers", "MaxMemberHeight", "SiblingSpacing",
-		"LayerSpacing", "DepthTopToBottom", "SearchInput", "PreviousMatch",
-		"NextMatch", "SyncOnEditorChanges", "EditorSyncDebounce",
-		"FollowActiveScript", "AutoRescan", "AutoRescanDelay", "AutoExportJson",
-		"AutoExportJsonPath", "BrowseAutoExportJson", "AutoExportMermaid",
-		"AutoExportMermaidPath", "BrowseAutoExportMermaid", "AutoExportPlantUML",
-		"AutoExportPlantUMLPath", "BrowseAutoExportPlantUML",
-		"ContentSourcesHeader", "ContentMembersHeader", "ContentRelationsHeader",
-		"ContentExportHeader", "AppearanceSizingHeader", "AppearanceDensityHeader",
-		"AppearanceLayoutHeader", "ColorsNodesHeader", "ColorsMembersHeader",
-		"ColorsRelationsHeader", "ColorsFamiliesHeader", "AutomationEditorHeader",
-		"AutomationTimedHeader", "AutomationExportHeader",
+		"ScanButton",
+		"ScanModeIndicator",
+		"ExportButton",
+		"FormatOption",
+		"ShowGraph",
+		"ScopeOption",
+		"ChooseScope",
+		"IncludeDescendants",
+		"IsolateNeighborhood",
+		"ClearFocus",
+		"IncludeAddons",
+		"IncludeNative",
+		"IncludeExternal",
+		"IncludeMethods",
+		"IncludeSignals",
+		"IncludeProperties",
+		"IncludeDependencies",
+		"IncludeTypeDependencies",
+		"IncludeMemberAccessDependencies",
+		"ShowMemberDependencyEdges",
+		"MethodSignatures",
+		"SignalSignatures",
+		"PropertyTypes",
+		"ExportColors",
+		"GraphNodeWidth",
+		"GraphNodeMaxWidth",
+		"NativeNodeWidth",
+		"MaxMembers",
+		"MaxMemberHeight",
+		"SiblingSpacing",
+		"LayerSpacing",
+		"DepthTopToBottom",
+		"SearchInput",
+		"PreviousMatch",
+		"NextMatch",
+		"SyncOnEditorChanges",
+		"EditorSyncDebounce",
+		"FollowActiveScript",
+		"AutoRescan",
+		"AutoRescanDelay",
+		"AutoExportJson",
+		"AutoExportJsonPath",
+		"BrowseAutoExportJson",
+		"AutoExportMermaid",
+		"AutoExportMermaidPath",
+		"BrowseAutoExportMermaid",
+		"AutoExportPlantUML",
+		"AutoExportPlantUMLPath",
+		"BrowseAutoExportPlantUML",
+		"ContentSourcesHeader",
+		"ContentMembersHeader",
+		"ContentRelationsHeader",
+		"ContentExportHeader",
+		"AppearanceSizingHeader",
+		"AppearanceDensityHeader",
+		"AppearanceLayoutHeader",
+		"ColorsNodesHeader",
+		"ColorsMembersHeader",
+		"ColorsRelationsHeader",
+		"ColorsFamiliesHeader",
+		"AutomationEditorHeader",
+		"AutomationTimedHeader",
+		"AutomationExportHeader",
 	]
 	for control_name in required_names:
 		var control: Control = dock.get_node_or_null("%%%s" % control_name)
@@ -392,13 +523,28 @@ func _test_control_tooltips(failures: Array[String]) -> void:
 				failures
 			)
 	for color_name in [
-		"UserColor", "AddonColor", "NativeColor", "ExternalColor", "PropertyColor",
-		"SignalColor", "MethodColor", "MetadataColor", "InheritanceColor",
-		"DependencyColor", "TypeDependencyColor", "ObjectFamilyColor",
-		"RefCountedFamilyColor", "NodeFamilyColor", "Node2DFamilyColor",
-		"Node3DFamilyColor", "ControlFamilyColor", "OtherFamilyColor",
+		"UserColor",
+		"AddonColor",
+		"NativeColor",
+		"ExternalColor",
+		"PropertyColor",
+		"SignalColor",
+		"MethodColor",
+		"MetadataColor",
+		"InheritanceColor",
+		"DependencyColor",
+		"TypeDependencyColor",
+		"ObjectFamilyColor",
+		"RefCountedFamilyColor",
+		"NodeFamilyColor",
+		"Node2DFamilyColor",
+		"Node3DFamilyColor",
+		"ControlFamilyColor",
+		"OtherFamilyColor",
 	]:
-		var picker: ColorPickerButton = dock.get_node_or_null("%%%s" % color_name) as ColorPickerButton
+		var picker: ColorPickerButton = (
+			dock.get_node_or_null("%%%s" % color_name) as ColorPickerButton
+		)
 		_check(picker != null, "Expected color option is missing: %s" % color_name, failures)
 		if picker != null:
 			_check(
@@ -409,7 +555,9 @@ func _test_control_tooltips(failures: Array[String]) -> void:
 	dock.queue_free()
 
 
-func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures: Array[String]) -> void:
+func _test_toolbar_and_export_only_contract(
+	valid_snapshot: Dictionary, failures: Array[String]
+) -> void:
 	var scene_resource: Resource = ResourceLoader.load(DOCK_SCENE_PATH)
 	if scene_resource == null or not scene_resource is PackedScene:
 		failures.append("UI layout contract could not load the dependency dock scene.")
@@ -424,8 +572,10 @@ func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures
 	var focus_bar: HBoxContainer = dock.get_node("%FocusBar")
 	var legend_panel: PanelContainer = dock.get_node("%LegendPanel")
 	_check(
-		format_option.custom_minimum_size.x <= 100.0
-		and not bool(format_option.size_flags_horizontal & Control.SIZE_EXPAND),
+		(
+			format_option.custom_minimum_size.x <= 100.0
+			and not bool(format_option.size_flags_horizontal & Control.SIZE_EXPAND)
+		),
 		"The export-format selector must remain compact instead of consuming toolbar action space.",
 		failures
 	)
@@ -434,7 +584,11 @@ func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures
 		"The toolbar must expose the default editor-synchronized scan mode next to Scan.",
 		failures
 	)
-	_check(show_graph.button_pressed and graph.visible, "Graph view must be enabled by default.", failures)
+	_check(
+		show_graph.button_pressed and graph.visible,
+		"Graph view must be enabled by default.",
+		failures
+	)
 	dock.set("_snapshot", valid_snapshot.duplicate(true))
 	dock.call("_render_snapshot")
 	_check(
@@ -445,13 +599,22 @@ func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures
 	show_graph.button_pressed = false
 	dock.call("_on_graph_view_toggled", false)
 	_check(
-		not graph.visible and not search_bar.visible and not focus_bar.visible and not legend_panel.visible,
+		(
+			not graph.visible
+			and not search_bar.visible
+			and not focus_bar.visible
+			and not legend_panel.visible
+		),
 		"Export-only mode must hide graph-specific surfaces together.",
 		failures
 	)
 	_check(
-		(dock.get("_graph_nodes") as Array).is_empty()
-		and (dock.get_node("%SummaryView") as RichTextLabel).text.contains("Dependency graph summary"),
+		(
+			(dock.get("_graph_nodes") as Array).is_empty()
+			and (dock.get_node("%SummaryView") as RichTextLabel).text.contains(
+				"Dependency graph summary"
+			)
+		),
 		"Export-only mode must release rendered nodes while retaining the snapshot summary.",
 		failures
 	)
@@ -464,10 +627,18 @@ func _test_toolbar_and_export_only_contract(valid_snapshot: Dictionary, failures
 	)
 	var folded_header: Button = dock.get_node("%ContentExportHeader")
 	var folded_body: Control = dock.get_node("%ContentExportBody")
-	_check(not folded_header.button_pressed and not folded_body.visible, "Secondary control groups should start folded.", failures)
+	_check(
+		not folded_header.button_pressed and not folded_body.visible,
+		"Secondary control groups should start folded.",
+		failures
+	)
 	folded_header.button_pressed = true
 	dock.call("_on_fold_section_toggled", true, "content_export")
-	_check(folded_body.visible and folded_header.text.begins_with("▾"), "Fold headers must visibly reveal their grouped controls.", failures)
+	_check(
+		folded_body.visible and folded_header.text.begins_with("▾"),
+		"Fold headers must visibly reveal their grouped controls.",
+		failures
+	)
 	dock.queue_free()
 
 
@@ -489,24 +660,56 @@ func _test_scope_projection_and_graph_queries(failures: Array[String]) -> void:
 	var snapshot: Dictionary = {
 		"schema_version": 2,
 		"metadata": {"root_path": "res://", "engine_version": "test", "options": {}, "style": {}},
-		"nodes": [
+		"nodes":
+		[
 			child_node,
 			_test_node("res://shared/base.gd", "Base", "user"),
 			_test_node("res://shared/service.gd", "Service", "user"),
 			_test_node("native://RefCounted", "RefCounted", "native"),
 			_test_node("res://unrelated/other.gd", "Other", "user"),
 		],
-		"edges": [
-			{"source": "res://feature/child.gd", "target": "res://shared/base.gd", "kind": "extends", "member_links": []},
-			{"source": "res://shared/base.gd", "target": "native://RefCounted", "kind": "extends", "member_links": []},
-			{"source": "res://feature/child.gd", "target": "res://shared/service.gd", "kind": "uses", "member_links": []},
-			{"source": "res://shared/service.gd", "target": "native://RefCounted", "kind": "extends", "member_links": []},
+		"edges":
+		[
+			{
+				"source": "res://feature/child.gd",
+				"target": "res://shared/base.gd",
+				"kind": "extends",
+				"member_links": []
+			},
+			{
+				"source": "res://shared/base.gd",
+				"target": "native://RefCounted",
+				"kind": "extends",
+				"member_links": []
+			},
+			{
+				"source": "res://feature/child.gd",
+				"target": "res://shared/service.gd",
+				"kind": "uses",
+				"member_links": []
+			},
+			{
+				"source": "res://shared/service.gd",
+				"target": "native://RefCounted",
+				"kind": "extends",
+				"member_links": []
+			},
 		],
-		"scene_usages": [
+		"scene_usages":
+		[
 			child_usage,
-			{"scene_path": "res://other.tscn", "node_path": "Other", "script_path": "res://unrelated/other.gd", "line": 1, "column": 1, "evidence": "tscn_node_script_attachment"},
+			{
+				"scene_path": "res://other.tscn",
+				"node_path": "Other",
+				"script_path": "res://unrelated/other.gd",
+				"line": 1,
+				"column": 1,
+				"evidence": "tscn_node_script_attachment"
+			},
 		],
-		"warnings": [], "errors": [], "diagnostics": [],
+		"warnings": [],
+		"errors": [],
+		"diagnostics": [],
 	}
 	var projected: Dictionary = scope_projector.project(snapshot, "res://feature")
 	var ids: Array[String] = []
@@ -515,12 +718,39 @@ func _test_scope_projection_and_graph_queries(failures: Array[String]) -> void:
 		var node: Dictionary = node_value
 		ids.append(str(node.get("id", "")))
 		roles[str(node.get("id", ""))] = str(node.get("scope_role", ""))
-	_check(ids.has("res://feature/child.gd"), "Selected-scope script must remain in the projected snapshot.", failures)
-	_check(ids.has("res://shared/base.gd") and ids.has("res://shared/service.gd"), "Required out-of-scope ancestors and direct dependencies must remain as context.", failures)
-	_check(ids.has("native://RefCounted"), "Required native ancestry must remain in a scoped snapshot.", failures)
-	_check(not ids.has("res://unrelated/other.gd"), "Unrelated out-of-scope scripts must be omitted.", failures)
-	_check(roles.get("res://feature/child.gd") == "in_scope" and roles.get("res://shared/base.gd") == "context", "Scoped nodes must expose explicit in-scope/context roles.", failures)
-	_check(projected.get("scene_usages", []).size() == 1, "Scoped projection must remove scene evidence for omitted scripts.", failures)
+	_check(
+		ids.has("res://feature/child.gd"),
+		"Selected-scope script must remain in the projected snapshot.",
+		failures
+	)
+	_check(
+		ids.has("res://shared/base.gd") and ids.has("res://shared/service.gd"),
+		"Required out-of-scope ancestors and direct dependencies must remain as context.",
+		failures
+	)
+	_check(
+		ids.has("native://RefCounted"),
+		"Required native ancestry must remain in a scoped snapshot.",
+		failures
+	)
+	_check(
+		not ids.has("res://unrelated/other.gd"),
+		"Unrelated out-of-scope scripts must be omitted.",
+		failures
+	)
+	_check(
+		(
+			roles.get("res://feature/child.gd") == "in_scope"
+			and roles.get("res://shared/base.gd") == "context"
+		),
+		"Scoped nodes must expose explicit in-scope/context roles.",
+		failures
+	)
+	_check(
+		projected.get("scene_usages", []).size() == 1,
+		"Scoped projection must remove scene evidence for omitted scripts.",
+		failures
+	)
 	var validator = _new_script_instance(VALIDATOR_PATH, failures)
 	if validator != null:
 		var validation_result: Dictionary = validator.validate(projected)
@@ -533,18 +763,40 @@ func _test_scope_projection_and_graph_queries(failures: Array[String]) -> void:
 		(mismatched["metadata"]["scope_summary"] as Dictionary)["context_nodes"] = 999
 		var mismatch_result: Dictionary = validator.validate(mismatched)
 		_check(
-			not mismatch_result.get("ok", true)
-			and _has_issue_code(mismatch_result.get("errors", []), "scope_summary_mismatch"),
+			(
+				not mismatch_result.get("ok", true)
+				and _has_issue_code(mismatch_result.get("errors", []), "scope_summary_mismatch")
+			),
 			"Scope summary drift must be rejected at the serialization boundary.",
 			failures
 		)
 
 	var counts: Dictionary = graph_query.descendant_counts(projected)
-	_check(int((counts.get("res://shared/base.gd", {}) as Dictionary).get("direct", -1)) == 1, "Direct descendant counts must be computed from inheritance edges.", failures)
-	var related: Dictionary = graph_query.relationship_focus_ids(projected, "res://feature/child.gd", false)
-	_check(related.has("res://shared/base.gd") and related.has("native://RefCounted") and not related.has("res://shared/service.gd"), "Relationship focus must emphasize inheritance context without conflating dependencies.", failures)
-	var neighborhood: Dictionary = graph_query.neighborhood_ids(projected, "res://feature/child.gd", false)
-	_check(neighborhood.has("res://shared/service.gd"), "Neighborhood isolation must include direct dependency targets.", failures)
+	_check(
+		int((counts.get("res://shared/base.gd", {}) as Dictionary).get("direct", -1)) == 1,
+		"Direct descendant counts must be computed from inheritance edges.",
+		failures
+	)
+	var related: Dictionary = graph_query.relationship_focus_ids(
+		projected, "res://feature/child.gd", false
+	)
+	_check(
+		(
+			related.has("res://shared/base.gd")
+			and related.has("native://RefCounted")
+			and not related.has("res://shared/service.gd")
+		),
+		"Relationship focus must emphasize inheritance context without conflating dependencies.",
+		failures
+	)
+	var neighborhood: Dictionary = graph_query.neighborhood_ids(
+		projected, "res://feature/child.gd", false
+	)
+	_check(
+		neighborhood.has("res://shared/service.gd"),
+		"Neighborhood isolation must include direct dependency targets.",
+		failures
+	)
 	var base_neighborhood: Dictionary = graph_query.neighborhood_ids(
 		projected, "res://shared/base.gd", false
 	)
@@ -575,8 +827,12 @@ func _test_node(id: String, name: String, kind: String) -> Dictionary:
 		"base": {},
 		"native_base": name if kind == "native" else "",
 		"inheritance_family": "ref_counted",
-		"methods": [], "signals": [], "properties": [], "inner_classes": [],
-		"autoload": {}, "scene_usages": [],
+		"methods": [],
+		"signals": [],
+		"properties": [],
+		"inner_classes": [],
+		"autoload": {},
+		"scene_usages": [],
 	}
 
 
@@ -599,7 +855,8 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 		"auto_rescan_enabled": true,
 		"auto_rescan_delay_seconds": 37.0,
 		"auto_export": {"json": true, "mermaid": false, "plantuml": true},
-		"export_paths": {
+		"export_paths":
+		{
 			"json": "res://generated/dependencies.json",
 			"mermaid": "res://generated/dependencies.mmd",
 			"plantuml": "res://generated/dependencies.puml",
@@ -627,36 +884,56 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 	var loaded: Dictionary = load_result.get("state", {})
 	_check(load_result.get("ok", false), "Editor state should load after save.", failures)
 	_check(
-		str(loaded.get("scan_root", "")) == "res://tests/fixtures"
-		and bool(loaded.get("focus_include_descendants", false))
-		and bool(loaded.get("isolate_neighborhood", false)),
+		(
+			str(loaded.get("scan_root", "")) == "res://tests/fixtures"
+			and bool(loaded.get("focus_include_descendants", false))
+			and bool(loaded.get("isolate_neighborhood", false))
+		),
 		"Scan scope and graph-focus preferences must round-trip.",
 		failures
 	)
 	_check(
-		not bool(loaded.get("graph_view_enabled", true))
-		and bool((loaded.get("control_section_expanded", {}) as Dictionary).get("content_export", false))
-		and bool((loaded.get("control_section_expanded", {}) as Dictionary).get("automation_timed", false)),
+		(
+			not bool(loaded.get("graph_view_enabled", true))
+			and bool(
+				(loaded.get("control_section_expanded", {}) as Dictionary).get(
+					"content_export", false
+				)
+			)
+			and bool(
+				(loaded.get("control_section_expanded", {}) as Dictionary).get(
+					"automation_timed", false
+				)
+			)
+		),
 		"Graph visibility and fold-section preferences must round-trip.",
 		failures
 	)
 
 	_check(
-		not bool(loaded.get("sync_on_editor_changes", true))
-		and is_equal_approx(float(loaded.get("editor_change_debounce_seconds", 0.0)), 2.5)
-		and not bool(loaded.get("follow_active_script", true)),
+		(
+			not bool(loaded.get("sync_on_editor_changes", true))
+			and is_equal_approx(float(loaded.get("editor_change_debounce_seconds", 0.0)), 2.5)
+			and not bool(loaded.get("follow_active_script", true))
+		),
 		"Editor synchronization preferences must round-trip independently.",
 		failures
 	)
 	_check(
-		loaded.get("auto_rescan_enabled", false)
-		and is_equal_approx(float(loaded.get("auto_rescan_delay_seconds", 0.0)), 37.0),
+		(
+			loaded.get("auto_rescan_enabled", false)
+			and is_equal_approx(float(loaded.get("auto_rescan_delay_seconds", 0.0)), 37.0)
+		),
 		"Editor automation timer preferences must round-trip.",
 		failures
 	)
 	_check(
-		bool((loaded.get("auto_export", {}) as Dictionary).get("json", false))
-		and str((loaded.get("export_paths", {}) as Dictionary).get("plantuml", "")).ends_with(".puml"),
+		(
+			bool((loaded.get("auto_export", {}) as Dictionary).get("json", false))
+			and str((loaded.get("export_paths", {}) as Dictionary).get("plantuml", "")).ends_with(
+				".puml"
+			)
+		),
 		"Per-format automatic export preferences and paths must round-trip.",
 		failures
 	)
@@ -667,25 +944,33 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 	if legacy_file == null:
 		failures.append("Could not create legacy editor-state migration fixture.")
 		return
-	legacy_file.store_string(
-		JSON.stringify(
-			{
-				"schema_version": 1,
-				"auto_rescan_enabled": true,
-				"auto_rescan_delay_seconds": 19.0,
-				"auto_export": {"json": false, "mermaid": true, "plantuml": false},
-				"export_paths": {"json": "", "mermaid": "res://legacy.mmd", "plantuml": ""},
-			}
+	(
+		legacy_file
+		. store_string(
+			(
+				JSON
+				. stringify(
+					{
+						"schema_version": 1,
+						"auto_rescan_enabled": true,
+						"auto_rescan_delay_seconds": 19.0,
+						"auto_export": {"json": false, "mermaid": true, "plantuml": false},
+						"export_paths": {"json": "", "mermaid": "res://legacy.mmd", "plantuml": ""},
+					}
+				)
+			)
 		)
 	)
 	legacy_file.close()
 	var legacy_result: Dictionary = store.load_state(legacy_path, defaults)
 	var migrated: Dictionary = legacy_result.get("state", {})
 	_check(
-		legacy_result.get("ok", false)
-		and bool(migrated.get("sync_on_editor_changes", false))
-		and bool(migrated.get("follow_active_script", false))
-		and bool((migrated.get("auto_export", {}) as Dictionary).get("mermaid", false)),
+		(
+			legacy_result.get("ok", false)
+			and bool(migrated.get("sync_on_editor_changes", false))
+			and bool(migrated.get("follow_active_script", false))
+			and bool((migrated.get("auto_export", {}) as Dictionary).get("mermaid", false))
+		),
 		"Schema-1 editor state must migrate by retaining old values and applying schema-4 defaults.",
 		failures
 	)
@@ -699,8 +984,10 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 	invalid_schema_file.close()
 	var invalid_schema_result: Dictionary = store.load_state(invalid_schema_path, defaults)
 	_check(
-		not invalid_schema_result.get("ok", true)
-		and "integer" in str(invalid_schema_result.get("warning", "")),
+		(
+			not invalid_schema_result.get("ok", true)
+			and "integer" in str(invalid_schema_result.get("warning", ""))
+		),
 		"Editor-state schema must reject string values instead of coercing them.",
 		failures
 	)

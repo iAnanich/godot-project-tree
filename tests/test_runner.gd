@@ -98,6 +98,7 @@ func _load_test_script(path: String) -> Script:
 		return null
 	return resource as Script
 
+
 func _load_test_scene(path: String) -> PackedScene:
 	if not FileAccess.file_exists(path):
 		_failures.append("Required test scene is missing: %s" % path)
@@ -107,7 +108,6 @@ func _load_test_scene(path: String) -> PackedScene:
 		_failures.append("Required test scene could not be loaded: %s" % path)
 		return null
 	return resource as PackedScene
-
 
 
 func _finish() -> void:
@@ -193,20 +193,30 @@ func _test_source_analyzer() -> void:
 		"Analyzer should ignore load-like text inside triple-quoted strings."
 	)
 	_check(
-		result["type_references"].has("FixtureBase")
-		and result["type_references"].has("FixtureHelper")
-		and result["type_references"].has("LocalOnlyType"),
+		(
+			result["type_references"].has("FixtureBase")
+			and result["type_references"].has("FixtureHelper")
+			and result["type_references"].has("LocalOnlyType")
+		),
 		"Analyzer should collect class references from member and local type annotations."
 	)
 	_check(
 		_detail_has_source_member(
-			result.get("resource_dependency_details", []), "path", "res://nested.gd", "method", "build"
+			result.get("resource_dependency_details", []),
+			"path",
+			"res://nested.gd",
+			"method",
+			"build"
 		),
 		"Literal resource dependencies should retain the source member that contains them."
 	)
 	_check(
 		_detail_has_source_member(
-			result.get("type_reference_details", []), "symbol", "FixtureHelper", "property", "helper"
+			result.get("type_reference_details", []),
+			"symbol",
+			"FixtureHelper",
+			"property",
+			"helper"
 		),
 		"Property type dependencies should retain their source member."
 	)
@@ -225,9 +235,7 @@ func _test_source_analyzer() -> void:
 
 
 func _test_scan_and_graph() -> void:
-	ProjectSettings.set_setting(
-		"autoload/FixtureHelperService", "*res://tests/fixtures/helper.gd"
-	)
+	ProjectSettings.set_setting("autoload/FixtureHelperService", "*res://tests/fixtures/helper.gd")
 	var scanner = _scanner_script.new()
 	var scan_result = (
 		scanner
@@ -370,6 +378,8 @@ func _test_showcase_graph() -> void:
 						"res://.godot/",
 						"res://addons/script_dependency_inspector/",
 						"res://tests/",
+						"res://examples/media_showcase/",
+						"res://tools/media_capture/",
 					]
 				),
 			}
@@ -535,7 +545,8 @@ func _test_graph_presentation() -> void:
 		"path": "res://presentation_example.gd",
 		"inheritance_family": "node",
 		"autoload": {"name": "PresentationService", "singleton": true},
-		"scene_usages": [
+		"scene_usages":
+		[
 			{
 				"scene_path": "res://presentation_scene.tscn",
 				"node_path": "Root/Consumer",
@@ -545,9 +556,18 @@ func _test_graph_presentation() -> void:
 				"evidence": "tscn_node_script_attachment",
 			}
 		],
-		"properties": [{"name": "target", "type": "FixtureBase", "source_location": {"line": 3, "column": 1}}],
-		"signals": [{"name": "changed", "arguments": "value: int", "source_location": {"line": 4, "column": 1}}],
-		"methods": [
+		"properties":
+		[{"name": "target", "type": "FixtureBase", "source_location": {"line": 3, "column": 1}}],
+		"signals":
+		[
+			{
+				"name": "changed",
+				"arguments": "value: int",
+				"source_location": {"line": 4, "column": 1}
+			}
+		],
+		"methods":
+		[
 			{
 				"name": "resolve",
 				"arguments": "target: FixtureBase",
@@ -555,10 +575,9 @@ func _test_graph_presentation() -> void:
 				"source_location": {"line": 7, "column": 1},
 			}
 		],
-		"inner_classes": [
-			{"name": "LocalState", "source_location": {"line": 10, "column": 1}}
-		],
-		"relationship_occurrences": [
+		"inner_classes": [{"name": "LocalState", "source_location": {"line": 10, "column": 1}}],
+		"relationship_occurrences":
+		[
 			{
 				"kind": "uses",
 				"target_id": "res://tests/fixtures/helper.gd",
@@ -572,15 +591,18 @@ func _test_graph_presentation() -> void:
 	}
 	var compact_node: GraphNode = _graph_node_scene.instantiate()
 	root.add_child(compact_node)
-	compact_node.call(
-		"configure",
-		node_data,
-		style,
-		{
-			"show_method_signatures": false,
-			"show_signal_signatures": false,
-			"show_property_types": false,
-		}
+	(
+		compact_node
+		. call(
+			"configure",
+			node_data,
+			style,
+			{
+				"show_method_signatures": false,
+				"show_signal_signatures": false,
+				"show_property_types": false,
+			}
+		)
 	)
 	var source_request: Dictionary = {}
 	compact_node.source_requested.connect(
@@ -597,7 +619,10 @@ func _test_graph_presentation() -> void:
 			scene_request["column"] = column
 	)
 	var compact_labels: Array[String] = _collect_control_texts(compact_node)
-	_check(compact_node.custom_minimum_size.x >= 240.0 and compact_node.custom_minimum_size.x <= 420.0, "Script nodes should remain within configured width bounds.")
+	_check(
+		compact_node.custom_minimum_size.x >= 240.0 and compact_node.custom_minimum_size.x <= 420.0,
+		"Script nodes should remain within configured width bounds."
+	)
 	_check(compact_labels.has("target"), "Compact properties should display only their names.")
 	_check(compact_labels.has("changed"), "Compact signals should display only their names.")
 	_check(compact_labels.has("resolve"), "Compact methods should display only their names.")
@@ -607,45 +632,62 @@ func _test_graph_presentation() -> void:
 		"Exact relationship occurrences should be visible as source-navigation actions."
 	)
 	_check(not compact_labels.has("target: FixtureBase"), "Compact properties must omit types.")
-	_check(compact_node.title == "PresentationExample", "Graph title should contain only the display name.")
-	_check(compact_node.tooltip_text.is_empty(), "The entire GraphNode must not mask child tooltips.")
+	_check(
+		compact_node.title == "PresentationExample",
+		"Graph title should contain only the display name."
+	)
+	_check(
+		compact_node.tooltip_text.is_empty(), "The entire GraphNode must not mask child tooltips."
+	)
 	var path_button: Button = _find_button(compact_node, "Copy")
 	_check(
-		path_button != null
-		and path_button.tooltip_text.contains("res://presentation_example.gd")
-		and path_button.tooltip_text.contains("Copy script path"),
+		(
+			path_button != null
+			and path_button.tooltip_text.contains("res://presentation_example.gd")
+			and path_button.tooltip_text.contains("Copy script path")
+		),
 		"A keyboard-focusable child action should expose and copy the complete script path."
 	)
 	var compact_method_label: Button = _find_button(compact_node, "resolve")
 	_check(
-		compact_method_label != null
-		and compact_method_label.tooltip_text.begins_with("resolve")
-		and compact_method_label.tooltip_text.contains("open the declaration"),
+		(
+			compact_method_label != null
+			and compact_method_label.tooltip_text.begins_with("resolve")
+			and compact_method_label.tooltip_text.contains("open the declaration")
+		),
 		"Member actions should retain their own tooltips."
 	)
 	if compact_method_label != null:
 		compact_method_label.pressed.emit()
 	_check(
-		str(source_request.get("path", "")) == "res://presentation_example.gd"
-		and int(source_request.get("line", 0)) == 7,
+		(
+			str(source_request.get("path", "")) == "res://presentation_example.gd"
+			and int(source_request.get("line", 0)) == 7
+		),
 		"Member actions must emit exact script declaration locations."
 	)
 	var reference_button: Button = _find_button(compact_node, "member use → FixtureHelper.make")
 	if reference_button != null:
 		reference_button.pressed.emit()
 	_check(
-		reference_button != null
-		and int(source_request.get("line", 0)) == 12
-		and int(source_request.get("column", 0)) == 5,
+		(
+			reference_button != null
+			and int(source_request.get("line", 0)) == 12
+			and int(source_request.get("column", 0)) == 5
+		),
 		"Relationship actions must open the exact dependency occurrence rather than only the member declaration."
 	)
-	var scene_button: Button = _find_button(compact_node, "↗ presentation_scene.tscn · Root/Consumer")
+	var scene_button: Button = _find_button(
+		compact_node, "↗ presentation_scene.tscn · Root/Consumer"
+	)
 	if scene_button != null:
 		scene_button.pressed.emit()
 	_check(
-		scene_button != null
-		and str(scene_request.get("path", "")) == "res://presentation_scene.tscn"
-		and int(scene_request.get("line", 0)) == 8,
+		(
+			scene_button != null
+			and str(scene_request.get("path", "")) == "res://presentation_scene.tscn"
+			and int(scene_request.get("line", 0)) == 8
+		),
 		"Scene-usage actions must emit the exact scene evidence location."
 	)
 	_check(
@@ -662,22 +704,30 @@ func _test_graph_presentation() -> void:
 		"Visible method rows should expose a dedicated literal-use port."
 	)
 	_check(
-		compact_node.call("port_for_member", {"kind": "property", "name": "target"}, "type_uses", 2) != 2,
+		(
+			compact_node.call(
+				"port_for_member", {"kind": "property", "name": "target"}, "type_uses", 2
+			)
+			!= 2
+		),
 		"Visible property rows should expose a dedicated type-use port."
 	)
 	compact_node.queue_free()
 
 	var full_node: GraphNode = _graph_node_scene.instantiate()
 	root.add_child(full_node)
-	full_node.call(
-		"configure",
-		node_data,
-		style,
-		{
-			"show_method_signatures": true,
-			"show_signal_signatures": true,
-			"show_property_types": true,
-		}
+	(
+		full_node
+		. call(
+			"configure",
+			node_data,
+			style,
+			{
+				"show_method_signatures": true,
+				"show_signal_signatures": true,
+				"show_property_types": true,
+			}
+		)
 	)
 	var full_labels: Array[String] = _collect_control_texts(full_node)
 	_check(full_labels.has("target: FixtureBase"), "Full properties should display types.")
@@ -697,27 +747,27 @@ func _test_graph_presentation() -> void:
 	root.add_child(adaptive_node)
 	var many_methods: Array = []
 	for index in range(12):
-		many_methods.append(
-			{
-				"name": "method_with_a_descriptive_name_%s" % index,
-				"arguments": "value: Dictionary[String, Array[FixtureBase]]",
-				"return_type": "FixtureHelper",
-			}
+		(
+			many_methods
+			. append(
+				{
+					"name": "method_with_a_descriptive_name_%s" % index,
+					"arguments": "value: Dictionary[String, Array[FixtureBase]]",
+					"return_type": "FixtureHelper",
+				}
+			)
 		)
 	var adaptive_data: Dictionary = node_data.duplicate(true)
 	adaptive_data["methods"] = many_methods
 	var adaptive_style: Dictionary = style.duplicate(true)
 	adaptive_style["graph_max_member_height"] = 520.0
 	adaptive_style["graph_max_members_per_section"] = 50
-	adaptive_node.call(
-		"configure",
-		adaptive_data,
-		adaptive_style,
-		{"show_method_signatures": true}
-	)
+	adaptive_node.call("configure", adaptive_data, adaptive_style, {"show_method_signatures": true})
 	_check(
-		adaptive_node.custom_minimum_size.x > 240.0
-		and adaptive_node.custom_minimum_size.x <= 420.0,
+		(
+			adaptive_node.custom_minimum_size.x > 240.0
+			and adaptive_node.custom_minimum_size.x <= 420.0
+		),
 		"Script nodes should grow horizontally for longer visible content within configured bounds."
 	)
 	var adaptive_scroll: ScrollContainer = adaptive_node.get_node("MemberScroll")
@@ -741,31 +791,39 @@ func _test_graph_presentation() -> void:
 		"Very long classes should use bounded scrolling."
 	)
 	_check(
-		overflow_node.call("port_for_member", {"kind": "method", "name": "method_0"}, "uses", 1) == 1,
+		(
+			overflow_node.call("port_for_member", {"kind": "method", "name": "method_0"}, "uses", 1)
+			== 1
+		),
 		"Scrolled member lists should explicitly fall back to the class-level dependency port."
 	)
 	overflow_node.queue_free()
 
 	var native_node: GraphNode = _graph_node_scene.instantiate()
 	root.add_child(native_node)
-	native_node.call(
-		"configure",
-		{
-			"name": "Node",
-			"kind": "native",
-			"path": "",
-			"inheritance_family": "node",
-			"properties": [],
-			"signals": [],
-			"methods": [],
-		},
-		style,
-		{}
+	(
+		native_node
+		. call(
+			"configure",
+			{
+				"name": "Node",
+				"kind": "native",
+				"path": "",
+				"inheritance_family": "node",
+				"properties": [],
+				"signals": [],
+				"methods": [],
+			},
+			style,
+			{}
+		)
 	)
 	_check(native_node.custom_minimum_size.x == 120.0, "Native nodes should use compact width.")
 	_check(
-		not native_node.get_node("MetadataContent").visible
-		and not native_node.get_node("MemberScroll").visible,
+		(
+			not native_node.get_node("MetadataContent").visible
+			and not native_node.get_node("MemberScroll").visible
+		),
 		"Native nodes should hide empty metadata and member sections."
 	)
 	native_node.queue_free()
@@ -783,38 +841,45 @@ func _test_inheritance_families() -> void:
 	var scripts: Array = []
 	for filename in native_bases:
 		var native_base = str(native_bases[filename])
-		scripts.append(
-			{
-				"id": "res://" + filename,
-				"path": "res://" + filename,
-				"name": filename.get_basename(),
-				"class_name": "",
-				"is_addon": false,
-				"analysis": {
-					"methods": [],
-					"signals": [],
-					"properties": [],
-					"inner_classes": [],
-					"resource_dependencies": [],
-					"type_references": [],
-				},
-				"reflection": {"native_base": native_base},
-				"direct_base": {"kind": "native", "value": native_base, "display": native_base},
-			}
+		(
+			scripts
+			. append(
+				{
+					"id": "res://" + filename,
+					"path": "res://" + filename,
+					"name": filename.get_basename(),
+					"class_name": "",
+					"is_addon": false,
+					"analysis":
+					{
+						"methods": [],
+						"signals": [],
+						"properties": [],
+						"inner_classes": [],
+						"resource_dependencies": [],
+						"type_references": [],
+					},
+					"reflection": {"native_base": native_base},
+					"direct_base": {"kind": "native", "value": native_base, "display": native_base},
+				}
+			)
 		)
 	var builder = _builder_script.new()
-	var snapshot: Dictionary = builder.build(
-		{"scripts": scripts, "warnings": [], "errors": [], "engine_version": "test"},
-		{
-			"include_native_bases": true,
-			"include_external_bases": true,
-			"include_methods": true,
-			"include_signals": true,
-			"include_properties": true,
-			"include_resource_dependencies": false,
-			"include_type_dependencies": false,
-			"style": {},
-		}
+	var snapshot: Dictionary = (
+		builder
+		. build(
+			{"scripts": scripts, "warnings": [], "errors": [], "engine_version": "test"},
+			{
+				"include_native_bases": true,
+				"include_external_bases": true,
+				"include_methods": true,
+				"include_signals": true,
+				"include_properties": true,
+				"include_resource_dependencies": false,
+				"include_type_dependencies": false,
+				"style": {},
+			}
+		)
 	)
 	var expected = {
 		"res://object_script.gd": "object",
@@ -830,8 +895,10 @@ func _test_inheritance_families() -> void:
 			"Inheritance family should classify %s as %s." % [node_id, expected[node_id]]
 		)
 	_check(
-		_has_edge(snapshot["edges"], "native://SceneTree", "native://MainLoop", "extends")
-		and _has_edge(snapshot["edges"], "native://MainLoop", "native://Object", "extends"),
+		(
+			_has_edge(snapshot["edges"], "native://SceneTree", "native://MainLoop", "extends")
+			and _has_edge(snapshot["edges"], "native://MainLoop", "native://Object", "extends")
+		),
 		"ClassDB parent traversal should include intermediary native bases for SceneTree."
 	)
 	_check(
@@ -844,13 +911,43 @@ func _test_depth_layout() -> void:
 	var dock: Control = _dock_scene.instantiate()
 	root.add_child(dock)
 	var snapshot = {
-		"nodes": [
-			{"id": "native://Object", "name": "Object", "kind": "native", "properties": [], "signals": [], "methods": []},
-			{"id": "res://a.gd", "name": "A", "kind": "user", "properties": [], "signals": [], "methods": []},
-			{"id": "res://b.gd", "name": "B", "kind": "user", "properties": [], "signals": [], "methods": []},
-			{"id": "res://grandchild.gd", "name": "Grandchild", "kind": "user", "properties": [], "signals": [], "methods": []},
+		"nodes":
+		[
+			{
+				"id": "native://Object",
+				"name": "Object",
+				"kind": "native",
+				"properties": [],
+				"signals": [],
+				"methods": []
+			},
+			{
+				"id": "res://a.gd",
+				"name": "A",
+				"kind": "user",
+				"properties": [],
+				"signals": [],
+				"methods": []
+			},
+			{
+				"id": "res://b.gd",
+				"name": "B",
+				"kind": "user",
+				"properties": [],
+				"signals": [],
+				"methods": []
+			},
+			{
+				"id": "res://grandchild.gd",
+				"name": "Grandchild",
+				"kind": "user",
+				"properties": [],
+				"signals": [],
+				"methods": []
+			},
 		],
-		"edges": [
+		"edges":
+		[
 			{"source": "res://a.gd", "target": "native://Object", "kind": "extends"},
 			{"source": "res://b.gd", "target": "native://Object", "kind": "extends"},
 			{"source": "res://grandchild.gd", "target": "res://a.gd", "kind": "extends"},
@@ -858,14 +955,19 @@ func _test_depth_layout() -> void:
 	}
 	var positions: Dictionary = dock.call("_layout_positions", snapshot)
 	_check(
-		positions["native://Object"].y < positions["res://a.gd"].y
-		and positions["res://a.gd"].y < positions["res://grandchild.gd"].y,
+		(
+			positions["native://Object"].y < positions["res://a.gd"].y
+			and positions["res://a.gd"].y < positions["res://grandchild.gd"].y
+		),
 		"Default layout should place increasing inheritance depth from top to bottom."
 	)
 	var a_position: Vector2 = positions["res://a.gd"]
 	var b_position: Vector2 = positions["res://b.gd"]
 	_check(
-		a_position.y < b_position.y or (a_position.y == b_position.y and a_position.x < b_position.x),
+		(
+			a_position.y < b_position.y
+			or (a_position.y == b_position.y and a_position.x < b_position.x)
+		),
 		"Nodes at the same depth should be ordered deterministically by name."
 	)
 	dock.queue_free()
@@ -876,7 +978,8 @@ func _test_rendered_connection_direction() -> void:
 	root.add_child(dock)
 	var snapshot = {
 		"metadata": {"style": {}, "options": {}},
-		"nodes": [
+		"nodes":
+		[
 			{
 				"id": "native://Object",
 				"name": "Object",
@@ -908,8 +1011,10 @@ func _test_rendered_connection_direction() -> void:
 	if connections.size() == 1:
 		var connection: Dictionary = connections[0]
 		_check(
-			str(connection.get("from_node", "")) == str(names["native://Object"])
-			and str(connection.get("to_node", "")) == str(names["res://a.gd"]),
+			(
+				str(connection.get("from_node", "")) == str(names["native://Object"])
+				and str(connection.get("to_node", "")) == str(names["res://a.gd"])
+			),
 			"Rendered connection direction should place dependencies/bases before dependents in GraphEdit arrangement."
 		)
 	graph_edit.arrange_nodes()
@@ -928,7 +1033,8 @@ func _test_member_rendered_connections() -> void:
 	dock.get("settings").set("show_member_dependency_edges", true)
 	var snapshot = {
 		"metadata": {"style": {}, "options": {"show_member_dependency_edges": true}},
-		"nodes": [
+		"nodes":
+		[
 			{
 				"id": "res://tests/fixtures/child.gd",
 				"name": "Source",
@@ -950,12 +1056,14 @@ func _test_member_rendered_connections() -> void:
 				"methods": [{"name": "consume", "arguments": "", "return_type": ""}],
 			},
 		],
-		"edges": [
+		"edges":
+		[
 			{
 				"source": "res://tests/fixtures/child.gd",
 				"target": "res://tests/fixtures/helper.gd",
 				"kind": "uses",
-				"member_links": [
+				"member_links":
+				[
 					{
 						"source_member": {"kind": "method", "name": "produce"},
 						"target_member": {"kind": "method", "name": "consume"},
@@ -1067,8 +1175,10 @@ func _test_exporters() -> void:
 		"PlantUML export should contain start/end markers."
 	)
 	_check(
-		str(mermaid_result["text"]).contains("+child_method")
-		and not str(mermaid_result["text"]).contains("+child_method()"),
+		(
+			str(mermaid_result["text"]).contains("+child_method")
+			and not str(mermaid_result["text"]).contains("+child_method()")
+		),
 		"Compact exports should show method names without full signatures."
 	)
 	var full_snapshot: Dictionary = _snapshot.duplicate(true)
@@ -1089,14 +1199,18 @@ func _test_exporters() -> void:
 	var member_mermaid = service.export_to_string("mermaid", member_snapshot)
 	var member_plantuml = service.export_to_string("plantuml", member_snapshot)
 	_check(
-		member_plantuml["ok"]
-		and str(member_plantuml["text"]).contains("::attack_power ..>")
-		and str(member_plantuml["text"]).contains("::calculate_damage : uses"),
+		(
+			member_plantuml["ok"]
+			and str(member_plantuml["text"]).contains("::attack_power ..>")
+			and str(member_plantuml["text"]).contains("::calculate_damage : uses")
+		),
 		"PlantUML should emit exact member-to-member dependency endpoints."
 	)
 	_check(
-		member_mermaid["ok"]
-		and str(member_mermaid["text"]).contains("attack_power() to calculate_damage() uses"),
+		(
+			member_mermaid["ok"]
+			and str(member_mermaid["text"]).contains("attack_power() to calculate_damage() uses")
+		),
 		"Mermaid class diagrams should preserve member specificity in the relationship label."
 	)
 	var scoped_snapshot: Dictionary = _snapshot.duplicate(true)

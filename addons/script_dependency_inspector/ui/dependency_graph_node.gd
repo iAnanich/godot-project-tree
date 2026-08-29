@@ -26,9 +26,7 @@ var _scope_role: String = "in_scope"
 
 ## Rebuilds this graph node from canonical graph-node data.
 ## Display options affect only presentation; canonical member data is preserved.
-func configure(
-	node_data: Dictionary, style: Dictionary, display_options: Dictionary = {}
-) -> void:
+func configure(node_data: Dictionary, style: Dictionary, display_options: Dictionary = {}) -> void:
 	var full_name = str(node_data.get("name", "Unnamed"))
 	var kind = str(node_data.get("kind", "external"))
 	var path = str(node_data.get("path", ""))
@@ -179,14 +177,18 @@ func _add_metadata(node_data: Dictionary, style: Dictionary) -> int:
 	)
 	var tooltip = "%s; inheritance family: %s" % [kind, family]
 	if not autoload.is_empty():
-		tooltip += "\nAutoload: %s%s" % [
-			autoload.get("name", ""),
-			" (singleton)" if bool(autoload.get("singleton", false)) else "",
-		]
+		tooltip += (
+			"\nAutoload: %s%s"
+			% [
+				autoload.get("name", ""),
+				" (singleton)" if bool(autoload.get("singleton", false)) else "",
+			]
+		)
 	if _scope_role == "context":
-		tooltip += "\nOutside selected scope; retained as %s." % str(
-			node_data.get("scope_reason", "required context")
-		).replace("_", " ")
+		tooltip += (
+			"\nOutside selected scope; retained as %s."
+			% str(node_data.get("scope_reason", "required context")).replace("_", " ")
+		)
 	summary_label.tooltip_text = tooltip
 	row.add_child(summary_label)
 	if not path.is_empty():
@@ -220,17 +222,16 @@ func _add_metadata(node_data: Dictionary, style: Dictionary) -> int:
 			"Descendants: %s direct · %s total" % [direct_count, transitive_count],
 			Color(str(style.get("metadata_color", "bec4ce")))
 		)
-		descendants_label.tooltip_text = (
-			"Direct children and all transitive descendants in the current scoped snapshot."
-		)
+		descendants_label.tooltip_text = ("Direct children and all transitive descendants in the current scoped snapshot.")
 		metadata_content.add_child(descendants_label)
 
 	var scene_usages: Array = node_data.get("scene_usages", [])
 	if not scene_usages.is_empty():
 		var scene_heading = _new_compact_label(
-			"Used by %s scene node%s" % [
-				scene_usages.size(), "" if scene_usages.size() == 1 else "s"
-			],
+			(
+				"Used by %s scene node%s"
+				% [scene_usages.size(), "" if scene_usages.size() == 1 else "s"]
+			),
 			Color(str(style.get("metadata_color", "bec4ce")))
 		)
 		scene_heading.tooltip_text = "Exact .tscn node script attachments found during the scan."
@@ -241,13 +242,17 @@ func _add_metadata(node_data: Dictionary, style: Dictionary) -> int:
 			var scene_button = Button.new()
 			scene_button.flat = true
 			scene_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			scene_button.text = "↗ %s · %s" % [
-				str(usage.get("scene_path", "")).get_file(),
-				str(usage.get("node_path", "")),
-			]
-			scene_button.tooltip_text = "Open scene usage:\n%s\nNode: %s" % [
-				usage.get("scene_path", ""), usage.get("node_path", "")
-			]
+			scene_button.text = (
+				"↗ %s · %s"
+				% [
+					str(usage.get("scene_path", "")).get_file(),
+					str(usage.get("node_path", "")),
+				]
+			)
+			scene_button.tooltip_text = (
+				"Open scene usage:\n%s\nNode: %s"
+				% [usage.get("scene_path", ""), usage.get("node_path", "")]
+			)
 			scene_button.pressed.connect(
 				func() -> void:
 					scene_requested.emit(
@@ -310,49 +315,57 @@ func _append_member_descriptors(
 	if members.is_empty():
 		return
 	var color = _member_color(member_kind, style)
-	descriptors.append(
-		{
-			"heading": true,
-			"text": section_name,
-			"full_text": section_name,
-			"color": color.lightened(0.18),
-			"longest": section_name.length(),
-		}
+	(
+		descriptors
+		. append(
+			{
+				"heading": true,
+				"text": section_name,
+				"full_text": section_name,
+				"color": color.lightened(0.18),
+				"longest": section_name.length(),
+			}
+		)
 	)
 	var maximum = maxi(1, int(style.get("graph_max_members_per_section", 50)))
 	var displayed = mini(members.size(), maximum)
 	for index in range(displayed):
 		var member: Dictionary = members[index]
 		var full_text = _member_text(member, member_kind, display_options)
-		descriptors.append(
-			{
-				"heading": false,
-				"text": _truncate(
-					full_text, int(style.get("graph_member_character_limit", 120))
-				),
-				"full_text": full_text,
-				"color": color,
-				"member": {
-					"kind": member_kind,
-					"name": str(member.get("name", "")),
-					"source_location": member.get("source_location", {}).duplicate(true),
-				},
-				"longest": full_text.length(),
-			}
+		(
+			descriptors
+			. append(
+				{
+					"heading": false,
+					"text":
+					_truncate(full_text, int(style.get("graph_member_character_limit", 120))),
+					"full_text": full_text,
+					"color": color,
+					"member":
+					{
+						"kind": member_kind,
+						"name": str(member.get("name", "")),
+						"source_location": member.get("source_location", {}).duplicate(true),
+					},
+					"longest": full_text.length(),
+				}
+			)
 		)
 	if displayed < members.size():
 		var remaining = members.size() - displayed
 		var overflow_text = "… %s more" % remaining
-		descriptors.append(
-			{
-				"heading": true,
-				"text": overflow_text,
-				"full_text": "%s additional %s not displayed" % [
-					remaining, section_name.to_lower()
-				],
-				"color": color.darkened(0.12),
-				"longest": overflow_text.length(),
-			}
+		(
+			descriptors
+			. append(
+				{
+					"heading": true,
+					"text": overflow_text,
+					"full_text":
+					"%s additional %s not displayed" % [remaining, section_name.to_lower()],
+					"color": color.darkened(0.12),
+					"longest": overflow_text.length(),
+				}
+			)
 		)
 
 
@@ -363,14 +376,17 @@ func _append_relationship_descriptors(
 		return
 	var occurrences: Array = occurrences_value
 	var heading_color = Color(str(style.get("metadata_color", "bec4ce"))).lightened(0.18)
-	descriptors.append(
-		{
-			"heading": true,
-			"text": "References",
-			"full_text": "Exact dependency occurrences; press a row to open its source use.",
-			"color": heading_color,
-			"longest": 10,
-		}
+	(
+		descriptors
+		. append(
+			{
+				"heading": true,
+				"text": "References",
+				"full_text": "Exact dependency occurrences; press a row to open its source use.",
+				"color": heading_color,
+				"longest": 10,
+			}
+		)
 	)
 	var maximum = maxi(1, int(style.get("graph_max_members_per_section", 50)))
 	var displayed = mini(occurrences.size(), maximum)
@@ -378,40 +394,55 @@ func _append_relationship_descriptors(
 		var occurrence: Dictionary = occurrences[index]
 		var text = _relationship_occurrence_text(occurrence)
 		var location: Dictionary = occurrence.get("source_location", {})
-		var tooltip = "%s\nEvidence: %s\nSource: line %s, column %s" % [
-			text,
-			str(occurrence.get("evidence", "dependency")),
-			int(location.get("line", 1)),
-			int(location.get("column", 1)),
-		]
-		descriptors.append(
-			{
-				"heading": false,
-				"text": text,
-				"full_text": tooltip,
-				"color": _relationship_color(str(occurrence.get("kind", "uses")), style),
-				"member": {
-					"kind": "reference",
-					"name": "%s:%s" % [
-						str(occurrence.get("target_id", "")),
-						str(occurrence.get("evidence", "")),
-					],
-					"source_location": location.duplicate(true),
-				},
-				"longest": text.length(),
-			}
+		var tooltip = (
+			"%s\nEvidence: %s\nSource: line %s, column %s"
+			% [
+				text,
+				str(occurrence.get("evidence", "dependency")),
+				int(location.get("line", 1)),
+				int(location.get("column", 1)),
+			]
+		)
+		(
+			descriptors
+			. append(
+				{
+					"heading": false,
+					"text": text,
+					"full_text": tooltip,
+					"color": _relationship_color(str(occurrence.get("kind", "uses")), style),
+					"member":
+					{
+						"kind": "reference",
+						"name":
+						(
+							"%s:%s"
+							% [
+								str(occurrence.get("target_id", "")),
+								str(occurrence.get("evidence", "")),
+							]
+						),
+						"source_location": location.duplicate(true),
+					},
+					"longest": text.length(),
+				}
+			)
 		)
 	if displayed < occurrences.size():
 		var remaining = occurrences.size() - displayed
 		var overflow_text = "… %s more references" % remaining
-		descriptors.append(
-			{
-				"heading": true,
-				"text": overflow_text,
-				"full_text": "Export JSON to inspect %s additional dependency occurrences." % remaining,
-				"color": heading_color.darkened(0.12),
-				"longest": overflow_text.length(),
-			}
+		(
+			descriptors
+			. append(
+				{
+					"heading": true,
+					"text": overflow_text,
+					"full_text":
+					"Export JSON to inspect %s additional dependency occurrences." % remaining,
+					"color": heading_color.darkened(0.12),
+					"longest": overflow_text.length(),
+				}
+			)
 		)
 
 
@@ -475,15 +506,7 @@ func _add_direct_descriptor(
 			type_dependency_port_color if relation_kind == "type_uses" else dependency_port_color
 		)
 		ports[relation_kind] = _next_member_port_index
-		set_slot(
-			anchor_slot_index,
-			true,
-			port_type,
-			port_color,
-			true,
-			port_type,
-			port_color
-		)
+		set_slot(anchor_slot_index, true, port_type, port_color, true, port_type, port_color)
 		_next_member_port_index += 1
 	if not ports.is_empty():
 		_member_ports[key] = ports
@@ -518,9 +541,7 @@ func _new_descriptor_control(descriptor: Dictionary) -> Control:
 		button.pressed.connect(
 			func() -> void:
 				source_requested.emit(
-					_source_path,
-					int(location.get("line", 1)),
-					int(location.get("column", 1))
+					_source_path, int(location.get("line", 1)), int(location.get("column", 1))
 				)
 		)
 	else:
@@ -540,9 +561,7 @@ func _new_compact_label(text: String, color: Color) -> Label:
 	return label
 
 
-func _member_text(
-	member: Dictionary, member_kind: String, display_options: Dictionary
-) -> String:
+func _member_text(member: Dictionary, member_kind: String, display_options: Dictionary) -> String:
 	match member_kind:
 		"property":
 			var property_name = str(member.get("name", "property"))

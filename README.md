@@ -2,7 +2,7 @@
 
 Godot 4 editor add-on for deterministic GDScript inheritance/dependency analysis, scoped architectural inspection, editor navigation, exact text-scene usage, and JSON/Mermaid/PlantUML export.
 
-Release `0.2.2` targets the supplied Linux builds of Godot 4.3–4.7.
+Release `0.2.4` targets the supplied Linux builds of Godot 4.3–4.7.
 
 ## Install
 
@@ -12,7 +12,7 @@ Copy `addons/script_dependency_inspector` into a project and enable **Project > 
 
 The dock scans automatically after saved editor filesystem changes by default, using a one-second quiet-period debounce. Timed rescanning remains available and disabled by default. Press **Scan** for an immediate refresh.
 
-Choose the entire project or a project folder from the scope selector. A folder scope keeps scripts inside that folder and retains only the outside ancestors and direct dependency targets needed to explain them. Retained nodes are marked **Context** in the graph and in diagram exports. Scope selection changes the displayed/exported projection; the bounded full-project index is still acquired so outside context can be resolved.
+Choose the entire project or a project folder from the scope selector. Native filesystem dialogs may return an absolute path; project-local selections are normalized back to `res://` before validation. A folder scope keeps scripts inside that folder and retains only the outside ancestors and direct dependency targets needed to explain them. Retained nodes are marked **Context** in the graph and in diagram exports. Scope selection changes the displayed/exported projection; the bounded full-project index is still acquired so outside context can be resolved.
 
 Select a node to emphasize its inheritance path. Optionally include descendants or isolate the selected relationship neighborhood without rescanning. Nodes show direct and total descendant counts. Search matches class names, paths, members, autoloads, scenes, and scene-node paths. Script headers, member rows, dependency references, and scene rows navigate to the recorded source or scene when available.
 
@@ -39,13 +39,11 @@ The analyzer does not instantiate project classes and does not claim a general c
 - [Security boundary](docs/SECURITY.md)
 - [Performance](docs/PERFORMANCE.md)
 - [Validation](docs/VALIDATION.md)
-- [v0.2.2 compatibility matrix](docs/validation/v0.2.2-compatibility-matrix.md)
-- [v0.2.2 release validation report](docs/validation/v0.2.2-release-validation.md)
-- [Quality review](docs/QUALITY_REVIEW.md)
-- [Guidance applied](docs/GUIDANCE_APPLIED.md)
+- [v0.2.4 compatibility matrix](docs/validation/v0.2.4-compatibility-matrix.md)
+- [v0.2.4 release validation report](docs/validation/v0.2.4-release-validation.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Related projects and late considerations](docs/RELATED_PROJECTS.md)
 - [Comprehension protocol](docs/COMPREHENSION_TEST.md)
+- [Release packaging and patches](docs/RELEASING.md)
 - [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 - [AI usage disclosure](AI_USAGE_NOTICE.md)
@@ -58,7 +56,7 @@ python3 tools/run_validation.py --godot /path/to/godot --output validation-artif
 
 The development project includes a showcase and versioned screenshots under `docs/images`.
 
-## v0.2.2 visual states
+## Current visual states (v0.2.2 UI)
 
 | Default graph | Export-only |
 |---|---|
@@ -67,3 +65,10 @@ The development project includes a showcase and versioned screenshots under `doc
 | Folded controls | Scan modes and automatic exports |
 |---|---|
 | ![Folded semantic control groups](docs/images/v0.2.2-folded-controls.png) | ![Synchronization and timed fallback controls](docs/images/v0.2.2-automation.png) |
+
+## Media and interface reference
+
+- [Interface gallery](docs/INTERFACE_GALLERY.md)
+- [Current Godot Asset Library media](docs/asset_store/README.md)
+
+![Current Godot Asset Library thumbnail](docs/asset_store/current/thumbnail.webp)

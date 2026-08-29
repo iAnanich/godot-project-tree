@@ -22,16 +22,22 @@ func _run() -> void:
 	var scanner = scanner_script.new()
 	var builder = builder_script.new()
 	var export_service = export_service_script.new()
-	var scan_result: Dictionary = scanner.scan(
-		SELF_SCAN_ROOT,
-		{
-			"include_addons": true,
-			"use_runtime_reflection": false,
-			"excluded_path_prefixes": PackedStringArray(),
-		}
+	var scan_result: Dictionary = (
+		scanner
+		. scan(
+			SELF_SCAN_ROOT,
+			{
+				"include_addons": true,
+				"use_runtime_reflection": false,
+				"excluded_path_prefixes": PackedStringArray(),
+			}
+		)
 	)
 	_check(scan_result.get("errors", []).is_empty(), "Self-scan must complete without errors.")
-	_check(scan_result.get("scripts", []).size() >= 16, "Self-scan should include all production scripts.")
+	_check(
+		scan_result.get("scripts", []).size() >= 16,
+		"Self-scan should include all production scripts."
+	)
 	if not scan_result.get("errors", []).is_empty():
 		_finish()
 		return
@@ -45,8 +51,13 @@ func _run() -> void:
 				var result: Dictionary = export_service.export_to_string(
 					format_id, snapshot, {"include_colors": include_colors}
 				)
-				var label: String = "%s/%s/colors=%s" % [scenario["name"], format_id, include_colors]
-				_check(bool(result.get("ok", false)), "%s export failed: %s" % [label, result.get("error", "")])
+				var label: String = (
+					"%s/%s/colors=%s" % [scenario["name"], format_id, include_colors]
+				)
+				_check(
+					bool(result.get("ok", false)),
+					"%s export failed: %s" % [label, result.get("error", "")]
+				)
 				if not bool(result.get("ok", false)):
 					continue
 				var text: String = str(result.get("text", ""))
@@ -69,13 +80,15 @@ func _scenarios() -> Array:
 		{"name": "classes_only", "options": _options({})},
 		{
 			"name": "compact_members",
-			"options": _options(
+			"options":
+			_options(
 				{"include_methods": true, "include_signals": true, "include_properties": true}
 			),
 		},
 		{
 			"name": "full_signatures",
-			"options": _options(
+			"options":
+			_options(
 				{
 					"include_methods": true,
 					"include_signals": true,
@@ -96,7 +109,8 @@ func _scenarios() -> Array:
 		},
 		{
 			"name": "member_dependencies",
-			"options": _options(
+			"options":
+			_options(
 				{
 					"include_methods": true,
 					"include_member_access_dependencies": true,
@@ -165,13 +179,21 @@ func _validate_json(text: String, label: String) -> void:
 	var parsed = JSON.parse_string(text)
 	_check(parsed is Dictionary, "%s must parse as a JSON object." % label)
 	if parsed is Dictionary:
-		_check(parsed.has("nodes") and parsed.has("edges"), "%s must preserve the canonical graph." % label)
+		_check(
+			parsed.has("nodes") and parsed.has("edges"),
+			"%s must preserve the canonical graph." % label
+		)
 
 
 func _validate_mermaid(text: String, label: String, include_colors: bool) -> void:
 	var lines: PackedStringArray = text.split("\n", false)
-	_check(lines.size() >= 2 and lines[0] == "classDiagram", "%s must begin with classDiagram." % label)
-	_check(lines.size() >= 2 and lines[1].begins_with("direction "), "%s must declare diagram direction." % label)
+	_check(
+		lines.size() >= 2 and lines[0] == "classDiagram", "%s must begin with classDiagram." % label
+	)
+	_check(
+		lines.size() >= 2 and lines[1].begins_with("direction "),
+		"%s must declare diagram direction." % label
+	)
 	var aliases: Dictionary = {}
 	var class_depth: int = 0
 	for line_value in lines:
@@ -183,23 +205,46 @@ func _validate_mermaid(text: String, label: String, include_colors: bool) -> voi
 		elif line == "}":
 			class_depth -= 1
 		elif line.begins_with("+"):
-			_check(not line.contains("{"), "%s contains an unsafe Mermaid member opening brace: %s" % [label, line])
-			_check(not line.contains("}"), "%s contains an unsafe Mermaid member closing brace: %s" % [label, line])
-			_check(not line.contains(" = "), "%s leaked a GDScript default expression: %s" % [label, line])
+			_check(
+				not line.contains("{"),
+				"%s contains an unsafe Mermaid member opening brace: %s" % [label, line]
+			)
+			_check(
+				not line.contains("}"),
+				"%s contains an unsafe Mermaid member closing brace: %s" % [label, line]
+			)
+			_check(
+				not line.contains(" = "),
+				"%s leaked a GDScript default expression: %s" % [label, line]
+			)
 		elif line.contains(" --|> ") or line.contains(" ..> "):
 			var tokens: PackedStringArray = line.split(" ", false)
 			_check(tokens.size() >= 3, "%s contains a malformed relation: %s" % [label, line])
 			if tokens.size() >= 3:
-				_check(aliases.has(tokens[0]), "%s relation source is undeclared: %s" % [label, tokens[0]])
-				_check(aliases.has(tokens[2]), "%s relation target is undeclared: %s" % [label, tokens[2]])
+				_check(
+					aliases.has(tokens[0]),
+					"%s relation source is undeclared: %s" % [label, tokens[0]]
+				)
+				_check(
+					aliases.has(tokens[2]),
+					"%s relation target is undeclared: %s" % [label, tokens[2]]
+				)
 	_check(class_depth == 0, "%s has unbalanced class member blocks." % label)
-	_check(text.contains("classDef ") == include_colors, "%s color directives do not match export options." % label)
+	_check(
+		text.contains("classDef ") == include_colors,
+		"%s color directives do not match export options." % label
+	)
 
 
 func _validate_plantuml(text: String, label: String, include_colors: bool) -> void:
 	var lines: PackedStringArray = text.split("\n", false)
-	_check(not lines.is_empty() and lines[0] == "@startuml", "%s must begin with @startuml." % label)
-	_check(not lines.is_empty() and lines[lines.size() - 1] == "@enduml", "%s must end with @enduml." % label)
+	_check(
+		not lines.is_empty() and lines[0] == "@startuml", "%s must begin with @startuml." % label
+	)
+	_check(
+		not lines.is_empty() and lines[lines.size() - 1] == "@enduml",
+		"%s must end with @enduml." % label
+	)
 	var aliases: Dictionary = {}
 	var class_depth: int = 0
 	for line_value in lines:
@@ -212,11 +257,16 @@ func _validate_plantuml(text: String, label: String, include_colors: bool) -> vo
 		elif line == "}":
 			class_depth -= 1
 		elif line.begins_with("+"):
-			_check(not line.contains(" = "), "%s leaked a GDScript default expression: %s" % [label, line])
+			_check(
+				not line.contains(" = "),
+				"%s leaked a GDScript default expression: %s" % [label, line]
+			)
 		elif line.contains(" --|> ") or line.contains(" ..> "):
 			var source: String = line.get_slice(" ", 0).get_slice("::", 0)
 			var relation_tokens: PackedStringArray = line.split(" ", false)
-			var target: String = relation_tokens[2].get_slice("::", 0) if relation_tokens.size() >= 3 else ""
+			var target: String = (
+				relation_tokens[2].get_slice("::", 0) if relation_tokens.size() >= 3 else ""
+			)
 			_check(aliases.has(source), "%s relation source is undeclared: %s" % [label, source])
 			_check(aliases.has(target), "%s relation target is undeclared: %s" % [label, target])
 	_check(class_depth == 0, "%s has unbalanced class member blocks." % label)
@@ -225,7 +275,10 @@ func _validate_plantuml(text: String, label: String, include_colors: bool) -> vo
 		var line: String = str(line_value).strip_edges()
 		if line.begins_with("class ") and line.contains(" #"):
 			colored_class_count += 1
-	_check((colored_class_count > 0) == include_colors, "%s class colors do not match export options." % label)
+	_check(
+		(colored_class_count > 0) == include_colors,
+		"%s class colors do not match export options." % label
+	)
 
 
 func _validate_all_on_regression(export_service, snapshot: Dictionary) -> void:
@@ -237,10 +290,22 @@ func _validate_all_on_regression(export_service, snapshot: Dictionary) -> void:
 	)
 	var expected_mermaid: String = "+export_text(_snapshot: Dictionary, _options: Dictionary) String"
 	var expected_plantuml: String = "+export_text(_snapshot: Dictionary, _options: Dictionary) : String"
-	_check(str(mermaid.get("text", "")).contains(expected_mermaid), "All-on Mermaid export must retain typed parameters while omitting dictionary defaults.")
-	_check(str(plantuml.get("text", "")).contains(expected_plantuml), "All-on PlantUML export must retain typed parameters while omitting dictionary defaults.")
-	_check(not str(mermaid.get("text", "")).contains("Dictionary = {}"), "Mermaid regression: dictionary defaults must not terminate class blocks.")
-	_check(not str(plantuml.get("text", "")).contains("Dictionary = {}"), "PlantUML regression: dictionary defaults must not terminate class blocks.")
+	_check(
+		str(mermaid.get("text", "")).contains(expected_mermaid),
+		"All-on Mermaid export must retain typed parameters while omitting dictionary defaults."
+	)
+	_check(
+		str(plantuml.get("text", "")).contains(expected_plantuml),
+		"All-on PlantUML export must retain typed parameters while omitting dictionary defaults."
+	)
+	_check(
+		not str(mermaid.get("text", "")).contains("Dictionary = {}"),
+		"Mermaid regression: dictionary defaults must not terminate class blocks."
+	)
+	_check(
+		not str(plantuml.get("text", "")).contains("Dictionary = {}"),
+		"PlantUML regression: dictionary defaults must not terminate class blocks."
+	)
 
 
 func _validate_file_extensions(export_service, snapshot: Dictionary) -> void:
@@ -255,8 +320,14 @@ func _validate_file_extensions(export_service, snapshot: Dictionary) -> void:
 		_check(bool(result.get("ok", false)), "%s file export failed." % format_id)
 		if bool(result.get("ok", false)):
 			var path: String = str(result.get("path", ""))
-			_check(path.ends_with("." + extension), "%s file export used the wrong extension: %s" % [format_id, path])
-			_check(not path.contains(".gd."), "%s export appended to an unsafe source extension: %s" % [format_id, path])
+			_check(
+				path.ends_with("." + extension),
+				"%s file export used the wrong extension: %s" % [format_id, path]
+			)
+			_check(
+				not path.contains(".gd."),
+				"%s export appended to an unsafe source extension: %s" % [format_id, path]
+			)
 			if FileAccess.file_exists(path):
 				DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 

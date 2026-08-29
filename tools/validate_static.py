@@ -16,6 +16,10 @@ PLUGIN = ROOT / "addons" / "script_dependency_inspector"
 EXPECTED = [
     ROOT / "project.godot",
     ROOT / ".gitignore",
+    ROOT / ".pre-commit-config.yaml",
+    ROOT / "requirements-dev.txt",
+    ROOT / ".github" / "workflows" / "quality.yml",
+    ROOT / ".github" / "workflows" / "release.yml",
     ROOT / "README.md",
     ROOT / "CONTRIBUTING.md",
     ROOT / "CHANGELOG.md",
@@ -28,18 +32,16 @@ EXPECTED = [
     ROOT / "docs" / "SCHEMA.md",
     ROOT / "docs" / "SECURITY.md",
     ROOT / "docs" / "PERFORMANCE.md",
-    ROOT / "docs" / "QUALITY_REVIEW.md",
-    ROOT / "docs" / "GUIDANCE_APPLIED.md",
     ROOT / "docs" / "USE_CASES.md",
     ROOT / "docs" / "validation" / "v0.2.0-compatibility-matrix.md",
     ROOT / "docs" / "validation" / "v0.2.1-compatibility-matrix.md",
     ROOT / "docs" / "validation" / "v0.2.2-compatibility-matrix.md",
     ROOT / "docs" / "validation" / "v0.2.2-release-validation.md",
-    ROOT / "docs" / "reviews" / "v0.2.0.md",
+    ROOT / "docs" / "validation" / "v0.2.4-compatibility-matrix.md",
+    ROOT / "docs" / "validation" / "v0.2.4-release-validation.md",
     ROOT / "docs" / "ROADMAP.md",
-    ROOT / "docs" / "RELATED_PROJECTS.md",
+    ROOT / "docs" / "RELEASING.md",
     ROOT / "docs" / "COMPREHENSION_TEST.md",
-    ROOT / "docs" / "diagrams" / "REVIEW.md",
     ROOT / "docs" / "diagrams" / "use-cases-overview.dot",
     ROOT / "docs" / "diagrams" / "use-cases-overview.svg",
     ROOT / "docs" / "diagrams" / "use-cases-analysis.dot",
@@ -72,12 +74,10 @@ EXPECTED = [
     ROOT / "docs" / "images" / "v0.2.1-scope.png",
     ROOT / "docs" / "images" / "v0.2.1-focus.png",
     ROOT / "docs" / "images" / "v0.2.1-isolated.png",
-    ROOT / "docs" / "images" / "v0.2.1-REVIEW.md",
     ROOT / "docs" / "images" / "v0.2.2-overview.png",
     ROOT / "docs" / "images" / "v0.2.2-export-only.png",
     ROOT / "docs" / "images" / "v0.2.2-folded-controls.png",
     ROOT / "docs" / "images" / "v0.2.2-automation.png",
-    ROOT / "docs" / "images" / "v0.2.2-REVIEW.md",
     ROOT / "docs" / "schema" / "snapshot-v1.schema.json",
     ROOT / "docs" / "schema" / "snapshot-v2.schema.json",
     ROOT / "docs" / "decisions" / "0001-canonical-dictionary-snapshot.md",
@@ -87,6 +87,7 @@ EXPECTED = [
     ROOT / "docs" / "decisions" / "0005-scene-usage-evidence.md",
     ROOT / "docs" / "decisions" / "0006-scoped-projection-and-focus.md",
     ROOT / "docs" / "decisions" / "0007-optional-graph-and-control-hierarchy.md",
+    ROOT / "docs" / "decisions" / "0008-scope-paths-and-release-artifacts.md",
     PLUGIN / "plugin.cfg",
     PLUGIN / "icon.svg",
     PLUGIN / "LICENSE",
@@ -112,6 +113,18 @@ EXPECTED = [
     ROOT / "tests" / "suites" / "quality_contract_suite.gd",
     ROOT / "tools" / "run_validation.py",
     ROOT / "tools" / "build_release.py",
+    ROOT / "tools" / "package_addon.py",
+    ROOT / "tools" / "build_patch.py",
+    ROOT / "tools" / "capture_asset_store_media.py",
+    ROOT / "tools" / "build_asset_store_media.py",
+    ROOT / "tools" / "validate_asset_store_media.py",
+    ROOT / "tools" / "media_capture" / "plugin.cfg",
+    ROOT / "tools" / "media_capture" / "plugin.gd",
+    ROOT / "docs" / "asset_store" / "README.md",
+    ROOT / "docs" / "asset_store" / ".gdignore",
+    ROOT / "docs" / "asset_store" / "media_manifest.json",
+    ROOT / "docs" / "asset_store" / "current" / "thumbnail.webp",
+    ROOT / "docs" / "INTERFACE_GALLERY.md",
     ROOT / "examples" / "showcase" / "README.md",
     ROOT / "examples" / "showcase" / "services" / "targeting_service.gd",
     ROOT / "examples" / "showcase" / "scenes" / "battle_demo.tscn",
@@ -405,7 +418,7 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.2.2"' in plugin_cfg, "plugin.cfg version is not 0.2.2.")
+    check('version="0.2.4"' in plugin_cfg, "plugin.cfg version is not 0.2.4.")
 
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
     check(
@@ -415,6 +428,11 @@ def validate_release_regressions() -> None:
     check(
         '".import"' in release_builder and 'path.suffix in {".uid", ".import"}' in release_builder,
         "Release builder must exclude generated Godot import sidecars from archives and manifests.",
+    )
+    check(
+        "write_media_archive" in release_builder
+        and "script-dependency-inspector-asset-store-media-v" in release_builder,
+        "Release builder must package the exact current Asset Library upload media.",
     )
 
     showcase_json = ROOT / "examples" / "showcase" / "representations" / "showcase.json"
@@ -579,9 +597,10 @@ def validate_v021_feature_contracts() -> None:
     use_cases = (ROOT / "docs" / "USE_CASES.md").read_text(encoding="utf-8")
     for use_case in ["UC-01", "UC-02", "UC-04", "UC-05", "UC-11"]:
         check(use_case in use_cases, f"Use-case catalogue is missing {use_case}.")
-    diagram_review = (ROOT / "docs" / "diagrams" / "REVIEW.md").read_text(encoding="utf-8")
-    check("Text alternative" in use_cases and "review" in diagram_review.lower(),
-          "Use-case diagrams need text alternatives and a rendered-review record.")
+    check(
+        "Text alternative" in use_cases,
+        "Use-case diagrams need an authoritative text alternative.",
+    )
 
 
 
@@ -621,6 +640,43 @@ def validate_v022_feature_contracts() -> None:
     store = (ROOT / "docs" / "ASSET_STORE_DESCRIPTION.md").read_text(encoding="utf-8")
     for phrase in ["third-party", "larger canvas", "AI-assisted development disclosure"]:
         check(phrase.lower() in store.lower(), f"Store description is missing v0.2.2 disclosure/export message: {phrase}")
+
+def validate_v023_feature_contracts() -> None:
+    scanner = (PLUGIN / "core" / "project_scanner.gd").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    dock_scene = (PLUGIN / "ui" / "dependency_dock.tscn").read_text(encoding="utf-8")
+    quality_suite = (ROOT / "tests" / "suites" / "quality_contract_suite.gd").read_text(encoding="utf-8")
+    release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
+    package_addon = (ROOT / "tools" / "package_addon.py").read_text(encoding="utf-8")
+    patch_builder = (ROOT / "tools" / "build_patch.py").read_text(encoding="utf-8")
+    release_workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    precommit = (ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+
+    check("ProjectSettings.localize_path" in scanner and "_normalize_scan_root" in scanner,
+          "Absolute project-local scan roots are not normalized through one scanner boundary.")
+    check("FileDialog.ACCESS_RESOURCES" in dock and "access = 0" in dock_scene,
+          "The folder chooser must request project-resource access.")
+    check("project_absolute_root" in quality_suite and "absolute path" in quality_suite.lower(),
+          "The native-dialog absolute-path regression test is missing.")
+    check('"dist"' in release_builder,
+          "Release-source enumeration must exclude generated dist artifacts.")
+    for token in ["write_addon_archive", "script-dependency-inspector-addon-v"]:
+        check(token in package_addon, f"Add-on packaging script is missing: {token}")
+    for token in ["--binary", "--full-index", "worktree", "--check", "--index", "write-tree", "infer_base_ref", "git", "describe"]:
+        check(token in patch_builder, f"Verified patch generation is missing: {token}")
+    for token in ["gh release create", "tools/build_patch.py", "tools/build_release.py"]:
+        check(token in release_workflow, f"GitHub release workflow is missing: {token}")
+    check("gdformat" in precommit and "gdlint" in precommit and "4.5.0" in precommit,
+          "Pinned pre-commit gdformat/gdlint hooks are missing.")
+    for removed in [
+        ROOT / "docs" / "QUALITY_REVIEW.md",
+        ROOT / "docs" / "GUIDANCE_APPLIED.md",
+        ROOT / "docs" / "RELATED_PROJECTS.md",
+        ROOT / "docs" / "diagrams" / "REVIEW.md",
+        ROOT / "docs" / "reviews",
+    ]:
+        check(not removed.exists(), f"Repository-internal review/provenance artifact remains: {removed.relative_to(ROOT)}")
+
 
 def validate_schema_contract() -> None:
     schema_path = ROOT / "docs" / "schema" / "snapshot-v2.schema.json"
@@ -745,15 +801,14 @@ def validate_documentation_contract() -> None:
         "docs/SECURITY.md",
         "docs/COMPREHENSION_TEST.md",
         "docs/ROADMAP.md",
-        "docs/RELATED_PROJECTS.md",
+        "docs/RELEASING.md",
         "docs/USE_CASES.md",
-        "docs/GUIDANCE_APPLIED.md",
         "AI_USAGE_NOTICE.md",
         "CONTRIBUTING.md",
         "CHANGELOG.md",
     ]:
         check(required_reference in readme, f"README does not link to {required_reference}.")
-    check("0.2.2" in readme, "README release identifier is not 0.2.2.")
+    check("0.2.4" in readme, "README release identifier is not 0.2.4.")
 
 
 def validate_quality_contracts() -> None:
@@ -857,6 +912,19 @@ def run_command(command: list[str], description: str) -> None:
     check(result.returncode == 0, f"{description} failed:\n{result.stdout.strip()}")
 
 
+
+
+def validate_asset_store_media_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, "tools/validate_asset_store_media.py"],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    check(result.returncode == 0, f"Asset-store media validation failed:\n{result.stdout.strip()}")
+
 def validate_gdscript_tooling() -> None:
     scripts = [str(path) for path in sorted(ROOT.rglob("*.gd"))]
     run_command(["gdlint", *scripts], "gdlint")
@@ -883,12 +951,14 @@ def main() -> int:
     validate_v020_feature_contracts()
     validate_v021_feature_contracts()
     validate_v022_feature_contracts()
+    validate_v023_feature_contracts()
     validate_schema_contract()
     validate_default_color_contract()
     validate_documentation_contract()
     validate_quality_contracts()
     validate_public_method_documentation()
     validate_exporter_contracts()
+    validate_asset_store_media_contract()
     validate_gdscript_tooling()
 
     if failures:

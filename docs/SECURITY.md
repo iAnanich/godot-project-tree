@@ -1,12 +1,12 @@
 # Security and trust boundary
 
-Version: 0.2.2
+Version: 0.2.4
 
 The add-on runs inside the Godot editor with the editor process's filesystem permissions. It does not provide network access, execute external processes, or instantiate scanned project classes as part of analysis.
 
 ## Untrusted project input
 
-GDScript and `.tscn` text are treated as bounded input. Traversal rejects roots outside `res://`, skips symbolic links by default, honors file/directory/byte limits, and records read failures. The scene scanner recognizes only direct textual constructs and does not evaluate resource expressions. Binary `.scn` files are outside scope.
+GDScript and `.tscn` text are treated as bounded input. Traversal accepts `res://` roots and absolute native-dialog selections only when they localize inside the current project; it rejects all other roots, skips symbolic links by default, honors file/directory/byte limits, and records read failures. The scene scanner recognizes only direct textual constructs and does not evaluate resource expressions. Binary `.scn` files are outside scope.
 
 Optional Script resource loading for reflection can trigger Godot parsing, but not project-class instantiation. Source-only analysis remains available.
 

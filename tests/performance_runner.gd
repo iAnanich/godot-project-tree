@@ -22,10 +22,14 @@ func _run() -> void:
 
 	var source_lines: Array[String] = ["extends RefCounted", "class_name PerformanceFixture"]
 	for index in range(ANALYZER_METHOD_COUNT):
-		source_lines.append("func method_%s(value: PerformanceFixture) -> PerformanceFixture:" % index)
+		source_lines.append(
+			"func method_%s(value: PerformanceFixture) -> PerformanceFixture:" % index
+		)
 		source_lines.append("    return value")
 	var analyzer_start: int = Time.get_ticks_usec()
-	var analysis: Dictionary = analyzer.analyze("\n".join(source_lines), "res://performance_fixture.gd")
+	var analysis: Dictionary = analyzer.analyze(
+		"\n".join(source_lines), "res://performance_fixture.gd"
+	)
 	var analyzer_msec: float = float(Time.get_ticks_usec() - analyzer_start) / 1000.0
 	if analysis.get("methods", []).size() != ANALYZER_METHOD_COUNT:
 		push_error("Performance fixture analyzer result is incomplete.")
@@ -35,34 +39,40 @@ func _run() -> void:
 	var scripts: Array = []
 	for index in range(GRAPH_SCRIPT_COUNT):
 		var path: String = "res://synthetic/class_%04d.gd" % index
-		var direct_base: Dictionary = {"kind": "native", "value": "RefCounted", "display": "RefCounted"}
+		var direct_base: Dictionary = {
+			"kind": "native", "value": "RefCounted", "display": "RefCounted"
+		}
 		if index > 0:
 			direct_base = {
 				"kind": "script",
 				"value": "res://synthetic/class_%04d.gd" % (index - 1),
 				"display": "Synthetic%04d" % (index - 1),
 			}
-		scripts.append(
-			{
-				"id": path,
-				"path": path,
-				"name": "Synthetic%04d" % index,
-				"class_name": "Synthetic%04d" % index,
-				"is_addon": false,
-				"analysis": {
-					"methods": [],
-					"signals": [],
-					"properties": [],
-					"inner_classes": [],
-					"resource_dependencies": [],
-					"resource_dependency_details": [],
-					"type_references": [],
-					"type_reference_details": [],
-					"member_accesses": [],
-				},
-				"reflection": {},
-				"direct_base": direct_base,
-			}
+		(
+			scripts
+			. append(
+				{
+					"id": path,
+					"path": path,
+					"name": "Synthetic%04d" % index,
+					"class_name": "Synthetic%04d" % index,
+					"is_addon": false,
+					"analysis":
+					{
+						"methods": [],
+						"signals": [],
+						"properties": [],
+						"inner_classes": [],
+						"resource_dependencies": [],
+						"resource_dependency_details": [],
+						"type_references": [],
+						"type_reference_details": [],
+						"member_accesses": [],
+					},
+					"reflection": {},
+					"direct_base": direct_base,
+				}
+			)
 		)
 	var scan_result: Dictionary = {
 		"root_path": "res://synthetic",

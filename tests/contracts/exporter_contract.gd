@@ -8,7 +8,9 @@ func validate(exporter, snapshot: Dictionary) -> Array[String]:
 	if exporter == null:
 		failures.append("Exporter instance is null.")
 		return failures
-	for method_name in ["format_id", "display_name", "file_extension", "capabilities", "export_text"]:
+	for method_name in [
+		"format_id", "display_name", "file_extension", "capabilities", "export_text"
+	]:
 		if not exporter.has_method(method_name):
 			failures.append("Exporter is missing required method: %s" % method_name)
 	if not failures.is_empty():
@@ -31,7 +33,13 @@ func validate(exporter, snapshot: Dictionary) -> Array[String]:
 	if not capabilities_value is Dictionary:
 		failures.append("Exporter capabilities must be a dictionary.")
 	else:
-		for capability in ["colors", "class_members", "structured_member_links", "exact_member_endpoints", "member_relation_labels"]:
+		for capability in [
+			"colors",
+			"class_members",
+			"structured_member_links",
+			"exact_member_endpoints",
+			"member_relation_labels"
+		]:
 			if not (capabilities_value as Dictionary).has(capability):
 				failures.append("Exporter capability declaration is missing: %s" % capability)
 			elif not (capabilities_value as Dictionary)[capability] is bool:

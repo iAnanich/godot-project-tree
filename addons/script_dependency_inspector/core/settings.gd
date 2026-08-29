@@ -21,7 +21,6 @@ extends Resource
 	]
 )
 
-
 @export_group("Automation defaults")
 @export var sync_on_editor_changes: bool = true
 @export_range(0.25, 30.0, 0.25) var editor_change_debounce_seconds: float = 1.0
@@ -158,6 +157,7 @@ func to_style_dictionary() -> Dictionary:
 		"graph_depth_top_to_bottom": graph_depth_top_to_bottom,
 	}
 
+
 ## Returns project-customizable defaults for persisted editor state.
 func to_editor_state_defaults() -> Dictionary:
 	var directory: String = default_export_directory.strip_edges().trim_suffix("/")
@@ -170,7 +170,8 @@ func to_editor_state_defaults() -> Dictionary:
 		"focus_include_descendants": focus_include_descendants,
 		"isolate_neighborhood": false,
 		"graph_view_enabled": graph_view_enabled,
-		"control_section_expanded": {
+		"control_section_expanded":
+		{
 			"content_sources": true,
 			"content_members": true,
 			"content_relations": true,
@@ -191,18 +192,19 @@ func to_editor_state_defaults() -> Dictionary:
 		"follow_active_script": follow_active_script,
 		"auto_rescan_enabled": auto_rescan_enabled,
 		"auto_rescan_delay_seconds": auto_rescan_delay_seconds,
-		"auto_export": {
+		"auto_export":
+		{
 			"json": auto_export_json,
 			"mermaid": auto_export_mermaid,
 			"plantuml": auto_export_plantuml,
 		},
-		"export_paths": {
+		"export_paths":
+		{
 			"json": directory + "/script_dependencies.json",
 			"mermaid": directory + "/script_dependencies.mmd",
 			"plantuml": directory + "/script_dependencies.puml",
 		},
 	}
-
 
 
 ## Compatibility alias for integrations written before editor state expanded beyond automation.
