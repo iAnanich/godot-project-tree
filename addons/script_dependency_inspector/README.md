@@ -1,4 +1,4 @@
-# Script Dependency Inspector 0.2.4
+# Script Dependency Inspector 0.3.0
 
 Editor-only Godot 4 add-on that scans GDScript and exact text-scene script attachments, builds a validated dependency snapshot, optionally renders an interactive searchable graph, and exports JSON, Mermaid, or PlantUML.
 
@@ -11,3 +11,7 @@ Folder scopes accept either `res://` selections or absolute paths returned by na
 Generative AI was used extensively under owner-directed scope and documented automated quality controls. See `AI_USAGE_NOTICE.md` for uses, supervision, executed checks, and residual evidence limits.
 
 Static-analysis limits are deliberate: no general inferred call graph, runtime profiling, dynamic-path evaluation, project-class instantiation, binary-scene inference, or TODO extraction.
+
+## Analysis trust boundary
+
+Dependency discovery reads saved project source and metadata. It does not load analyzed project GDScript resources for reflection or execute analyzed project classes. Missing unsupported relationships are omitted or diagnosed rather than inferred.

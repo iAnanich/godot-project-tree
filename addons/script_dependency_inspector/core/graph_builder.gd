@@ -15,6 +15,11 @@ func _init() -> void:
 	_compat_script = _load_required_script(COMPAT_SCRIPT_PATH, "compatibility shim")
 
 
+## Returns failures encountered while loading required graph-builder dependencies.
+func initialization_errors() -> Array[String]:
+	return _dependency_errors.duplicate()
+
+
 ## Converts a scanner result into a deterministic graph snapshot.
 ## Edges point from dependent/derived nodes to dependency/base nodes.
 func build(scan_result: Dictionary, options: Dictionary = {}) -> Dictionary:
@@ -117,10 +122,9 @@ func _serializable_options(options: Dictionary) -> Dictionary:
 func _script_node(record: Dictionary, options: Dictionary) -> Dictionary:
 	var analysis: Dictionary = record["analysis"]
 	var class_name_value = str(record.get("class_name", ""))
-	var reflection: Dictionary = record.get("reflection", {})
-	var native_base = str(reflection.get("native_base", ""))
 	var direct_base: Dictionary = record.get("direct_base", {})
-	if native_base.is_empty() and str(direct_base.get("kind", "")) == "native":
+	var native_base: String = ""
+	if str(direct_base.get("kind", "")) == "native":
 		native_base = str(direct_base.get("value", ""))
 	return {
 		"id": str(record["id"]),

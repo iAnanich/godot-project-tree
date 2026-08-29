@@ -1,4 +1,4 @@
-name: Build GitHub release
+name: Build GitHub release candidate
 
 on:
   push:
@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  release-candidate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,10 @@ jobs:
           import re
           from pathlib import Path
           text = Path('addons/script_dependency_inspector/plugin.cfg').read_text(encoding='utf-8')
-          print(re.search(r'^version="([^"]+)"$', text, re.MULTILINE).group(1))
+          match = re.search(r'^version="([^"]+)"$', text, re.MULTILINE)
+          if match is None:
+              raise SystemExit('plugin.cfg has no version')
+          print(match.group(1))
           PY
           )"
           test "$TAG" = "v$VERSION"
@@ -49,12 +52,35 @@ jobs:
           echo "previous_tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
       - name: Install development tools
         run: python -m pip install --requirement requirements-dev.txt
-      - name: Verify formatting, lint, and static contracts
+      - name: Verify required source gates
         run: |
-          pre-commit run --all-files --show-diff-on-failure
+          python tools/run_gdscript_quality.py
           python tools/validate_static.py
-      - name: Build source and add-on archives
-        run: python tools/build_release.py --output dist
+      - name: Build release archives twice
+        run: |
+          python tools/build_release.py --output dist-first
+          python tools/build_release.py --output dist-second
+          mkdir -p dist
+          for first in dist-first/*.zip; do
+            name="$(basename "$first")"
+            cmp "$first" "dist-second/$name"
+            cp "$first" "dist/$name"
+          done
+          cp dist-first/*SHA256SUMS.txt dist/
+      - name: Verify release archive structure
+        shell: bash
+        run: |
+          VERSION="$(python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('addons/script_dependency_inspector/plugin.cfg').read_text(encoding='utf-8')
+          print(re.search(r'^version="([^"]+)"$', text, re.MULTILINE).group(1))
+          PY
+          )"
+          python tools/verify_release_artifacts.py \
+            --addon "dist/script-dependency-inspector-addon-v$VERSION.zip" \
+            --project "dist/script-dependency-inspector-godot4-project-v$VERSION.zip" \
+            --media "dist/script-dependency-inspector-asset-store-media-v$VERSION.zip"
       - name: Build patch from previous release
         if: steps.refs.outputs.previous_tag != ''
         run: >-
@@ -62,12 +88,13 @@ jobs:
           --base-ref "${{ steps.refs.outputs.previous_tag }}"
           --target-ref "${{ steps.refs.outputs.tag }}"
           --output dist
-      - name: Create GitHub release and attach artifacts
+      - name: Create draft GitHub release candidate
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
           gh release create "${{ steps.refs.outputs.tag }}"
           dist/*
+          --draft
           --verify-tag
           --generate-notes
           --title "Script Dependency Inspector ${{ steps.refs.outputs.tag }}"

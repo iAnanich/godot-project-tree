@@ -1,68 +1,56 @@
-# User use cases
+# Script Dependency Inspector — user use cases
 
-Version: 0.2.4
-Status: implemented use cases are linked to the behavioral contract and release validation
+Artifact identity: `script-dependency-inspector-use-cases`
+Version: `0.2.0-alpha.1`
+Release state at issue: Accepted for v0.3.0 implementation
+Issue date: 2026-08-27
 
-## Purpose
 
-This layer describes the outcomes a Godot developer seeks from Script Dependency Inspector. It sits above implementation design and below marketplace copy. The diagrams are navigation aids; the catalogue is the authoritative text alternative.
+Status: accepted user-outcome layer for v0.3.0 implementation
+Authority role: intended use and workflow boundary; product obligations are normative only through referenced `REQ-*` requirements
 
-## Actors
+Related acceptance model: `QUALITY-CONTRACT.md` and `RELEASE-GATES.md`.
 
-- **Godot developer** — enables and operates the editor add-on.
-- **Godot Editor** — supplies files, filesystem-change events, active-script changes, and navigation services.
-- **Diagram or documentation tool** — imports Mermaid, PlantUML, or JSON for larger-canvas rendering, theming, documentation, or further processing.
+## 1. Purpose
+
+This catalogue describes what a Godot developer tries to accomplish with Script Dependency Inspector. It does not prove that users will discover, understand, or complete the workflows without assistance.
+
+Use-case diagrams are navigation aids. The text catalogue is the authoritative alternative representation of the intended workflows.
+
+## 2. Actors
+
+- **Godot developer** — operates the add-on.
+- **Godot Editor** — supplies saved filesystem events, active-script context, project metadata, and navigation services.
+- **Diagram or documentation tool** — consumes Mermaid, PlantUML, or JSON outside Godot.
 - **Documentation consumer** — reads or presents exported architecture evidence.
 
-## Use-case catalogue
+## 3. Use-case catalogue
 
-| ID | Use case | Observable outcome | Important boundary or failure behavior |
-|---|---|---|---|
-| UC-01 | Build a dependency snapshot | A deterministic validated snapshot is produced from bounded project-local inputs. The graph is rendered when enabled. | Invalid roots stop the scan; unreadable optional files produce diagnostics; user scripts are not instantiated. |
-| UC-02 | Restrict the displayed project scope | The selected folder remains with required outside ancestors and direct dependency targets retained as labelled context. | The full bounded project index is still acquired to resolve context. Missing remembered folders fall back to `res://` with a warning. |
-| UC-03 | Inspect inheritance and dependencies | Inheritance, literal/resource use, type-only use, and explicit class-qualified member use can be distinguished. | Dynamic, ambiguous, and runtime-only relationships are omitted rather than guessed. |
-| UC-04 | Focus an inheritance path | Selecting a node emphasizes ancestors and optional descendants; direct and total descendant counts are shown. | Focus is presentation-only and does not mutate the snapshot or exports. |
-| UC-05 | Isolate a relationship neighborhood | Unrelated graph nodes are hidden while selected inheritance and direct dependency context remains. | Clearing focus restores the current scoped graph without rescanning. |
-| UC-06 | Find a class or member | Search matches class names, paths, members, autoloads, scenes, and scene-node paths. | Search changes presentation only; an empty query restores normal presentation. |
-| UC-07 | Navigate to source or scene | Actions open exact recorded source locations or scenes when available. | Stale locations use a safe fallback without claiming exact navigation. |
-| UC-08 | Follow editor activity | Saved filesystem changes trigger one debounced scan by default; the active Script Editor file can select its graph node. | Scans never overlap; changes during a scan produce at most one pending follow-up. Timed rescanning remains independent and default-off. |
-| UC-09 | Inspect editor context | Autoload identity and exact text-scene node attachments are visible and searchable. | Binary scenes, dynamic construction, and transitive scene/resource effects are outside the evidence boundary. |
-| UC-10 | Export architecture evidence | JSON, Mermaid, or PlantUML is written from the same validated snapshot and can be opened in dedicated third-party tools. | JSON is lossless. Diagram formats are representations and may omit evidence that their syntax cannot express. |
-| UC-11 | Keep exports synchronized | Enabled formats are updated independently after a completed scan. | One failed format does not block others; staged replacement protects prior output where possible. |
-| UC-12 | Operate in export-only mode | The developer hides GraphEdit while retaining scans, synchronization, summaries, diagnostics, and manual/automatic file export. | Hiding the graph releases rendered graph nodes but retains the current validated snapshot. Re-enabling renders that snapshot without forcing a new scan. |
-| UC-13 | Configure controls efficiently | Controls are grouped into foldable semantic sections and the scan trigger mode is visible beside **Scan**. | Fold state and graph visibility persist project-locally; every option retains an explanatory tooltip. |
+| ID | Use case | Observable user outcome | Contract boundary | Primary requirements |
+|---|---|---|---|---|
+| UC-01 | Build a dependency snapshot | A deterministic structurally valid snapshot is available from bounded saved project source. Graph renders when enabled. | Invalid roots/fatal validation failures are not reported as success; unsupported runtime relations are not guessed. | `REQ-SCAN-*`, `REQ-MODEL-*`, `REQ-VALID-*` |
+| UC-02 | Restrict the displayed project scope | The selected folder is shown/exported with required outside ancestors and direct dependency context labelled explicitly. | Full bounded acquisition can still read outside the selected scope. | `REQ-SCAN-002`, `REQ-SCOPE-*`, `REQ-SEC-004` |
+| UC-03 | Inspect inheritance and dependencies | The developer can distinguish inheritance, literal script use, type use, and direct class-qualified member evidence. | Missing edges mean unsupported/unestablished static evidence, not proven runtime independence. | `REQ-MODEL-004..010`, `REQ-GRAPH-005..006` |
+| UC-04 | Focus an inheritance path | Selecting a node emphasizes ancestry and optional descendants and can show descendant counts. | Focus changes presentation only. | `REQ-QUERY-002`, `REQ-MODEL-010` |
+| UC-05 | Isolate a relationship neighborhood | The developer can hide unrelated rendered nodes around a selected relationship neighborhood. | Clearing isolation restores the scoped graph without rescanning. | `REQ-QUERY-003` |
+| UC-06 | Find a class or member | Search finds supported class/path/member/autoload/scene values in the current scoped snapshot. | Search does not alter the snapshot or exports. | `REQ-QUERY-001` |
+| UC-07 | Navigate to source or scene | Exact recorded evidence opens the corresponding source location when available. | Missing/stale exact locations use a safe fallback without an exact-position claim. | `REQ-MODEL-007`, `REQ-NAV-001`, `REQ-MODEL-009` |
+| UC-08 | Follow saved editor activity | Saved project changes trigger one debounced non-overlapping scan by default; active Script Editor selection can focus the graph. | Unsaved buffer changes are not analyzed; timed rescan is independent and default-off. | `REQ-SCAN-005`, `REQ-SYNC-*`, `REQ-NAV-002` |
+| UC-09 | Inspect editor context | Autoload identity and exact recognized text-scene node attachments are available. | Binary scenes and dynamic/transitive scene effects are excluded. | `REQ-MODEL-008..009` |
+| UC-10 | Export architecture evidence | JSON, Mermaid, or PlantUML is written from the same accepted snapshot and can be consumed by external tools. | JSON is exact within the schema; diagram exports can be lossy. | `REQ-EXPORT-001..003`, `REQ-EXPORT-006..008` |
+| UC-11 | Keep exports synchronized | Enabled formats are attempted independently after a completed scan. | One failed format does not block another; automatic export must not use an invalid scan result. | `REQ-SYNC-003..005`, `REQ-EXPORT-004..007` |
+| UC-12 | Operate in export-only mode without the built-in graph | The developer hides GraphEdit while retaining scan, synchronization, summary, diagnostics, and exports. | Re-enabling Graph renders the retained accepted snapshot without a forced rescan. | `REQ-GRAPH-001..003` |
+| UC-13 | Configure controls efficiently | The developer sees scan trigger mode and can fold semantic control groups. | Fold state and graph visibility are presentation/editor state; every interactive option remains explainable. | `REQ-UI-*`, `REQ-SYNC-006`, `REQ-STATE-*` |
 
-## Diagrams
+## 4. Cross-use-case limitations
 
-### Product use-case overview
+- The add-on analyzes saved project source, not unsaved Script Editor buffers.
+- The selected scope is a display/export projection, not a filesystem-read sandbox.
+- Graph layout position and edge length do not encode dependency strength or runtime frequency.
+- Missing static evidence does not prove missing runtime dependency.
+- Mermaid and PlantUML are presentation exports and can omit canonical evidence that JSON preserves.
+- Formal unfamiliar-user comprehension and accessibility certification are not established by these use cases or diagrams.
 
-![Overview of Script Dependency Inspector user use cases](diagrams/use-cases-overview.svg)
+## 5. Open workflow decision
 
-**Text alternative:** A Godot developer builds and scopes a validated snapshot, optionally renders and inspects the interactive graph, navigates to evidence, or operates export-only. Editor events can synchronize scans. JSON, Mermaid, and PlantUML files are consumed by documentation or dedicated diagram tools.
-
-### Analysis and navigation
-
-![Analysis and navigation use cases](diagrams/use-cases-analysis.svg)
-
-**Text alternative:** Bounded source acquisition, supported static recognition, graph construction, scope projection, and validation always precede public output. Graph rendering is optional. Search, focus, isolation, and navigation operate only when the graph is visible, while export-only operation consumes the validated snapshot directly.
-
-### Synchronization and export
-
-![Synchronization and export use cases](diagrams/use-cases-synchronization.svg)
-
-**Text alternative:** Editor filesystem changes use a quiet-period debounce and start one non-overlapping scan. Timed fallback is a separate default-off trigger. After validation the graph is rendered only when enabled, then JSON, Mermaid, and PlantUML exports are attempted independently and may be opened in dedicated tools.
-
-## Traceability
-
-| Use cases | Primary contract/design sections | Principal automated evidence |
-|---|---|---|
-| UC-01, UC-03 | `CONTRACT.md`; canonical model in `DESIGN.md` | Scanner/analyzer/builder/validator tests; export matrix |
-| UC-02 | Scope contract; ADR 0006 | Scope projection and validation tests |
-| UC-04, UC-05 | Presentation queries | Graph-query tests and rendered focus/isolation states |
-| UC-06, UC-07 | ADR 0004 | Search/navigation tests and screenshots |
-| UC-08, UC-11 | ADR 0003/0004 | Automation runner and non-overlap tests |
-| UC-09 | ADR 0005 | Scene/autoload scanner-builder-validator tests |
-| UC-10 | `SCHEMA.md`; exporter contracts | Exporter suite, export matrix, file-integrity checks |
-| UC-12, UC-13 | ADR 0007; current UI contract | Export-only rerender test, compact-toolbar and fold-state contracts, rendered screenshots |
-
-Independent unfamiliar-user comprehension remains unverified. These diagrams represent intended use, not evidence that every user will discover or understand each workflow unaided.
+`OPEN-001` affects UC-01, UC-10, UC-11, and UC-12: the product still needs an owner-approved rule for how a previous valid snapshot is presented after a later fatal rescan.

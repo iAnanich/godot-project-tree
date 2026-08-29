@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.3.0 — 2026-08-27
+
+### Changed
+
+- Dependency discovery is now source-only: analyzed project GDScript resources are not loaded for reflection. The legacy `use_runtime_reflection` setting remains readable but has no effect.
+- Scoped snapshot candidates must pass structural validation before becoming the accepted snapshot, rendering, or triggering automatic exports.
+- Scanner and graph-builder services expose transitive initialization failures consistently with the export service.
+- Required `gdformat`/`gdlint` checks fail closed when tooling is unavailable; CI invokes the same pinned toolchain.
+- GitHub tag automation builds a draft release candidate, performs a controlled second archive build, and does not imply the full runtime release matrix passed.
+- Release manifests are generated inside project archives instead of mutating the repository root.
+
+### Added
+
+- Regression coverage showing dependency scanning does not execute a scanned static initializer.
+- Failure-injection coverage showing a failed export replacement restores the previous destination.
+- Verification tooling for the actual packaged add-on ZIP and release archive structure.
+- Durable product requirements, release requirements, quality contract, release gates, and traceability documentation.
+- ADR 0009 documenting the non-executing source-analysis boundary.
+
+### Compatibility
+
+- Snapshot schema remains v2 and editor-state schema remains v4.
+- This MINOR increment is intentional during the `0.y.z` line because the legacy reflection behavior is no longer performed.
+- Previously deferred signal/override/`super()` evidence features remain out of this release.
+
+
 ## 0.2.4 — 2026-08-04
 
 - Added repository-owned Godot Asset Library thumbnail and seven focused featured WebP images at 1920×1080.

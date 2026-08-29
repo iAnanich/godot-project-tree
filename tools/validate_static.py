@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import shutil
@@ -28,17 +29,16 @@ EXPECTED = [
     ROOT / "AI_USAGE_NOTICE.md",
     ROOT / "docs" / "ARCHITECTURE.md",
     ROOT / "docs" / "DESIGN.md",
+    ROOT / "docs" / "REQUIREMENTS.md",
+    ROOT / "docs" / "RELEASE-REQUIREMENTS.md",
+    ROOT / "docs" / "QUALITY-CONTRACT.md",
+    ROOT / "docs" / "RELEASE-GATES.md",
+    ROOT / "docs" / "TRACEABILITY.md",
     ROOT / "docs" / "ASSET_STORE_DESCRIPTION.md",
     ROOT / "docs" / "SCHEMA.md",
     ROOT / "docs" / "SECURITY.md",
     ROOT / "docs" / "PERFORMANCE.md",
     ROOT / "docs" / "USE_CASES.md",
-    ROOT / "docs" / "validation" / "v0.2.0-compatibility-matrix.md",
-    ROOT / "docs" / "validation" / "v0.2.1-compatibility-matrix.md",
-    ROOT / "docs" / "validation" / "v0.2.2-compatibility-matrix.md",
-    ROOT / "docs" / "validation" / "v0.2.2-release-validation.md",
-    ROOT / "docs" / "validation" / "v0.2.4-compatibility-matrix.md",
-    ROOT / "docs" / "validation" / "v0.2.4-release-validation.md",
     ROOT / "docs" / "ROADMAP.md",
     ROOT / "docs" / "RELEASING.md",
     ROOT / "docs" / "COMPREHENSION_TEST.md",
@@ -48,36 +48,6 @@ EXPECTED = [
     ROOT / "docs" / "diagrams" / "use-cases-analysis.svg",
     ROOT / "docs" / "diagrams" / "use-cases-synchronization.dot",
     ROOT / "docs" / "diagrams" / "use-cases-synchronization.svg",
-    ROOT / "docs" / "images" / ".gdignore",
-    ROOT / "docs" / "images" / "v0.1.7-overview.png",
-    ROOT / "docs" / "images" / "v0.1.7-analysis.png",
-    ROOT / "docs" / "images" / "v0.1.7-customization.png",
-    ROOT / "docs" / "images" / "v0.1.8-overview.png",
-    ROOT / "docs" / "images" / "v0.1.8-analysis.png",
-    ROOT / "docs" / "images" / "v0.1.8-member-links.png",
-    ROOT / "docs" / "images" / "v0.1.8-native-families.png",
-    ROOT / "docs" / "images" / "v0.1.8-automation.png",
-    ROOT / "docs" / "images" / "v0.1.8-option-tooltip.png",
-    ROOT / "docs" / "images" / "v0.1.8-colors.png",
-    ROOT / "docs" / "images" / "v0.1.8-appearance.png",
-    ROOT / "docs" / "images" / "v0.1.8-summary.png",
-    ROOT / "docs" / "images" / "v0.1.8-arranged.png",
-    ROOT / "docs" / "images" / "v0.2.0-overview.png",
-    ROOT / "docs" / "images" / "v0.2.0-search.png",
-    ROOT / "docs" / "images" / "v0.2.0-navigation.png",
-    ROOT / "docs" / "images" / "v0.2.0-context.png",
-    ROOT / "docs" / "images" / "v0.2.0-sync.png",
-    ROOT / "docs" / "images" / "v0.2.0-automation.png",
-    ROOT / "docs" / "images" / "v0.2.0-analysis.png",
-    ROOT / "docs" / "images" / "v0.2.0-summary.png",
-    ROOT / "docs" / "images" / "v0.2.1-overview.png",
-    ROOT / "docs" / "images" / "v0.2.1-scope.png",
-    ROOT / "docs" / "images" / "v0.2.1-focus.png",
-    ROOT / "docs" / "images" / "v0.2.1-isolated.png",
-    ROOT / "docs" / "images" / "v0.2.2-overview.png",
-    ROOT / "docs" / "images" / "v0.2.2-export-only.png",
-    ROOT / "docs" / "images" / "v0.2.2-folded-controls.png",
-    ROOT / "docs" / "images" / "v0.2.2-automation.png",
     ROOT / "docs" / "schema" / "snapshot-v1.schema.json",
     ROOT / "docs" / "schema" / "snapshot-v2.schema.json",
     ROOT / "docs" / "decisions" / "0001-canonical-dictionary-snapshot.md",
@@ -88,6 +58,7 @@ EXPECTED = [
     ROOT / "docs" / "decisions" / "0006-scoped-projection-and-focus.md",
     ROOT / "docs" / "decisions" / "0007-optional-graph-and-control-hierarchy.md",
     ROOT / "docs" / "decisions" / "0008-scope-paths-and-release-artifacts.md",
+    ROOT / "docs" / "decisions" / "0009-source-only-project-analysis.md",
     PLUGIN / "plugin.cfg",
     PLUGIN / "icon.svg",
     PLUGIN / "LICENSE",
@@ -111,7 +82,12 @@ EXPECTED = [
     ROOT / "tests" / "generate_showcase_exports.gd",
     ROOT / "tests" / "contracts" / "exporter_contract.gd",
     ROOT / "tests" / "suites" / "quality_contract_suite.gd",
+    ROOT / "tests" / "security_fixtures" / "static_initializer_side_effect.gd",
+    ROOT / "tests" / "contract_fixtures" / "services" / "failing_commit_export_service.gd",
     ROOT / "tools" / "run_validation.py",
+    ROOT / "tools" / "run_gdscript_quality.py",
+    ROOT / "tools" / "verify_packaged_addon.py",
+    ROOT / "tools" / "verify_release_artifacts.py",
     ROOT / "tools" / "build_release.py",
     ROOT / "tools" / "package_addon.py",
     ROOT / "tools" / "build_patch.py",
@@ -418,7 +394,7 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.2.4"' in plugin_cfg, "plugin.cfg version is not 0.2.4.")
+    check('version="0.3.0"' in plugin_cfg, "plugin.cfg version is not 0.3.0.")
 
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
     check(
@@ -598,7 +574,7 @@ def validate_v021_feature_contracts() -> None:
     for use_case in ["UC-01", "UC-02", "UC-04", "UC-05", "UC-11"]:
         check(use_case in use_cases, f"Use-case catalogue is missing {use_case}.")
     check(
-        "Text alternative" in use_cases,
+        "authoritative alternative representation" in use_cases,
         "Use-case diagrams need an authoritative text alternative.",
     )
 
@@ -666,7 +642,8 @@ def validate_v023_feature_contracts() -> None:
         check(token in patch_builder, f"Verified patch generation is missing: {token}")
     for token in ["gh release create", "tools/build_patch.py", "tools/build_release.py"]:
         check(token in release_workflow, f"GitHub release workflow is missing: {token}")
-    check("gdformat" in precommit and "gdlint" in precommit and "4.5.0" in precommit,
+    requirements_dev = (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
+    check("gdformat" in precommit and "gdlint" in precommit and "gdtoolkit==4.5.0" in requirements_dev,
           "Pinned pre-commit gdformat/gdlint hooks are missing.")
     for removed in [
         ROOT / "docs" / "QUALITY_REVIEW.md",
@@ -676,6 +653,52 @@ def validate_v023_feature_contracts() -> None:
         ROOT / "docs" / "reviews",
     ]:
         check(not removed.exists(), f"Repository-internal review/provenance artifact remains: {removed.relative_to(ROOT)}")
+
+
+
+def validate_v030_feature_contracts(*, allow_root_manifest: bool = False) -> None:
+    scanner = (PLUGIN / "core" / "project_scanner.gd").read_text(encoding="utf-8")
+    builder = (PLUGIN / "core" / "graph_builder.gd").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    settings = (PLUGIN / "core" / "settings.gd").read_text(encoding="utf-8")
+    release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
+    release_workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    quality_workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+    quality_suite = (ROOT / "tests" / "suites" / "quality_contract_suite.gd").read_text(encoding="utf-8")
+    requirements = (ROOT / "docs" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+
+    check("_reflect_script" not in scanner,
+          "Project scanner must not retain analyzed-project Script reflection.")
+    check('resolved_options["use_runtime_reflection"]' not in scanner,
+          "Legacy runtime-reflection setting must not reactivate project-script loading.")
+    check("use_runtime_reflection" not in settings.split("func to_scan_options", 1)[-1],
+          "Settings must not emit the deprecated runtime-reflection option to the scanner.")
+    check("func initialization_errors()" in scanner and "func initialization_errors()" in builder,
+          "Scanner and graph builder must expose transitive initialization failures.")
+    validation_pos = dock.find("_validate_snapshot_candidate(candidate_snapshot)")
+    accept_pos = dock.find("_snapshot = candidate_snapshot")
+    check(validation_pos >= 0 and accept_pos > validation_pos,
+          "Dock must validate a candidate snapshot before accepting it as current.")
+    check("STATIC_EXECUTION_MARKER" in quality_suite and "use_runtime_reflection" in quality_suite,
+          "Source-only regression must prove the legacy option cannot execute a scanned static initializer.")
+    check("FAILING_COMMIT_SERVICE_PATH" in quality_suite and "commit_failed_restored" in quality_suite,
+          "Export replacement recovery failure-injection regression is missing.")
+    check("load analyzed project GDScript resources" in requirements,
+          "Requirements do not state the source-only project-script loading prohibition.")
+    check('(ROOT / "MANIFEST.sha256").write_bytes' not in release_builder,
+          "Release builder must not mutate the repository root MANIFEST.sha256.")
+    check(
+        allow_root_manifest or not (ROOT / "MANIFEST.sha256").exists(),
+        "Generated root MANIFEST.sha256 must not remain in the repository source tree.",
+    )
+    check("--draft" in release_workflow,
+          "GitHub tag workflow must create a draft release candidate, not imply runtime verification.")
+    check("dist-first" in release_workflow and "dist-second" in release_workflow and "cmp " in release_workflow,
+          "GitHub release workflow must perform a controlled second archive build before reproducibility claims.")
+    check("run_gdscript_quality.py" in release_workflow and "run_gdscript_quality.py" in quality_workflow,
+          "GitHub quality/release workflows must run the fail-closed GDScript quality gate.")
+    for removed in [ROOT / "docs" / "validation", ROOT / "docs" / "images", ROOT / "docs" / "CONTRACT.md", ROOT / "docs" / "RESEARCH.md"]:
+        check(not removed.exists(), f"Superseded or release-specific repository artifact remains: {removed.relative_to(ROOT)}")
 
 
 def validate_schema_contract() -> None:
@@ -808,7 +831,7 @@ def validate_documentation_contract() -> None:
         "CHANGELOG.md",
     ]:
         check(required_reference in readme, f"README does not link to {required_reference}.")
-    check("0.2.4" in readme, "README release identifier is not 0.2.4.")
+    check("0.3.0" in readme, "README release identifier is not 0.3.0.")
 
 
 def validate_quality_contracts() -> None:
@@ -896,23 +919,6 @@ def validate_exporter_contracts() -> None:
           "Export extension replacement contract is missing.")
 
 
-def run_command(command: list[str], description: str) -> None:
-    executable = shutil.which(command[0])
-    if executable is None:
-        notes.append(f"Skipped optional validation command: {command[0]}")
-        return
-    result = subprocess.run(
-        [executable, *command[1:]],
-        cwd=ROOT,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    check(result.returncode == 0, f"{description} failed:\n{result.stdout.strip()}")
-
-
-
 
 def validate_asset_store_media_contract() -> None:
     result = subprocess.run(
@@ -925,13 +931,16 @@ def validate_asset_store_media_contract() -> None:
     )
     check(result.returncode == 0, f"Asset-store media validation failed:\n{result.stdout.strip()}")
 
-def validate_gdscript_tooling() -> None:
-    scripts = [str(path) for path in sorted(ROOT.rglob("*.gd"))]
-    run_command(["gdlint", *scripts], "gdlint")
-    run_command(["gdformat", "--check", *scripts], "gdformat --check")
-
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--allow-root-manifest",
+        action="store_true",
+        help="Allow MANIFEST.sha256 only when validating an extracted release archive.",
+    )
+    arguments = parser.parse_args()
+
     validate_expected_files()
     validate_resource_references()
     validate_unique_name_contract(
@@ -952,6 +961,7 @@ def main() -> int:
     validate_v021_feature_contracts()
     validate_v022_feature_contracts()
     validate_v023_feature_contracts()
+    validate_v030_feature_contracts(allow_root_manifest=arguments.allow_root_manifest)
     validate_schema_contract()
     validate_default_color_contract()
     validate_documentation_contract()
@@ -959,7 +969,6 @@ def main() -> int:
     validate_public_method_documentation()
     validate_exporter_contracts()
     validate_asset_store_media_contract()
-    validate_gdscript_tooling()
 
     if failures:
         print(f"Static validation failed: {len(failures)} issue(s), {checks} checks.")

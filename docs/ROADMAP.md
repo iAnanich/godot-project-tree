@@ -1,6 +1,18 @@
 # Release roadmap
 
-Status date: 2026-08-04
+Status date: 2026-08-27
+
+## v0.3.0 — source-only trust boundary and release assurance
+
+Status: implementation complete; release verification remains blocked by unresolved required gates.
+
+- Removed analyzed-project `Script` reflection from dependency discovery.
+- Validate scoped snapshot candidates before acceptance and automatic export.
+- Expose transitive initialization failures from scanner and graph-builder services.
+- Add failure-injection coverage for export replacement recovery.
+- Add fail-closed GDScript quality, packaged-add-on, archive, reproducibility, and patch reconstruction gates.
+- Integrate requirements, quality contract, release gates, and traceability as durable repository knowledge.
+
 
 ## v0.2.4 — Asset Library media refresh
 
@@ -31,7 +43,7 @@ Status: implemented; validation evidence is recorded in `VALIDATION.md`.
 - Marketplace copy emphasizing third-party Mermaid/PlantUML/JSON workflows and summarizing AI-assisted development.
 - UC-12 export-only and UC-13 control-configuration use cases with updated diagrams.
 
-## Next release
+## Deferred product work
 
 The previously proposed v0.3.0 signal-emission/override evidence is **on hold**. The next feature set will be defined from the owner's separate improvement list before version scope or schema impact is assigned.
 

@@ -1,6 +1,6 @@
 # AI-assisted development notice
 
-Script Dependency Inspector was developed with extensive assistance from generative AI systems, principally OpenAI ChatGPT. The v0.2.3 maintenance/release-tooling work and v0.2.4 media workflow used GPT-5.6 Thinking; earlier revisions may have used different model versions.
+Script Dependency Inspector was developed with extensive assistance from generative AI systems, principally OpenAI ChatGPT. The v0.2.3 release-tooling work, v0.2.4 media workflow, and v0.3.0 requirements/design/quality implementation work used OpenAI models; earlier revisions may have used different model versions.
 
 ## How AI was used
 
@@ -30,7 +30,7 @@ AI-assisted changes are subjected to the same repository controls as other chang
 - Godot parser/editor import checks;
 - public, negative, boundary, synchronization, export-matrix, visual, and performance tests;
 - execution against the supplied Linux builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7 for claimed releases;
-- deterministic release construction, SHA-256 manifests, ZIP integrity checks, and patch reconstruction;
+- deterministic release construction, controlled second-build comparison where reproducibility is claimed, SHA-256 manifests, ZIP integrity checks, packaged-add-on smoke verification, and patch reconstruction;
 - rendered screenshot and diagram inspection for clipping, state visibility, and documentation consistency;
 - provenance, licensing, security-boundary, and unsupported-claim review.
 

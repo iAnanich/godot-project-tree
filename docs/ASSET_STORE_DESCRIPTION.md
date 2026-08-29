@@ -14,7 +14,7 @@ Script Dependency Inspector builds a deterministic static dependency snapshot fr
 
 ## Full description
 
-Script Dependency Inspector scans GDScript source without instantiating project classes, validates one canonical dependency snapshot, and makes that evidence available both inside Godot and as portable files.
+Script Dependency Inspector scans saved GDScript source without loading analyzed project scripts for reflection or instantiating project classes. It validates one canonical dependency snapshot and makes that evidence available both inside Godot and as portable files.
 
 ### Inspect inside Godot
 

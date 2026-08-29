@@ -2,8 +2,8 @@
 """Build deterministic Script Dependency Inspector release archives.
 
 The builder excludes editor/cache/version-specific sidecars, writes the full-project
-manifest, creates stable ZIP member order and timestamps, and emits archive checksums.
-Set SOURCE_DATE_EPOCH to override the reproducible ZIP timestamp.
+manifest inside the project archive, creates stable ZIP member order and timestamps, and emits archive checksums.
+Set SOURCE_DATE_EPOCH to override the deterministic ZIP timestamp.
 """
 
 from __future__ import annotations
@@ -147,8 +147,6 @@ def build(output_directory: Path) -> list[Path]:
     output_directory.mkdir(parents=True, exist_ok=True)
     files = release_files()
     manifest = manifest_bytes(files)
-    (ROOT / "MANIFEST.sha256").write_bytes(manifest)
-
     addon = output_directory / f"script-dependency-inspector-addon-v{version}.zip"
     project = output_directory / f"script-dependency-inspector-godot4-project-v{version}.zip"
     media = output_directory / f"script-dependency-inspector-asset-store-media-v{version}.zip"

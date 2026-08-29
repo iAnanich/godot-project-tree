@@ -33,6 +33,11 @@ func _init() -> void:
 			)
 
 
+## Returns failures encountered while loading required scanner dependencies.
+func initialization_errors() -> Array[String]:
+	return _dependency_errors.duplicate()
+
+
 ## Validates and normalizes a project-local directory before it is accepted as
 ## a user-visible analysis scope. FileDialog may return either a res:// path or
 ## an absolute filesystem path; absolute paths are localized only when they are
@@ -51,7 +56,7 @@ func validate_root(root_path: String) -> Dictionary:
 
 ## Recursively scans GDScript files under root_path and resolves each script's
 ## direct base using source declarations, the project global-class registry,
-## ClassDB, and optional Script reflection. It never instantiates user scripts.
+## and ClassDB. It does not load analyzed project scripts as Script resources.
 func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 	var resolved_options = _with_defaults(options)
 	var root_validation: Dictionary = validate_root(root_path)
@@ -122,17 +127,6 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 
 		var analysis: Dictionary = _analyzer.analyze(source_result["text"], script_path)
 		result["warnings"].append_array(analysis.get("warnings", []))
-		var reflection = {}
-		if resolved_options["use_runtime_reflection"]:
-			reflection = _reflect_script(script_path)
-			if not reflection.get("loaded", false):
-				result["warnings"].append(
-					"Godot could not load %s; source-only analysis was used." % script_path
-				)
-
-		var reflected_global_name = str(reflection.get("global_name", ""))
-		if str(analysis["class_name"]).is_empty() and not reflected_global_name.is_empty():
-			analysis["class_name"] = reflected_global_name
 
 		var display_name = str(analysis["class_name"])
 		if display_name.is_empty():
@@ -149,7 +143,7 @@ func scan(root_path: String = "res://", options: Dictionary = {}) -> Dictionary:
 			"is_addon": script_path.begins_with("res://addons/"),
 			"autoload": autoload,
 			"analysis": analysis,
-			"reflection": reflection,
+			"reflection": {},
 			"direct_base": {"kind": "none", "value": "", "display": ""},
 		}
 		records.append(record)
@@ -258,7 +252,6 @@ func _validate_scan_root(original_root: String, normalized_root: String) -> Stri
 func _with_defaults(options: Dictionary) -> Dictionary:
 	var defaults = {
 		"include_addons": true,
-		"use_runtime_reflection": true,
 		"follow_symbolic_links": false,
 		"maximum_scanned_files": 10000,
 		"maximum_scanned_directories": 20000,
@@ -390,19 +383,6 @@ func _read_text_file(path: String, maximum_bytes: int) -> Dictionary:
 	return {"ok": true, "text": text, "error": OK}
 
 
-func _reflect_script(path: String) -> Dictionary:
-	var resource = ResourceLoader.load(path)
-	if resource == null or not resource is Script:
-		return {"loaded": false}
-	var script = resource as Script
-	var base_script = _compat_script.call("script_base_script", script) as Script
-	return {
-		"loaded": true,
-		"global_name": str(_compat_script.call("script_global_name", script)),
-		"native_base": str(_compat_script.call("script_native_base", script)),
-		"base_script_path": "" if base_script == null else base_script.resource_path,
-	}
-
 
 func _global_class_index() -> Dictionary:
 	var index = {}
@@ -419,43 +399,32 @@ func _global_class_index() -> Dictionary:
 func _resolve_direct_base(
 	record: Dictionary, path_index: Dictionary, class_index: Dictionary, global_classes: Dictionary
 ) -> Dictionary:
-	var reflection: Dictionary = record["reflection"]
 	var analysis: Dictionary = record["analysis"]
 	var resolved: Dictionary = {}
-	var reflected_base_path = str(reflection.get("base_script_path", ""))
-	if not reflected_base_path.is_empty():
-		resolved = _resolve_path_base(
-			reflected_base_path, str(record["path"]), path_index, global_classes
-		)
-	else:
-		var parsed_base: Dictionary = analysis["extends"]
-		match str(parsed_base.get("kind", "none")):
-			"path":
-				resolved = _resolve_path_base(
-					str(parsed_base["value"]), str(record["path"]), path_index, global_classes
-				)
-			"symbol":
-				resolved = _resolve_symbol_base(
-					str(parsed_base["value"]), reflection, path_index, class_index, global_classes
-				)
-			"unresolved":
-				resolved = {
-					"kind": "unresolved",
-					"value": str(parsed_base["value"]),
-					"display": str(parsed_base["value"]),
-				}
+	var parsed_base: Dictionary = analysis["extends"]
+	match str(parsed_base.get("kind", "none")):
+		"path":
+			resolved = _resolve_path_base(
+				str(parsed_base["value"]), str(record["path"]), path_index, global_classes
+			)
+		"symbol":
+			resolved = _resolve_symbol_base(
+				str(parsed_base["value"]), path_index, class_index, global_classes
+			)
+		"unresolved":
+			resolved = {
+				"kind": "unresolved",
+				"value": str(parsed_base["value"]),
+				"display": str(parsed_base["value"]),
+			}
 
 	if resolved.is_empty():
-		var native_base = str(reflection.get("native_base", ""))
-		if native_base.is_empty():
-			native_base = "RefCounted"
-		resolved = {"kind": "native", "value": native_base, "display": native_base}
+		resolved = {"kind": "native", "value": "RefCounted", "display": "RefCounted"}
 	return resolved
 
 
 func _resolve_symbol_base(
 	symbol: String,
-	reflection: Dictionary,
 	path_index: Dictionary,
 	class_index: Dictionary,
 	global_classes: Dictionary
@@ -486,7 +455,7 @@ func _resolve_symbol_base(
 			"kind": "unresolved",
 			"value": symbol,
 			"display": symbol,
-			"native_base": str(reflection.get("native_base", "")),
+			"native_base": "",
 		}
 	return resolved
 

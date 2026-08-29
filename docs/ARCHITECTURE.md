@@ -1,6 +1,6 @@
 # Architecture
 
-Version: 0.2.4
+Version: 0.3.0
 
 ## Boundaries
 
@@ -10,7 +10,7 @@ The add-on separates acquisition, recognition, model construction, scoped projec
 
 | Component | Responsibility | Must not do |
 |---|---|---|
-| `ProjectScanner` | Validate project roots; enumerate bounded project files; acquire source; resolve autoload/base inputs | Instantiate user classes or treat a selected display scope as a trust boundary |
+| `ProjectScanner` | Validate project roots; enumerate bounded project files; acquire source; resolve autoload/base inputs from source/project metadata/ClassDB | Load or execute analyzed project GDScript, instantiate user classes, or treat a selected display scope as a trust boundary |
 | `GDScriptAnalyzer` | Recognize the supported declaration/dependency subset and source locations | Claim general AST, call-graph, or runtime inference |
 | `SceneUsageScanner` | Record exact direct text-scene node script attachments | Parse binary scenes or infer transitive resource graphs |
 | `GraphBuilder` | Build deterministic snapshot-v2 nodes, edges, native chains, and provenance | Apply display scope or mutate data for layout |
@@ -44,3 +44,7 @@ res:// bounded index
 - Editor state is project-local under `.godot`, schema-versioned (v4), and excluded from releases.
 - Graph rendering is optional; exporters consume validated snapshots and never GraphNode state.
 - Scans and export sequences are synchronous and non-overlapping; one pending refresh is coalesced.
+
+## v0.3.0 trust-boundary refinement
+
+ADR 0009 narrows ADR 0002: dependency discovery no longer loads analyzed project scripts as `Script` resources. Required add-on implementation scripts remain checked plugin-internal dependencies. Candidate scoped snapshots are structurally validated before they become the accepted snapshot or trigger automatic export.

@@ -8,6 +8,7 @@ const LOGGER_SCRIPT_PATH: String = ADDON_ROOT + "core/logger.gd"
 const SCANNER_SCRIPT_PATH: String = ADDON_ROOT + "core/project_scanner.gd"
 const GRAPH_BUILDER_SCRIPT_PATH: String = ADDON_ROOT + "core/graph_builder.gd"
 const SNAPSHOT_SCOPE_SCRIPT_PATH: String = ADDON_ROOT + "core/snapshot_scope.gd"
+const SNAPSHOT_VALIDATOR_SCRIPT_PATH: String = ADDON_ROOT + "core/snapshot_validator.gd"
 const GRAPH_QUERY_SCRIPT_PATH: String = ADDON_ROOT + "core/graph_query.gd"
 const EDITOR_STATE_STORE_SCRIPT_PATH: String = ADDON_ROOT + "core/editor_state_store.gd"
 const EDITOR_STATE_PATH: String = "res://.godot/script_dependency_inspector/editor_state.json"
@@ -45,6 +46,7 @@ var _logger
 var _scanner
 var _builder
 var _scope_projector
+var _snapshot_validator
 var _graph_query
 var _export_service
 var _state_store
@@ -217,6 +219,7 @@ func _initialize_dependencies() -> bool:
 	var scanner_script = _load_required_script(SCANNER_SCRIPT_PATH, "project scanner")
 	var builder_script = _load_required_script(GRAPH_BUILDER_SCRIPT_PATH, "graph builder")
 	var scope_script = _load_required_script(SNAPSHOT_SCOPE_SCRIPT_PATH, "snapshot scope projector")
+	var validator_script = _load_required_script(SNAPSHOT_VALIDATOR_SCRIPT_PATH, "snapshot validator")
 	var graph_query_script = _load_required_script(GRAPH_QUERY_SCRIPT_PATH, "graph query service")
 	var export_service_script = _load_required_script(EXPORT_SERVICE_SCRIPT_PATH, "export service")
 	var state_store_script = _load_required_script(
@@ -232,6 +235,7 @@ func _initialize_dependencies() -> bool:
 	_scanner = scanner_script.new()
 	_builder = builder_script.new()
 	_scope_projector = scope_script.new()
+	_snapshot_validator = validator_script.new()
 	_graph_query = graph_query_script.new()
 	_export_service = export_service_script.new()
 	_state_store = state_store_script.new()
@@ -240,6 +244,7 @@ func _initialize_dependencies() -> bool:
 		or _scanner == null
 		or _builder == null
 		or _scope_projector == null
+		or _snapshot_validator == null
 		or _graph_query == null
 		or _export_service == null
 		or _state_store == null
@@ -265,9 +270,10 @@ func _initialize_dependencies() -> bool:
 					% [required_method, DEFAULT_SETTINGS_PATH]
 				)
 			)
-	if _export_service.has_method("initialization_errors"):
-		for error_value in _export_service.call("initialization_errors"):
-			_record_initialization_error(str(error_value))
+	for service_value in [_scanner, _builder, _export_service]:
+		if service_value != null and service_value.has_method("initialization_errors"):
+			for error_value in service_value.call("initialization_errors"):
+				_record_initialization_error(str(error_value))
 	return _initialization_errors.is_empty()
 
 
@@ -342,15 +348,36 @@ func scan_project() -> void:
 	log_view.clear()
 	var scope_validation: Dictionary = _scanner.call("validate_root", _scan_root)
 	if not scope_validation.get("ok", false):
-		_scan_in_progress = false
-		scan_button.disabled = false
-		status_label.text = str(scope_validation.get("error", "Invalid scan root."))
-		_update_refresh_schedules()
+		_finish_scan_failure(str(scope_validation.get("error", "Invalid scan root.")))
 		return
 	_scan_root = str(scope_validation.get("root", "res://"))
 	var scan_result: Dictionary = _scanner.scan("res://", settings.call("to_scan_options"))
+	if not scan_result.get("errors", []).is_empty():
+		for error_value in scan_result.get("errors", []):
+			_logger.error(str(error_value))
+		_finish_scan_failure("Dependency scan failed; see the Log tab.")
+		return
 	var full_snapshot: Dictionary = _builder.build(scan_result, settings.call("to_graph_options"))
-	_snapshot = _scope_projector.call("project", full_snapshot, _scan_root)
+	if not full_snapshot.get("errors", []).is_empty():
+		for error_value in full_snapshot.get("errors", []):
+			_logger.error(str(error_value))
+		_finish_scan_failure("Dependency graph construction failed; see the Log tab.")
+		return
+	var candidate_snapshot: Dictionary = _scope_projector.call("project", full_snapshot, _scan_root)
+	var validation: Dictionary = _validate_snapshot_candidate(candidate_snapshot)
+	if not validation.get("ok", false):
+		for issue_value in validation.get("errors", []):
+			var issue: Dictionary = issue_value if issue_value is Dictionary else {}
+			_logger.error(
+				str(issue.get("message", "Snapshot validation failed.")),
+				{
+					"code": str(issue.get("code", "invalid_snapshot")),
+					"context": issue.get("context", {}),
+				}
+			)
+		_finish_scan_failure("Snapshot validation failed; see the Log tab.")
+		return
+	_snapshot = candidate_snapshot
 	if not _focused_node_id.is_empty() and not _snapshot_has_node(_focused_node_id):
 		_focused_node_id = ""
 	_render_snapshot()
@@ -377,6 +404,34 @@ func scan_project() -> void:
 	scan_button.disabled = false
 	export_button.disabled = _snapshot.get("nodes", []).is_empty()
 	status_label.text = _snapshot_status_text(automatic_exports)
+	if _editor_change_pending and sync_on_editor_changes_check.button_pressed:
+		_editor_change_pending = false
+		_start_editor_change_timer()
+	else:
+		_update_refresh_schedules()
+
+
+func _validate_snapshot_candidate(candidate_snapshot: Dictionary) -> Dictionary:
+	if _snapshot_validator == null or not _snapshot_validator.has_method("validate"):
+		return {
+			"ok": false,
+			"errors": [
+				{
+					"code": "validator_unavailable",
+					"message": "Snapshot validator is unavailable.",
+					"context": {},
+				}
+			],
+			"warnings": [],
+		}
+	return _snapshot_validator.call("validate", candidate_snapshot)
+
+
+func _finish_scan_failure(message: String) -> void:
+	_scan_in_progress = false
+	scan_button.disabled = false
+	export_button.disabled = true
+	status_label.text = message
 	if _editor_change_pending and sync_on_editor_changes_check.button_pressed:
 		_editor_change_pending = false
 		_start_editor_change_timer()

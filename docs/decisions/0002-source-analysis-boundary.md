@@ -1,7 +1,8 @@
 # ADR 0002: Keep dependency discovery conservative and source-based
 
-- Status: Accepted
+- Status: Accepted; reflection-enrichment clause superseded by ADR 0009
 - Date: 2026-07-28
+- Partial supersession: ADR 0009 (2026-08-27)
 
 ## Context
 
@@ -9,7 +10,9 @@ A complete GDScript call graph would require compiler-grade parsing plus runtime
 
 ## Decision
 
-Recognize explicit source evidence only: inheritance declarations, literal `.gd` loads, declared types, and direct class-qualified member access. Use optional Godot reflection only to enrich class/base resolution. Do not infer ordinary instance calls, aliases, dependency-injection targets, virtual dispatch, evaluated expressions, or dynamic resource paths.
+Recognize explicit source evidence only: inheritance declarations, literal `.gd` loads, declared types, and direct class-qualified member access. Do not infer ordinary instance calls, aliases, dependency-injection targets, virtual dispatch, evaluated expressions, or dynamic resource paths.
+
+Historical note: this ADR originally permitted optional Godot `Script` reflection for class/base enrichment. ADR 0009 supersedes that clause. v0.3.0 must not load analyzed project GDScript resources for dependency discovery.
 
 ## Consequences
 

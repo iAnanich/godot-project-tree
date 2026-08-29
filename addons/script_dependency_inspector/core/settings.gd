@@ -7,7 +7,8 @@ extends Resource
 
 @export_group("Scan")
 @export var include_addons: bool = true
-@export var use_runtime_reflection: bool = true
+## Deprecated compatibility field. Dependency discovery is source-only; this value is ignored.
+@export var use_runtime_reflection: bool = false
 @export var follow_symbolic_links: bool = false
 @export_range(1, 1000000, 1) var maximum_scanned_files: int = 10000
 @export_range(1, 1000000, 1) var maximum_scanned_directories: int = 20000
@@ -91,7 +92,6 @@ extends Resource
 func to_scan_options() -> Dictionary:
 	return {
 		"include_addons": include_addons,
-		"use_runtime_reflection": use_runtime_reflection,
 		"follow_symbolic_links": follow_symbolic_links,
 		"maximum_scanned_files": maximum_scanned_files,
 		"maximum_scanned_directories": maximum_scanned_directories,

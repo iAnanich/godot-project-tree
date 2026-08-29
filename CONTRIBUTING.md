@@ -10,7 +10,7 @@ Preserve these public invariants unless a versioned migration is approved:
 - stable node identity and ordering;
 - explicit fallback diagnostics;
 - Godot 4.3–4.7 compatibility on the supplied Linux builds;
-- source-only operation when runtime reflection is disabled;
+- source-only dependency discovery with no analyzed project-script resource loading;
 - no production `const/var = preload(...)` dependency chains.
 
 ## Development project
@@ -40,6 +40,7 @@ The hook runs `gdformat` and then `gdlint` for staged GDScript files. Formatting
 Run the narrowest focused test while iterating, then the release gates:
 
 ```sh
+python tools/run_gdscript_quality.py
 python tools/validate_static.py
 godot --headless --editor --path . --quit-after 5
 godot --headless --path . --script tests/test_runner.gd
@@ -70,11 +71,11 @@ Build both archives and their checksums through the repository-owned builder:
 python tools/build_release.py --output dist
 ```
 
-The builder derives the semantic version from `plugin.cfg`, excludes `.godot`, `__pycache__`, `.uid`, and operating-system metadata, writes `MANIFEST.sha256`, sorts archive members, and uses `SOURCE_DATE_EPOCH` (1980-01-01 by default) for stable ZIP timestamps. Build twice and compare archive SHA-256 values when modifying packaging behavior.
+The builder derives the semantic version from `plugin.cfg`, excludes local/generated state, writes `MANIFEST.sha256` inside the project archive, sorts archive members, and uses `SOURCE_DATE_EPOCH` for stable ZIP timestamps. A reproducibility claim requires two controlled builds with byte-identical target archives.
 
 ## Documentation
 
-Update documentation in the same change when behavior, use cases, schema, compatibility, security, or architecture changes. Consequential decisions belong in `docs/decisions`. User-facing workflow changes must update `docs/USE_CASES.md` and its traceability; diagram changes require source, rendered output, text alternatives, and a review record. Regenerate showcase exports after changing canonical output or exporters.
+Update documentation in the same change when behavior, use cases, schema, compatibility, security, or architecture changes. Consequential decisions belong in `docs/decisions`. User-facing workflow changes must update `docs/USE_CASES.md` and its traceability; diagram changes require source, rendered output, and text alternatives; release-specific review evidence belongs outside the source repository. Regenerate showcase exports after changing canonical output or exporters.
 
 ## Review priorities
 

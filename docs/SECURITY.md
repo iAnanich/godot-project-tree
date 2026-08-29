@@ -1,6 +1,6 @@
 # Security and trust boundary
 
-Version: 0.2.4
+Version: 0.3.0
 
 The add-on runs inside the Godot editor with the editor process's filesystem permissions. It does not provide network access, execute external processes, or instantiate scanned project classes as part of analysis.
 
@@ -8,7 +8,7 @@ The add-on runs inside the Godot editor with the editor process's filesystem per
 
 GDScript and `.tscn` text are treated as bounded input. Traversal accepts `res://` roots and absolute native-dialog selections only when they localize inside the current project; it rejects all other roots, skips symbolic links by default, honors file/directory/byte limits, and records read failures. The scene scanner recognizes only direct textual constructs and does not evaluate resource expressions. Binary `.scn` files are outside scope.
 
-Optional Script resource loading for reflection can trigger Godot parsing, but not project-class instantiation. Source-only analysis remains available.
+Dependency discovery does not load analyzed project GDScript as `Script` resources. A controlled v0.2.4 probe showed that such loading can execute static initialization, so v0.3.0 removes that analysis path. Required add-on implementation scripts can still be loaded through checked plugin-internal boundaries.
 
 ## Scope is not a trust boundary
 

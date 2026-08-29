@@ -12,6 +12,9 @@ const EXPORTER_CONTRACT_PATH: String = "res://tests/contracts/exporter_contract.
 const MISSING_CAPABILITY_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/missing_capability_exporter.gd"
 const UPPERCASE_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/uppercase_exporter.gd"
 const EMPTY_OUTPUT_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/empty_output_exporter.gd"
+const STATIC_EXECUTION_FIXTURE_ROOT: String = "res://tests/security_fixtures"
+const STATIC_EXECUTION_MARKER: String = "user://sdi_static_analysis_execution_marker.txt"
+const FAILING_COMMIT_SERVICE_PATH: String = "res://tests/contract_fixtures/services/failing_commit_export_service.gd"
 
 
 ## Runs quality-boundary, extension-contract, and non-visual-access tests.
@@ -19,6 +22,9 @@ func run(valid_snapshot: Dictionary) -> Array[String]:
 	var failures: Array[String] = []
 	_test_snapshot_validation(valid_snapshot, failures)
 	_test_exporter_contracts(valid_snapshot, failures)
+	_test_export_replacement_recovery(valid_snapshot, failures)
+	_test_source_only_scan(failures)
+	_test_service_initialization_contracts(failures)
 	_test_scan_root_boundary(failures)
 	_test_visual_decoding_summary(valid_snapshot, failures)
 	_test_control_tooltips(failures)
@@ -351,6 +357,84 @@ func _test_exporter_contracts(valid_snapshot: Dictionary, failures: Array[String
 		)
 
 
+func _test_export_replacement_recovery(
+	valid_snapshot: Dictionary, failures: Array[String]
+) -> void:
+	var service = _new_script_instance(FAILING_COMMIT_SERVICE_PATH, failures)
+	if service == null:
+		return
+	var directory: String = "user://script_dependency_inspector/export_recovery"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	var destination: String = directory + "/existing.json"
+	var original_text: String = "previous-valid-export"
+	var original_file: FileAccess = FileAccess.open(destination, FileAccess.WRITE)
+	if original_file == null:
+		failures.append("Could not create export-recovery fixture destination.")
+		return
+	original_file.store_string(original_text)
+	original_file.close()
+	var result: Dictionary = service.export_to_file("json", destination, valid_snapshot)
+	_check(
+		not result.get("ok", true) and result.get("code", "") == "commit_failed_restored",
+		"A failed replacement commit must report that the previous export was restored.",
+		failures
+	)
+	var restored_file: FileAccess = FileAccess.open(destination, FileAccess.READ)
+	_check(restored_file != null, "The previous export must remain readable after commit failure.", failures)
+	if restored_file != null:
+		var restored_text: String = restored_file.get_as_text()
+		restored_file.close()
+		_check(
+			restored_text == original_text,
+			"A failed replacement commit must preserve the previous destination content.",
+			failures
+		)
+
+
+func _test_source_only_scan(failures: Array[String]) -> void:
+	var scanner = _new_script_instance(SCANNER_PATH, failures)
+	if scanner == null:
+		return
+	if FileAccess.file_exists(STATIC_EXECUTION_MARKER):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(STATIC_EXECUTION_MARKER))
+	var result: Dictionary = scanner.scan(
+		STATIC_EXECUTION_FIXTURE_ROOT,
+		{
+			"use_runtime_reflection": true,
+			"include_scene_usages": false,
+			"excluded_path_prefixes": PackedStringArray(),
+		}
+	)
+	_check(
+		result.get("errors", []).is_empty(),
+		"Source-only security fixture scan should complete without scanner errors.",
+		failures
+	)
+	_check(
+		not FileAccess.file_exists(STATIC_EXECUTION_MARKER),
+		"Dependency discovery must not execute a scanned script static initializer, even when the legacy reflection option is true.",
+		failures
+	)
+
+
+func _test_service_initialization_contracts(failures: Array[String]) -> void:
+	for service_path in [SCANNER_PATH, ADDON_ROOT + "core/graph_builder.gd"]:
+		var service = _new_script_instance(service_path, failures)
+		if service == null:
+			continue
+		_check(
+			service.has_method("initialization_errors"),
+			"Core service must expose transitive initialization failures: %s" % service_path,
+			failures
+		)
+		if service.has_method("initialization_errors"):
+			_check(
+				(service.call("initialization_errors") as Array).is_empty(),
+				"Core service reported unexpected initialization failures: %s" % service_path,
+				failures
+			)
+
+
 func _test_scan_root_boundary(failures: Array[String]) -> void:
 	var scanner = _new_script_instance(SCANNER_PATH, failures)
 	if scanner == null:
@@ -397,6 +481,15 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 		return
 	var dock: Control = (scene_resource as PackedScene).instantiate()
 	Engine.get_main_loop().root.add_child(dock)
+	var invalid_candidate: Dictionary = valid_snapshot.duplicate(true)
+	invalid_candidate["nodes"][0].erase("methods")
+	var candidate_validation: Dictionary = dock.call("_validate_snapshot_candidate", invalid_candidate)
+	_check(
+		not candidate_validation.get("ok", true)
+		and _has_issue_code(candidate_validation.get("errors", []), "missing_node_field"),
+		"Dock scan lifecycle must reject a structurally invalid snapshot candidate before acceptance.",
+		failures
+	)
 	dock.set("_snapshot", valid_snapshot.duplicate(true))
 	dock.call("_render_snapshot")
 	var legend: RichTextLabel = dock.get_node("%LegendView")

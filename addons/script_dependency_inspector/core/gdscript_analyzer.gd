@@ -2,9 +2,9 @@
 extends RefCounted
 
 ## Lightweight non-executing GDScript declaration analyzer. It extracts only
-## dependency-inspection data. Valid scripts may be enriched with Script
-## reflection by ProjectScanner, but local members come from source so inherited
-## reflection entries are not misreported as local declarations.
+## dependency-inspection data from saved source text. ProjectScanner may combine
+## these results with project metadata and ClassDB, but it does not load analyzed
+## project GDScript resources for reflection.
 
 
 ## Parses one GDScript source file without executing it.

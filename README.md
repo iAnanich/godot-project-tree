@@ -2,7 +2,7 @@
 
 Godot 4 editor add-on for deterministic GDScript inheritance/dependency analysis, scoped architectural inspection, editor navigation, exact text-scene usage, and JSON/Mermaid/PlantUML export.
 
-Release `0.2.4` targets the supplied Linux builds of Godot 4.3–4.7.
+Release `0.3.0` targets the supplied Linux x86_64 editor builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7. Release-specific verification results are delivered outside the source repository.
 
 ## Install
 
@@ -27,20 +27,24 @@ The built-in graph is suited to in-editor inspection. Exported Mermaid and Plant
 
 ## Analysis boundary
 
-The analyzer does not instantiate project classes and does not claim a general call graph. Dynamic paths, aliases, runtime receiver inference, dependency injection, reflection behavior, binary scenes, and transitive scene/resource effects are omitted rather than guessed. TODO/FIXME/HACK extraction and immediate main-screen placement are explicit non-goals.
+The analyzer does not load or instantiate analyzed project GDScript for dependency discovery and does not claim a general call graph. Dynamic paths, aliases, runtime receiver inference, dependency injection, reflection behavior, binary scenes, and transitive scene/resource effects are omitted rather than guessed. TODO/FIXME/HACK extraction and immediate main-screen placement are explicit non-goals.
 
 ## Documentation
 
 - [User use cases and diagrams](docs/USE_CASES.md)
 - [Design](docs/DESIGN.md)
-- [Behavioral contract](docs/CONTRACT.md)
+- [Product requirements](docs/REQUIREMENTS.md)
+- [Release requirements](docs/RELEASE-REQUIREMENTS.md)
+- [Quality contract](docs/QUALITY-CONTRACT.md)
+- [Release gates](docs/RELEASE-GATES.md)
+- [Traceability](docs/TRACEABILITY.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Snapshot schema](docs/SCHEMA.md)
 - [Security boundary](docs/SECURITY.md)
 - [Performance](docs/PERFORMANCE.md)
 - [Validation](docs/VALIDATION.md)
-- [v0.2.4 compatibility matrix](docs/validation/v0.2.4-compatibility-matrix.md)
-- [v0.2.4 release validation report](docs/validation/v0.2.4-release-validation.md)
+- [Compatibility policy](docs/COMPATIBILITY.md)
+- [Validation procedure](docs/VALIDATION.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Comprehension protocol](docs/COMPREHENSION_TEST.md)
 - [Release packaging and patches](docs/RELEASING.md)
@@ -54,17 +58,7 @@ The analyzer does not instantiate project classes and does not claim a general c
 python3 tools/run_validation.py --godot /path/to/godot --output validation-artifacts
 ```
 
-The development project includes a showcase and versioned screenshots under `docs/images`.
-
-## Current visual states (v0.2.2 UI)
-
-| Default graph | Export-only |
-|---|---|
-| ![Default graph and compact toolbar](docs/images/v0.2.2-overview.png) | ![Graph hidden with export controls retained](docs/images/v0.2.2-export-only.png) |
-
-| Folded controls | Scan modes and automatic exports |
-|---|---|
-| ![Folded semantic control groups](docs/images/v0.2.2-folded-controls.png) | ![Synchronization and timed fallback controls](docs/images/v0.2.2-automation.png) |
+The repository-owned current Godot Asset Library media lives under `docs/asset_store/current/`. Source captures and documentation screenshots are kept under `docs/asset_store/` and excluded from Godot resource import with `.gdignore`.
 
 ## Media and interface reference
 

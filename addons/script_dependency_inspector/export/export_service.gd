@@ -348,7 +348,7 @@ func _stage_existing_destination(
 ) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {"ok": true, "code": "ok"}
-	var backup_error: Error = DirAccess.rename_absolute(
+	var backup_error: Error = _rename_absolute(
 		ProjectSettings.globalize_path(path), ProjectSettings.globalize_path(backup_path)
 	)
 	if backup_error == OK:
@@ -364,7 +364,7 @@ func _stage_existing_destination(
 func _commit_temporary_file(
 	temporary_path: String, path: String, backup_path: String, had_existing: bool
 ) -> Dictionary:
-	var commit_error: Error = DirAccess.rename_absolute(
+	var commit_error: Error = _rename_absolute(
 		ProjectSettings.globalize_path(temporary_path), ProjectSettings.globalize_path(path)
 	)
 	if commit_error == OK:
@@ -376,7 +376,7 @@ func _commit_temporary_file(
 			"commit_failed", "Cannot commit export: %s (error %s)" % [path, commit_error], path
 		)
 
-	var restore_error: Error = DirAccess.rename_absolute(
+	var restore_error: Error = _rename_absolute(
 		ProjectSettings.globalize_path(backup_path), ProjectSettings.globalize_path(path)
 	)
 	if restore_error == OK:
@@ -397,6 +397,10 @@ func _commit_temporary_file(
 		path,
 		{"backup_path": backup_path, "commit_error": commit_error, "restore_error": restore_error}
 	)
+
+
+func _rename_absolute(source_path: String, destination_path: String) -> Error:
+	return DirAccess.rename_absolute(source_path, destination_path)
 
 
 func _ensure_extension(path: String, extension: String) -> String:

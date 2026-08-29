@@ -1,94 +1,80 @@
-# Release packaging and patches
+# Release procedure
 
-Version: 0.2.4
+Version: 0.3.0
+Issue date: 2026-08-27
 
-## Local prerequisites
+This procedure implements `RELEASE-REQUIREMENTS.md` and `RELEASE-GATES.md`. A GitHub draft release is a packaging result, not evidence that every runtime release gate passed.
 
-Python 3.10 or later and Git are required. Install the pinned development tools and the commit hooks once per clone:
+## 1. Prepare development tooling
 
 ```sh
 python -m pip install --requirement requirements-dev.txt
 pre-commit install --install-hooks
 ```
 
-`gdformat` runs before `gdlint` on staged GDScript files. Formatting changes stop the commit so the changed files can be reviewed and staged again. Run the same checks explicitly with:
+The local hook runs `gdformat` before `gdlint`. Formatter modifications remain visible for review and staging.
+
+Before release, run the fail-closed gate directly:
 
 ```sh
-pre-commit run --all-files --show-diff-on-failure
+python tools/run_gdscript_quality.py
+python tools/validate_static.py
 ```
 
-## Package only the redistributable add-on
+## 2. Run runtime release gates
+
+Run `tools/run_validation.py` independently on every claimed Godot version. Use fresh HOME/XDG and output state. Record failures, skips, and limitations rather than retrying blindly after an unknown partial result.
+
+## 3. Build archives twice
 
 ```sh
-python tools/package_addon.py --output dist
+python tools/build_release.py --output dist-first
+python tools/build_release.py --output dist-second
+cmp dist-first/script-dependency-inspector-addon-v0.3.0.zip dist-second/script-dependency-inspector-addon-v0.3.0.zip
+cmp dist-first/script-dependency-inspector-godot4-project-v0.3.0.zip dist-second/script-dependency-inspector-godot4-project-v0.3.0.zip
+cmp dist-first/script-dependency-inspector-asset-store-media-v0.3.0.zip dist-second/script-dependency-inspector-asset-store-media-v0.3.0.zip
 ```
 
-The output ZIP contains `addons/script_dependency_inspector/...`. A user installs it by extracting the archive at the root of a Godot project and enabling the plugin. The ZIP is deterministic for the same source tree and `SOURCE_DATE_EPOCH`.
+Only call an archive reproducible when the controlled second-build comparison succeeds for that artifact.
 
-## Build all source archives
+## 4. Verify the archives and installed add-on
 
 ```sh
-python tools/build_release.py --output dist
+python tools/verify_release_artifacts.py \
+  --addon dist-first/script-dependency-inspector-addon-v0.3.0.zip \
+  --project dist-first/script-dependency-inspector-godot4-project-v0.3.0.zip \
+  --media dist-first/script-dependency-inspector-asset-store-media-v0.3.0.zip
+
+python tools/verify_packaged_addon.py \
+  --addon dist-first/script-dependency-inspector-addon-v0.3.0.zip \
+  --godot /path/to/Godot_v4.7-stable_linux.x86_64
 ```
 
-This produces the add-on ZIP, complete development-project ZIP, their checksums, and the project manifest.
+Use a supported Godot build for the package smoke check. This gate supplements, and does not replace, the full per-engine matrix.
 
-## Build an apply-ready patch
+## 5. Generate the immediate-predecessor patch
 
-### One-time tag bootstrap
-
-Patch generation depends on release tags. Before building the v0.2.4 patch, ensure the commit containing the exact v0.2.3 tree is tagged:
+Tag the exact preceding release before generating the normal patch. Then use:
 
 ```sh
-git tag -a v0.2.3 <v0.2.3-commit> -m "Script Dependency Inspector 0.2.3"
+python tools/build_patch.py --base-ref v0.2.4 --target-ref HEAD --output dist-first
 ```
 
-Do not attach the v0.2.3 tag to a v0.1.6 or v0.2.4 tree. Existing correctly named tags require no change.
-
-### Every subsequent release
-
-After committing the next release, generate its patch with one command:
+The reconstruction artifact is binary-capable. Apply it from a clean v0.2.4 checkout with:
 
 ```sh
-python tools/build_patch.py
+git apply --check --binary --whitespace=nowarn script-dependency-inspector-v0.2.4-to-v0.3.0.patch
+git apply --binary --whitespace=nowarn script-dependency-inspector-v0.2.4-to-v0.3.0.patch
 ```
 
-By default the script uses `HEAD`, finds the nearest preceding release tag, and writes to `dist`. Explicit refs remain available when needed:
+The patch builder must reconstruct the target Git tree before the patch is described as complete.
 
-```sh
-python tools/build_patch.py \
-  --base-ref v0.2.3 \
-  --target-ref v0.2.4 \
-  --output dist
-```
+## 6. GitHub release candidate
 
-The complete `.patch` includes binary files and is verified in a detached worktree by comparing the reconstructed Git tree with the target release. Apply it from a clean checkout of the base release:
+`.github/workflows/release.yml` verifies tag/version agreement, runs source gates, performs two archive builds, compares the archive bytes, verifies archive structure, and builds the immediate-predecessor patch when a prior tag exists. It creates a **draft** GitHub release using the repository-scoped `GITHUB_TOKEN` with `contents: write`.
 
-```sh
-git apply --check --binary --whitespace=nowarn script-dependency-inspector-v0.2.3-to-v0.2.4.patch
-git apply --binary --whitespace=nowarn script-dependency-inspector-v0.2.3-to-v0.2.4.patch
-```
+Do not publish the draft as a verified release until all required external runtime gates and package verification are complete or the project owner records an explicit accepted exception with its lost guarantee.
 
-A separate text patch is generated for review only.
+## 7. Delivery evidence
 
-## GitHub release automation
-
-`.github/workflows/release.yml` runs for semantic-version tags such as `v0.2.4`. It:
-
-1. verifies that the tag equals the version in `plugin.cfg`;
-2. runs `gdformat`, `gdlint`, and repository static contracts;
-3. builds the add-on and full-project archives;
-4. finds the previous reachable release tag and generates a verified binary patch;
-5. creates a GitHub Release and uploads every artifact from `dist`.
-
-Recommended release sequence:
-
-```sh
-pre-commit run --all-files
-git status
-git commit -m "Release 0.2.4"
-git tag -a v0.2.4 -m "Script Dependency Inspector 0.2.4"
-git push origin main v0.2.4
-```
-
-The workflow uses the repository-provided `GITHUB_TOKEN`; no personal access token is required. Repository settings must allow GitHub Actions to create releases with `contents: write` permission.
+Finalize the delivery manifest and SHA-256 checksum list only after every primary artifact is final. Keep per-release review and validation evidence in the delivery preservation set, not as routine repository documentation.
