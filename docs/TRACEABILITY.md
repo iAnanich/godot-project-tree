@@ -1,8 +1,8 @@
 # Script Dependency Inspector — requirements traceability
 
 Artifact identity: `script-dependency-inspector-traceability`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
@@ -83,6 +83,7 @@ Purpose: connect user outcomes, product requirements, design boundaries, and req
 | `REL-VERIFY-*` | validation harness and release evidence | fresh release-specific execution with environment and limitation record |
 
 | `REQ-VALID-005` | filtered endpoint-member provenance | UC-01, UC-02, UC-16 | `GraphBuilder`, `SnapshotValidator` | hidden-member selected-root regression; baseline sensitivity demonstration |
+| `REQ-VALID-006` | retained stale snapshot after fatal rescan | UC-01, UC-11, UC-12, UC-16, UC-17 | `dependency_dock.gd` lifecycle state | stale/current lifecycle test; export suppression; timestamp/reason rendering; recovery rescan |
 | `REQ-UI-005` | connection-specific evidence tooltip | UC-14 | `DependencyGraphEdit`, dock rendered-edge evidence registry | connection evidence aggregation/tooltip behavioral test; rendered inspection |
 | `REQ-UI-006` | full member/evidence tooltip | UC-15 | `DependencyGraphNode`, dock member evidence index | compact-row/full-tooltip behavioral test |
 | `REQ-DIAG-003` | actionable validator rejection | UC-16 | dock validation/status/Log rendering | stable code/root/context UI log test |
@@ -124,4 +125,4 @@ Release-specific verification status is recorded in external delivery evidence r
 
 | Decision | Affected requirements | Affected use cases | Required evidence after approval |
 |---|---|---|---|
-| `OPEN-001` previous valid snapshot after fatal rescan | `REQ-VALID-003..004`, possibly `REQ-EXPORT-004`, `REQ-DIAG-002` | UC-01, UC-10, UC-11, UC-12 | lifecycle state tests; stale/current UI rendering; automatic-export negative test; manual-export policy test |
+| `RESOLVED-OPEN-001` retained snapshot after fatal rescan | `REQ-VALID-003..006`, `REQ-EXPORT-004`, `REQ-DIAG-003` | UC-01, UC-10, UC-11, UC-12, UC-17 | lifecycle state test; stale/current status and summary checks; automatic-export negative test; manual-export disabled check; successful-rescan recovery |

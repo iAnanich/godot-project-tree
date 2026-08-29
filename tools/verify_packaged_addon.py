@@ -195,7 +195,7 @@ def main() -> int:
                 "--path",
                 str(project),
                 "--quit-after",
-                "2",
+                "3",
             ],
             cwd=project,
             env=env,

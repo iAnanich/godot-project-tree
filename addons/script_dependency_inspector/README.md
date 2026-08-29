@@ -1,4 +1,4 @@
-# Script Dependency Inspector 0.3.1
+# Script Dependency Inspector 0.4.0
 
 Editor-only Godot 4 add-on that scans GDScript and exact text-scene script attachments, builds a validated dependency snapshot, optionally renders an interactive searchable graph, and exports JSON, Mermaid, or PlantUML.
 

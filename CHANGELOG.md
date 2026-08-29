@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 — 2026-08-29
+
+### Fixed
+
+- Snapshot validation now recovers its validator service after editor script lifecycle/hot-reload invalidation instead of surfacing a recoverable `validator_unavailable` failure on the next scan/root switch. The export validation boundary uses the same recovery rule.
+- Plugin shutdown now stops scan-refresh timers before removing the dock and refuses to restart timers after leaving the SceneTree. Packaged-editor verification also uses a three-frame initialization window because Godot 4.3 can crash when an artificial `--quit-after 2` shutdown interrupts first-plugin initialization.
+
+### Added
+
+- Resolved `OPEN-001`: after a fatal rescan, the last valid snapshot remains available for inspection as an explicitly `STALE` snapshot with the failed-scan reason and UTC last-success timestamp.
+- Added lifecycle regression coverage for validator recovery, stale/current state transitions, exact prior-snapshot preservation, automatic-export suppression, manual-export disablement, and successful-rescan recovery.
+
+### Changed
+
+- Stale snapshots are inspection-only and are never presented as the current scan result. Export resumes only after a successful scan publishes a new current snapshot.
+
+### Compatibility
+
+- Snapshot schema remains v2 and editor-state schema remains v4. This MINOR increment adds user-visible lifecycle behavior without changing serialized snapshot structure.
+
 ## 0.3.1 — 2026-08-29
 
 ### Fixed

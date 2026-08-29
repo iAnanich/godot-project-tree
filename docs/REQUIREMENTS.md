@@ -1,14 +1,14 @@
 # Script Dependency Inspector — product requirements
 
 Artifact identity: `script-dependency-inspector-product-requirements`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
-Status: accepted implementation requirements for v0.3.1; release-specific verification remains separate
+Status: accepted implementation requirements for v0.4.0; release-specific verification remains separate
 Basis: the 2026-08-26 requirements/design revision plus the adopted Software Quality Guidelines v0.3.0-alpha.3
-Implementation conformance: assessed against the synchronized v0.3.0 handoff baseline and the resulting v0.3.1 source; release-specific verification evidence is retained outside this substantive requirements artifact
+Implementation conformance: assessed against the synchronized v0.3.1 handoff baseline and the resulting v0.4.0 source; release-specific verification evidence is retained outside this substantive requirements artifact
 
 ## 1. Purpose and document role
 
@@ -38,7 +38,8 @@ Design mechanisms belong to `DESIGN.md` unless the mechanism is itself required 
 | **supported static evidence** | A source construct the analyzer is designed to recognize deterministically. | Absence of supported evidence does not prove absence of a runtime dependency. |
 | **structural snapshot validation** | Runtime verification that the snapshot satisfies schema and cross-record invariants before public serialization. | This is not the same as product validation for intended use. |
 | **diagnostic** | A structured warning or error record about acquisition, recognition, projection, validation, navigation, or export. | A diagnostic does not automatically imply that the entire scan failed. |
-| **current snapshot** | The latest structurally valid snapshot accepted from the latest successful scan. | The fate of an older valid snapshot after a later fatal scan is `OPEN-001`. |
+| **current snapshot** | The structurally valid snapshot accepted from the latest successful scan. | A later fatal scan makes the retained prior snapshot stale rather than current. |
+| **stale snapshot** | The last structurally valid snapshot retained only for inspection after a later fatal scan. | It carries the failed-scan reason and last-success timestamp and cannot be exported until a new successful scan becomes current. |
 | **graph view** | The optional in-editor GraphEdit presentation of the current scoped snapshot. | Graph state is presentation state and must not be an exporter data source. |
 | **editor synchronization** | Debounced rescanning in response to saved project filesystem changes reported by the Godot Editor. | It does not analyze unsaved editor-buffer content. |
 | **timed rescan** | A completion-based periodic rescan trigger. | It is independent from editor synchronization and is disabled by default. |
@@ -254,13 +255,17 @@ A published snapshot must not retain a `source_member` or `target_member` refere
 
 When a member category is hidden, exact dependency evidence such as evidence kind and source occurrence may remain, but the omitted member reference must be removed rather than contradicting the endpoint node.
 
-### OPEN-001 — Previous valid snapshot after fatal rescan
+### REQ-VALID-006 — Retained stale snapshot after fatal rescan
 
-The current retrievable contract does not define the state of a previous valid snapshot after a later fatal scan.
+When a current structurally valid snapshot exists and a later scan fails fatally, the product must preserve the last valid snapshot for inspection instead of replacing it with the failed candidate or silently presenting it as current.
 
-**Recommended design for owner approval:** preserve the last valid snapshot for inspection, mark it stale with the failed-scan reason and last-success timestamp, do not run automatic exports from it, and do not present it as the current scan result.
+The retained snapshot must be marked `stale` and the UI must expose both the failed-scan reason and the last-successful-scan timestamp. Automatic export must not run from stale data. Manual export must remain disabled while stale so inspection cannot accidentally publish an obsolete result.
 
-Implementation must not begin on this behavior until the owner accepts or replaces this decision.
+A later successful scan replaces the stale snapshot, marks the new result `current`, and re-enables ordinary export behavior. If no previous valid snapshot exists, a fatal scan leaves no inspectable snapshot.
+
+### RESOLVED-OPEN-001 — Previous valid snapshot after fatal rescan
+
+Owner decision accepted on 2026-08-29: preserve the last valid snapshot for inspection, mark it stale with the failed-scan reason and last-success timestamp, do not run automatic exports from it, do not present it as the current scan result, and keep manual export disabled until a successful rescan.
 
 ## 9. Graph and visualization requirements
 
@@ -579,6 +584,6 @@ A future release may reconsider it only through a new contract/design decision w
 
 | ID | Decision | Why material | Required owner action |
 |---|---|---|---|
-| OPEN-001 | State and export behavior of the previous valid snapshot after a later fatal rescan | A stale snapshot can mislead; discarding it removes useful context | Accept the recommended stale-state design or select another behavior before implementation |
+| RESOLVED-OPEN-001 | Previous valid snapshot after fatal rescan | Accepted: retain for inspection as explicitly stale; block export until a new successful scan | `REQ-VALID-006`; lifecycle and export-negative tests |
 
 No other new material product decision is introduced by this documentation revision.

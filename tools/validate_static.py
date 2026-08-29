@@ -116,7 +116,7 @@ EXPECTED = [
     / "asset_store"
     / "current"
     / "featured-09-connection-evidence-tooltip.webp",
-    ROOT / "docs" / "asset_store" / "source-captures" / "v0.3.1" / "notes.md",
+    ROOT / "docs" / "asset_store" / "source-captures" / "v0.4.0" / "notes.md",
     ROOT / "docs" / "INTERFACE_GALLERY.md",
     ROOT / "examples" / "showcase" / "README.md",
     ROOT / "examples" / "showcase" / "services" / "targeting_service.gd",
@@ -442,7 +442,7 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.3.1"' in plugin_cfg, "plugin.cfg version is not 0.3.1.")
+    check('version="0.4.0"' in plugin_cfg, "plugin.cfg version is not 0.4.0.")
 
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
     check(
@@ -1053,6 +1053,7 @@ def validate_v031_feature_contracts() -> None:
     )
     graph_builder = (PLUGIN / "core" / "graph_builder.gd").read_text(encoding="utf-8")
     tests = (ROOT / "tests" / "test_runner.gd").read_text(encoding="utf-8")
+    automation = (ROOT / "tests" / "automation_runner.gd").read_text(encoding="utf-8")
     handoff = (ROOT / "tools" / "build_handoff.py").read_text(encoding="utf-8")
     handoff_doc = (ROOT / "docs" / "HANDOFF.md").read_text(encoding="utf-8")
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
@@ -1064,7 +1065,7 @@ def validate_v031_feature_contracts() -> None:
     )
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 
-    check('version="0.3.1"' in plugin_config, "Plugin version must be 0.3.1.")
+    check('version="0.4.0"' in plugin_config, "Plugin version must be 0.4.0.")
     check(
         "MIT License" in root_license, "Repository LICENSE must use MIT License text."
     )
@@ -1081,11 +1082,17 @@ def validate_v031_feature_contracts() -> None:
         "README must expose the current MIT license.",
     )
 
-    for req in ("REQ-VALID-005", "REQ-UI-005", "REQ-UI-006", "REQ-DIAG-003"):
-        check(req in requirements, f"Missing v0.3.1 requirement: {req}")
-        check(req in traceability, f"Missing v0.3.1 traceability mapping: {req}")
-    for use_case in ("UC-14", "UC-15", "UC-16"):
-        check(use_case in use_cases, f"Missing v0.3.1 use case: {use_case}")
+    for req in (
+        "REQ-VALID-005",
+        "REQ-UI-005",
+        "REQ-UI-006",
+        "REQ-DIAG-003",
+        "REQ-VALID-006",
+    ):
+        check(req in requirements, f"Missing v0.4.0 requirement: {req}")
+        check(req in traceability, f"Missing v0.4.0 traceability mapping: {req}")
+    for use_case in ("UC-14", "UC-15", "UC-16", "UC-17"):
+        check(use_case in use_cases, f"Missing v0.4.0 use case: {use_case}")
     check(
         "Filtered member provenance" in design,
         "Design must document filtered member provenance.",
@@ -1139,6 +1146,32 @@ def validate_v031_feature_contracts() -> None:
     check(
         "get_closest_connection_at_point" in tests,
         "Compatibility tests must exercise the GraphEdit connection lookup API.",
+    )
+    for token in [
+        "SNAPSHOT_STATE_STALE",
+        "_last_successful_scan_at",
+        "_ensure_snapshot_validator_available",
+        "_stale_snapshot_status_text",
+        "_snapshot_state != SNAPSHOT_STATE_CURRENT",
+        "prepare_for_shutdown",
+        "not auto_rescan_timer.is_inside_tree()",
+    ]:
+        check(
+            token in dock,
+            f"Missing stale-snapshot/validator lifecycle implementation token: {token}",
+        )
+    for token in [
+        "forced_validation_failure",
+        "stale-must-not-export.json",
+        "validator_unavailable",
+        "STALE SNAPSHOT",
+    ]:
+        check(
+            token in automation, f"Missing lifecycle regression coverage token: {token}"
+        )
+    check(
+        "REQ-VALID-006" in requirements and "RESOLVED-OPEN-001" in requirements,
+        "OPEN-001 must be resolved into the accepted stale-snapshot requirement.",
     )
 
     check(
@@ -1389,7 +1422,7 @@ def validate_documentation_contract() -> None:
             required_reference in readme,
             f"README does not link to {required_reference}.",
         )
-    check("0.3.1" in readme, "README release identifier is not 0.3.1.")
+    check("0.4.0" in readme, "README release identifier is not 0.4.0.")
 
 
 def validate_quality_contracts() -> None:

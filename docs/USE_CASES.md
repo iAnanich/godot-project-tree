@@ -1,12 +1,12 @@
 # Script Dependency Inspector — user use cases
 
 Artifact identity: `script-dependency-inspector-use-cases`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
-Status: accepted user-outcome layer for v0.3.1 implementation
+Status: accepted user-outcome layer for v0.4.0 implementation
 Authority role: intended use and workflow boundary; product obligations are normative only through referenced `REQ-*` requirements
 
 Related acceptance model: `QUALITY-CONTRACT.md` and `RELEASE-GATES.md`.
@@ -43,7 +43,8 @@ Use-case diagrams are navigation aids. The text catalogue is the authoritative a
 | UC-13 | Configure controls efficiently | The developer sees scan trigger mode and can fold semantic control groups. | Fold state and graph visibility are presentation/editor state; every interactive option remains explainable. | `REQ-UI-*`, `REQ-SYNC-006`, `REQ-STATE-*` |
 | UC-14 | Inspect a graph connection on hover | Hovering a rendered line identifies the relationship, canonical dependent/dependency direction, layout-only reversed rendering, and represented static evidence occurrences. | Hover supplements visible relationship encoding; it does not make hover the only carrier of relationship kind/direction. | `REQ-UI-005`, `REQ-GRAPH-005..007`, `REQ-MODEL-004..007` |
 | UC-15 | Inspect a member on hover | A compact member row exposes its full declaration/signature, exact declaration location, and incoming/outgoing static evidence counts. | Counts describe captured static evidence, not runtime call frequency. | `REQ-UI-006`, `REQ-MODEL-007`, `REQ-GRAPH-004` |
-| UC-16 | Diagnose a rejected snapshot | A structural validation failure shows a stable issue code and selected root immediately, with bounded issue context in Log. | A rejected candidate is not accepted or automatically exported. | `REQ-VALID-003..005`, `REQ-DIAG-001..003` |
+| UC-16 | Diagnose a rejected snapshot | A structural validation failure shows a stable issue code and selected root immediately, with bounded issue context in Log. | A rejected candidate is not accepted or automatically exported. | `REQ-VALID-003..006`, `REQ-DIAG-001..003` |
+| UC-17 | Inspect the last valid snapshot after a failed rescan | The prior valid graph remains available with an explicit STALE marker, failed-scan reason, and last-success timestamp. | Stale data is inspection-only: it is not current and cannot be manually or automatically exported. | `REQ-VALID-003..006`, `REQ-EXPORT-004`, `REQ-DIAG-003` |
 
 ## 4. Cross-use-case limitations
 
@@ -54,6 +55,6 @@ Use-case diagrams are navigation aids. The text catalogue is the authoritative a
 - Mermaid and PlantUML are presentation exports and can omit canonical evidence that JSON preserves.
 - Formal unfamiliar-user comprehension and accessibility certification are not established by these use cases or diagrams.
 
-## 5. Open workflow decision
+## 5. Resolved workflow decision
 
-`OPEN-001` affects UC-01, UC-10, UC-11, and UC-12: the product still needs an owner-approved rule for how a previous valid snapshot is presented after a later fatal rescan.
+`RESOLVED-OPEN-001` adds UC-17 and refines UC-01, UC-10, UC-11, and UC-12: after a fatal rescan, the previous valid snapshot remains inspectable only as explicitly stale data until a successful rescan replaces it.

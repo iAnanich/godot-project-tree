@@ -1,8 +1,8 @@
 # Script Dependency Inspector — repository and release requirements
 
 Artifact identity: `script-dependency-inspector-release-requirements`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 

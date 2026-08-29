@@ -30,9 +30,9 @@ Run `tools/run_validation.py` independently on every claimed Godot version. Use 
 ```sh
 python tools/build_release.py --output dist-first
 python tools/build_release.py --output dist-second
-cmp dist-first/script-dependency-inspector-addon-v0.3.1.zip dist-second/script-dependency-inspector-addon-v0.3.1.zip
-cmp dist-first/script-dependency-inspector-godot4-project-v0.3.1.zip dist-second/script-dependency-inspector-godot4-project-v0.3.1.zip
-cmp dist-first/script-dependency-inspector-asset-store-media-v0.3.1.zip dist-second/script-dependency-inspector-asset-store-media-v0.3.1.zip
+cmp dist-first/script-dependency-inspector-addon-v0.4.0.zip dist-second/script-dependency-inspector-addon-v0.4.0.zip
+cmp dist-first/script-dependency-inspector-godot4-project-v0.4.0.zip dist-second/script-dependency-inspector-godot4-project-v0.4.0.zip
+cmp dist-first/script-dependency-inspector-asset-store-media-v0.4.0.zip dist-second/script-dependency-inspector-asset-store-media-v0.4.0.zip
 ```
 
 A byte-identical second build by the same operator/environment supports a same-environment repeatability claim for that artifact. Do not call it reproducible without an independent operator or independently controlled build service recreating the specified artifact from the declared source, environment, and instructions.
@@ -41,12 +41,12 @@ A byte-identical second build by the same operator/environment supports a same-e
 
 ```sh
 python tools/verify_release_artifacts.py \
-  --addon dist-first/script-dependency-inspector-addon-v0.3.1.zip \
-  --project dist-first/script-dependency-inspector-godot4-project-v0.3.1.zip \
-  --media dist-first/script-dependency-inspector-asset-store-media-v0.3.1.zip
+  --addon dist-first/script-dependency-inspector-addon-v0.4.0.zip \
+  --project dist-first/script-dependency-inspector-godot4-project-v0.4.0.zip \
+  --media dist-first/script-dependency-inspector-asset-store-media-v0.4.0.zip
 
 python tools/verify_packaged_addon.py \
-  --addon dist-first/script-dependency-inspector-addon-v0.3.1.zip \
+  --addon dist-first/script-dependency-inspector-addon-v0.4.0.zip \
   --godot /path/to/Godot_v4.7-stable_linux.x86_64
 ```
 

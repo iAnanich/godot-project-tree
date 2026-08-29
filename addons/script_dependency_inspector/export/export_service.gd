@@ -11,6 +11,7 @@ const PLANTUML_EXPORTER_SCRIPT_PATH: String = ADDON_ROOT + "export/plantuml_expo
 var logger: RefCounted
 var _exporters: Dictionary = {}
 var _validator
+var _validator_script: Script
 var _initialization_errors: Array[String] = []
 
 
@@ -21,6 +22,7 @@ func _init() -> void:
 		SNAPSHOT_VALIDATOR_SCRIPT_PATH, "snapshot validator"
 	)
 	if validator_script != null:
+		_validator_script = validator_script
 		_validator = validator_script.new()
 		if _validator == null:
 			_record_initialization_error(
@@ -213,6 +215,43 @@ func extension_for(format_id: String) -> String:
 	return str(_exporters[format_id].call("file_extension"))
 
 
+## Supplies a validated snapshot-validator service shared with the UI lifecycle.
+## The export service can still recover its own validator after an editor hot reload.
+func set_snapshot_validator(validator) -> void:
+	if validator != null and validator.has_method("validate"):
+		_validator = validator
+
+
+func _ensure_validator_available() -> bool:
+	if _validator != null and _validator.has_method("validate"):
+		return true
+	var validator_script: Script = _validator_script
+	if validator_script == null:
+		var resource: Resource = ResourceLoader.load(SNAPSHOT_VALIDATOR_SCRIPT_PATH)
+		if resource != null and resource is Script:
+			validator_script = resource as Script
+	if validator_script == null:
+		_log_error(
+			"Snapshot validator recovery failed because its script could not be loaded.",
+			{"code": "validator_recovery_failed", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+		)
+		return false
+	var candidate = validator_script.new()
+	if candidate == null or not candidate.has_method("validate"):
+		_log_error(
+			"Snapshot validator recovery failed because a valid service could not be instantiated.",
+			{"code": "validator_recovery_failed", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+		)
+		return false
+	_validator_script = validator_script
+	_validator = candidate
+	_log_warning(
+		"Snapshot validator service was restored before export validation.",
+		{"code": "validator_recovered", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+	)
+	return true
+
+
 ## Validates and serializes a graph without writing it.
 func export_to_string(
 	format_id: String, snapshot: Dictionary, options: Dictionary = {}
@@ -291,7 +330,7 @@ func export_to_file(
 
 
 func _validate_snapshot(snapshot: Dictionary) -> Dictionary:
-	if _validator == null or not _validator.has_method("validate"):
+	if not _ensure_validator_available():
 		return {
 			"ok": false,
 			"errors":
@@ -433,6 +472,11 @@ func _failure(
 		"path": path,
 		"context": context.duplicate(true),
 	}
+
+
+func _log_warning(message: String, context: Dictionary = {}) -> void:
+	if logger != null and logger.has_method("warning"):
+		logger.call("warning", message, context)
 
 
 func _log_info(message: String, context: Dictionary = {}) -> void:

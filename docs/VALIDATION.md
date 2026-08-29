@@ -33,11 +33,11 @@ Build release archives, verify their structure, then verify the actual redistrib
 ```sh
 python tools/build_release.py --output dist
 python tools/verify_release_artifacts.py \
-  --addon dist/script-dependency-inspector-addon-v0.3.1.zip \
-  --project dist/script-dependency-inspector-godot4-project-v0.3.1.zip \
-  --media dist/script-dependency-inspector-asset-store-media-v0.3.1.zip
+  --addon dist/script-dependency-inspector-addon-v0.4.0.zip \
+  --project dist/script-dependency-inspector-godot4-project-v0.4.0.zip \
+  --media dist/script-dependency-inspector-asset-store-media-v0.4.0.zip
 python tools/verify_packaged_addon.py \
-  --addon dist/script-dependency-inspector-addon-v0.3.1.zip \
+  --addon dist/script-dependency-inspector-addon-v0.4.0.zip \
   --godot /path/to/godot
 ```
 
@@ -62,3 +62,6 @@ Run `python tools/validate_asset_store_media.py`. When media changed or is relea
 ## Evidence location
 
 Per-release logs, compatibility matrices, review reports, delivery manifests, and checksums are delivery/provenance evidence. Keep them outside the normal source repository unless a project decision changes that retention policy.
+
+
+Packaged editor initialization uses a three-frame quit window. A two-frame forced shutdown can interrupt first-plugin initialization in Godot 4.3 and trigger an engine shutdown crash that does not reproduce when initialization is allowed to complete.

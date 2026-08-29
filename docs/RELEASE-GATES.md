@@ -1,12 +1,12 @@
 # Script Dependency Inspector — release gates
 
 Artifact identity: `script-dependency-inspector-release-gates`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
-Status: accepted release-gate contract for v0.3.1; release-specific results are retained outside this substantive contract
+Status: accepted release-gate contract for v0.4.0; release-specific results are retained outside this substantive contract
 Exception authority: project owner
 
 ## 1. Purpose

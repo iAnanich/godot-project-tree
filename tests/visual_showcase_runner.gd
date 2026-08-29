@@ -110,7 +110,8 @@ func _configure_state(state: String) -> void:
 				"media_max_info",
 				"media_navigation",
 				"media_member_tooltip",
-				"media_connection_tooltip"
+				"media_connection_tooltip",
+				"media_stale"
 			]
 		):
 			for key in [
@@ -185,7 +186,7 @@ func _configure_after_scan(state: String) -> void:
 		"media_tab_content":
 			split.split_offset = 500
 			tabs.current_tab = 0
-		"media_overview", "media_max_info", "media_complex", "media_navigation", "media_scope", "media_search", "media_member_tooltip", "media_connection_tooltip":
+		"media_overview", "media_max_info", "media_complex", "media_navigation", "media_scope", "media_search", "media_member_tooltip", "media_connection_tooltip", "media_stale":
 			split.split_offset = 125
 			tabs.current_tab = 0
 		_:
@@ -236,6 +237,25 @@ func _configure_after_scan(state: String) -> void:
 		call_deferred("_prepare_media_member_tooltip")
 	if state == "media_connection_tooltip":
 		call_deferred("_prepare_media_connection_tooltip")
+	if state == "media_stale":
+		call_deferred("_prepare_media_stale_view")
+
+
+func _prepare_media_stale_view() -> void:
+	await process_frame
+	await process_frame
+	_dock.set("_scan_root", "res://examples/media_showcase")
+	(
+		_dock
+		. call(
+			"_finish_scan_failure",
+			"Snapshot validation failed [validator_unavailable] for res://examples/media_showcase; see Log."
+		)
+	)
+	var split: VSplitContainer = _dock.get_node("%MainSplit")
+	split.split_offset = 360
+	var tabs: TabContainer = _dock.get_node("%ControlsTabs")
+	tabs.current_tab = 4
 
 
 func _prepare_media_simple_view(maximum_information: bool) -> void:

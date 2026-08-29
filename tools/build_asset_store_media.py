@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "docs/asset_store/source-captures/v0.3.1/raw"
+RAW = ROOT / "docs/asset_store/source-captures/v0.4.0/raw"
 CURRENT = ROOT / "docs/asset_store/current"
 MAPPING = {
     "featured-01-default-overview.webp": "overview.png",
@@ -21,6 +21,7 @@ MAPPING = {
     "featured-07-search-and-focus.webp": "search.png",
     "featured-08-member-evidence-tooltip.webp": "member_tooltip.png",
     "featured-09-connection-evidence-tooltip.webp": "connection_tooltip.png",
+    "featured-10-stale-snapshot-recovery.webp": "stale_snapshot.png",
 }
 
 

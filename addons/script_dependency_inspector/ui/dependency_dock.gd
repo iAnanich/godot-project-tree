@@ -16,6 +16,9 @@ const EXPORT_SERVICE_SCRIPT_PATH: String = ADDON_ROOT + "export/export_service.g
 const COMPAT_SCRIPT_PATH: String = ADDON_ROOT + "core/compat.gd"
 const GRAPH_NODE_SCRIPT_PATH: String = ADDON_ROOT + "ui/dependency_graph_node.gd"
 const GRAPH_NODE_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_graph_node.tscn"
+const SNAPSHOT_STATE_EMPTY: String = "empty"
+const SNAPSHOT_STATE_CURRENT: String = "current"
+const SNAPSHOT_STATE_STALE: String = "stale"
 
 const CONTROL_SECTION_CONFIG: Dictionary = {
 	"content_sources": ["ContentSourcesHeader", "ContentSourcesBody", "Scripts and classes"],
@@ -47,17 +50,22 @@ var _scanner
 var _builder
 var _scope_projector
 var _snapshot_validator
+var _snapshot_validator_script: Script
 var _graph_query
 var _export_service
 var _state_store
 var _editor_state: Dictionary = {}
 var _scan_in_progress: bool = false
+var _shutting_down: bool = false
 var _pending_path_format: String = ""
 var _pending_manual_export: bool = false
 var _compat_script: Script
 var _graph_node_scene: PackedScene
 var _initialization_errors: Array[String] = []
 var _snapshot: Dictionary = {}
+var _snapshot_state: String = SNAPSHOT_STATE_EMPTY
+var _snapshot_failure_reason: String = ""
+var _last_successful_scan_at: String = ""
 var _graph_nodes: Array = []
 var _id_to_graph_name: Dictionary = {}
 var _id_to_graph_node: Dictionary = {}
@@ -168,6 +176,16 @@ func setup(editor_interface: EditorInterface) -> void:
 	_editor_interface = editor_interface
 
 
+## Stops deferred/editor-driven work before the plugin removes the dock from the SceneTree.
+func prepare_for_shutdown() -> void:
+	_shutting_down = true
+	_editor_change_pending = false
+	if auto_rescan_timer != null and auto_rescan_timer.is_inside_tree():
+		auto_rescan_timer.stop()
+	if editor_change_timer != null and editor_change_timer.is_inside_tree():
+		editor_change_timer.stop()
+
+
 func _ready() -> void:
 	if not _initialize_dependencies():
 		_present_initialization_failure()
@@ -237,9 +255,12 @@ func _initialize_dependencies() -> bool:
 	_scanner = scanner_script.new()
 	_builder = builder_script.new()
 	_scope_projector = scope_script.new()
+	_snapshot_validator_script = validator_script
 	_snapshot_validator = validator_script.new()
 	_graph_query = graph_query_script.new()
 	_export_service = export_service_script.new()
+	if _export_service != null and _export_service.has_method("set_snapshot_validator"):
+		_export_service.call("set_snapshot_validator", _snapshot_validator)
 	_state_store = state_store_script.new()
 	if (
 		_logger == null
@@ -330,6 +351,8 @@ func _present_initialization_failure() -> void:
 ## Scans the project, rebuilds the canonical snapshot, redraws the graph,
 ## runs enabled automatic exports, and only then restarts the one-shot timer.
 func scan_project() -> void:
+	if _shutting_down or not is_inside_tree():
+		return
 	if not _initialization_errors.is_empty():
 		_present_initialization_failure()
 		return
@@ -394,6 +417,7 @@ func scan_project() -> void:
 		)
 		return
 	_snapshot = candidate_snapshot
+	_mark_snapshot_current()
 	if not _focused_node_id.is_empty() and not _snapshot_has_node(_focused_node_id):
 		_focused_node_id = ""
 	_render_snapshot()
@@ -428,15 +452,15 @@ func scan_project() -> void:
 
 
 func _validate_snapshot_candidate(candidate_snapshot: Dictionary) -> Dictionary:
-	if _snapshot_validator == null or not _snapshot_validator.has_method("validate"):
+	if not _ensure_snapshot_validator_available():
 		return {
 			"ok": false,
 			"errors":
 			[
 				{
 					"code": "validator_unavailable",
-					"message": "Snapshot validator is unavailable.",
-					"context": {},
+					"message": "Snapshot validator is unavailable after a recovery attempt.",
+					"context": {"path": SNAPSHOT_VALIDATOR_SCRIPT_PATH},
 				}
 			],
 			"warnings": [],
@@ -444,11 +468,59 @@ func _validate_snapshot_candidate(candidate_snapshot: Dictionary) -> Dictionary:
 	return _snapshot_validator.call("validate", candidate_snapshot)
 
 
+func _ensure_snapshot_validator_available() -> bool:
+	if _snapshot_validator != null and _snapshot_validator.has_method("validate"):
+		return true
+	var validator_script: Script = _snapshot_validator_script
+	if validator_script == null:
+		var resource: Resource = ResourceLoader.load(SNAPSHOT_VALIDATOR_SCRIPT_PATH)
+		if resource != null and resource is Script:
+			validator_script = resource as Script
+	if validator_script == null:
+		if _logger != null:
+			_logger.error(
+				"Snapshot validator recovery failed because its script could not be loaded.",
+				{"code": "validator_recovery_failed", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+			)
+		return false
+	var candidate = validator_script.new()
+	if candidate == null or not candidate.has_method("validate"):
+		if _logger != null:
+			(
+				_logger
+				. error(
+					"Snapshot validator recovery failed because a valid service could not be instantiated.",
+					{"code": "validator_recovery_failed", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+				)
+			)
+		return false
+	_snapshot_validator_script = validator_script
+	_snapshot_validator = candidate
+	if _export_service != null and _export_service.has_method("set_snapshot_validator"):
+		_export_service.call("set_snapshot_validator", _snapshot_validator)
+	if _logger != null:
+		_logger.warning(
+			"Snapshot validator service was restored before validation.",
+			{"code": "validator_recovered", "path": SNAPSHOT_VALIDATOR_SCRIPT_PATH}
+		)
+	return true
+
+
 func _finish_scan_failure(message: String) -> void:
 	_scan_in_progress = false
 	scan_button.disabled = false
 	export_button.disabled = true
-	status_label.text = message
+	if not _snapshot.is_empty() and not _last_successful_scan_at.is_empty():
+		_snapshot_state = SNAPSHOT_STATE_STALE
+		_snapshot_failure_reason = message
+		status_label.text = _stale_snapshot_status_text()
+		status_label.tooltip_text = _stale_snapshot_detail_text()
+		_update_summary()
+	else:
+		_snapshot_state = SNAPSHOT_STATE_EMPTY
+		_snapshot_failure_reason = message
+		status_label.text = message
+		status_label.tooltip_text = message
 	if _editor_change_pending and sync_on_editor_changes_check.button_pressed:
 		_editor_change_pending = false
 		_start_editor_change_timer()
@@ -456,9 +528,33 @@ func _finish_scan_failure(message: String) -> void:
 		_update_refresh_schedules()
 
 
+func _mark_snapshot_current() -> void:
+	_snapshot_state = SNAPSHOT_STATE_CURRENT
+	_snapshot_failure_reason = ""
+	_last_successful_scan_at = Time.get_datetime_string_from_system(true, true) + "Z"
+	status_label.tooltip_text = "Latest successful dependency scan."
+
+
+func _stale_snapshot_status_text() -> String:
+	return (
+		"STALE · last success %s · failed rescan for %s: %s"
+		% [_last_successful_scan_at, _scan_root, _snapshot_failure_reason]
+	)
+
+
+func _stale_snapshot_detail_text() -> String:
+	return (
+		(
+			"Showing the last valid snapshot from %s. The latest scan for %s failed: %s "
+			+ "Automatic and manual export are disabled until a successful rescan."
+		)
+		% [_last_successful_scan_at, _scan_root, _snapshot_failure_reason]
+	)
+
+
 func _snapshot_status_text(automatic_exports: Array[String] = []) -> String:
 	var base: String = (
-		"%s nodes · %s edges · %s warnings · %s errors"
+		"Current · %s nodes · %s edges · %s warnings · %s errors"
 		% [
 			_snapshot.get("nodes", []).size(),
 			_snapshot.get("edges", []).size(),
@@ -946,6 +1042,12 @@ func _on_auto_rescan_timeout() -> void:
 
 
 func _update_refresh_schedules() -> void:
+	if _shutting_down:
+		if auto_rescan_timer != null and auto_rescan_timer.is_inside_tree():
+			auto_rescan_timer.stop()
+		if editor_change_timer != null and editor_change_timer.is_inside_tree():
+			editor_change_timer.stop()
+		return
 	_update_auto_rescan_schedule()
 	_update_scan_mode_indicator()
 	if sync_on_editor_changes_check.button_pressed and not _scan_in_progress:
@@ -956,7 +1058,7 @@ func _update_refresh_schedules() -> void:
 
 
 func _update_auto_rescan_schedule() -> void:
-	if auto_rescan_timer == null:
+	if auto_rescan_timer == null or not auto_rescan_timer.is_inside_tree():
 		return
 	auto_rescan_timer.stop()
 	if auto_rescan_check.button_pressed and not _scan_in_progress:
@@ -1091,6 +1193,8 @@ func _automatic_exports_touch_resource_filesystem() -> bool:
 
 func _run_automatic_exports() -> Array[String]:
 	var completed: Array[String] = []
+	if _snapshot_state != SNAPSHOT_STATE_CURRENT:
+		return completed
 	if _snapshot.is_empty():
 		return completed
 	var filesystem_refresh_needed: bool = false
@@ -1261,37 +1365,61 @@ func _update_summary() -> void:
 		edge_kind_counts[kind] = int(edge_kind_counts.get(kind, 0)) + 1
 	var metadata: Dictionary = _snapshot.get("metadata", {})
 	var scope_summary: Dictionary = metadata.get("scope_summary", {})
+	var summary_title: String = "[b]Dependency graph summary[/b]"
+	var snapshot_state_lines: Array[String] = ["Snapshot state: CURRENT"]
+	if _snapshot_state == SNAPSHOT_STATE_STALE:
+		summary_title = "[b]Dependency graph summary — STALE SNAPSHOT[/b]"
+		snapshot_state_lines = [
+			"Snapshot state: STALE — preserved for inspection only; it is not the current scan result.",
+			"Last successful scan: %s" % _last_successful_scan_at,
+			"Latest scan failure: %s" % _snapshot_failure_reason,
+			"Export: automatic and manual export are disabled until a successful rescan.",
+		]
 	var lines: Array[String] = [
-		"[b]Dependency graph summary[/b]",
-		"[b]How to read it[/b]: solid = inheritance; orange = load/preload or direct member use; blue = type-only use. Node border colors identify the most specific inheritance family.",
-		"Selected scope: %s" % str(metadata.get("root_path", "res://")),
-		(
-			"Indexed root: %s"
-			% str(metadata.get("index_root_path", metadata.get("root_path", "res://")))
-		),
-		(
-			"Scope nodes: %s in scope; %s required context."
-			% [
-				int(scope_summary.get("in_scope_nodes", _snapshot.get("nodes", []).size())),
-				int(scope_summary.get("context_nodes", 0)),
-			]
-		),
-		"Engine: %s" % str(metadata.get("engine_version", "unknown")),
-		"Exact data: choose JSON, then Export, for paths, members, provenance, and diagnostics.",
-		"Nodes: %s (%s)" % [_snapshot.get("nodes", []).size(), _count_summary(node_kind_counts)],
-		(
-			"Autoloads: %s; exact scene attachments: %s."
-			% [autoload_count, _snapshot.get("scene_usages", []).size()]
-		),
-		"Inheritance families: %s" % _count_summary(family_counts),
-		"Edges: %s (%s)" % [_snapshot.get("edges", []).size(), _count_summary(edge_kind_counts)],
-		"Canonical export direction: dependent → dependency.",
-		"Rendered GraphEdit direction: dependency → dependent, for layout.",
-		(
-			"Warnings: %s; errors: %s."
-			% [_snapshot.get("warnings", []).size(), _snapshot.get("errors", []).size()]
-		),
+		summary_title,
 	]
+	lines.append_array(snapshot_state_lines)
+	(
+		lines
+		. append_array(
+			[
+				"[b]How to read it[/b]: solid = inheritance; orange = load/preload or direct member use; blue = type-only use. Node border colors identify the most specific inheritance family.",
+				"Selected scope: %s" % str(metadata.get("root_path", "res://")),
+				(
+					"Indexed root: %s"
+					% str(metadata.get("index_root_path", metadata.get("root_path", "res://")))
+				),
+				(
+					"Scope nodes: %s in scope; %s required context."
+					% [
+						int(scope_summary.get("in_scope_nodes", _snapshot.get("nodes", []).size())),
+						int(scope_summary.get("context_nodes", 0)),
+					]
+				),
+				"Engine: %s" % str(metadata.get("engine_version", "unknown")),
+				"Exact data: choose JSON, then Export, for paths, members, provenance, and diagnostics.",
+				(
+					"Nodes: %s (%s)"
+					% [_snapshot.get("nodes", []).size(), _count_summary(node_kind_counts)]
+				),
+				(
+					"Autoloads: %s; exact scene attachments: %s."
+					% [autoload_count, _snapshot.get("scene_usages", []).size()]
+				),
+				"Inheritance families: %s" % _count_summary(family_counts),
+				(
+					"Edges: %s (%s)"
+					% [_snapshot.get("edges", []).size(), _count_summary(edge_kind_counts)]
+				),
+				"Canonical export direction: dependent → dependency.",
+				"Rendered GraphEdit direction: dependency → dependent, for layout.",
+				(
+					"Warnings: %s; errors: %s."
+					% [_snapshot.get("warnings", []).size(), _snapshot.get("errors", []).size()]
+				),
+			]
+		)
+	)
 	summary_view.text = "\n".join(lines)
 
 
@@ -1857,7 +1985,7 @@ func _depth_for(
 
 
 func _open_export_dialog() -> void:
-	if _snapshot.is_empty():
+	if _snapshot.is_empty() or _snapshot_state != SNAPSHOT_STATE_CURRENT:
 		return
 	_pending_path_format = _selected_format_id()
 	_pending_manual_export = true
@@ -1885,6 +2013,11 @@ func _configure_file_dialog(format_id: String, suggested_path: String) -> void:
 
 
 func _on_export_path_selected(path: String) -> void:
+	if _pending_manual_export and _snapshot_state != SNAPSHOT_STATE_CURRENT:
+		status_label.text = "Export blocked: the retained snapshot is stale; rescan successfully first."
+		_pending_path_format = ""
+		_pending_manual_export = false
+		return
 	var format_id: String = (
 		_pending_path_format if not _pending_path_format.is_empty() else _selected_format_id()
 	)
@@ -1949,6 +2082,8 @@ func _on_editor_filesystem_changed() -> void:
 
 
 func _start_editor_change_timer() -> void:
+	if _shutting_down or editor_change_timer == null or not editor_change_timer.is_inside_tree():
+		return
 	if not sync_on_editor_changes_check.button_pressed:
 		return
 	editor_change_timer.wait_time = clampf(editor_sync_debounce_spin.value, 0.25, 30.0)

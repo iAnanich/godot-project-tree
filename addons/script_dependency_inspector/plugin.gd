@@ -30,6 +30,8 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	if is_instance_valid(_dock):
+		if _dock.has_method("prepare_for_shutdown"):
+			_dock.call("prepare_for_shutdown")
 		remove_control_from_docks(_dock)
 		_dock.queue_free()
 	_dock = null

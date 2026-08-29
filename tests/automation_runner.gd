@@ -6,6 +6,24 @@ const OUTPUT_ROOT: String = "user://script_dependency_inspector/automation"
 var _failures: Array[String] = []
 
 
+class RejectingValidator:
+	extends RefCounted
+
+	func validate(_snapshot: Dictionary) -> Dictionary:
+		return {
+			"ok": false,
+			"errors":
+			[
+				{
+					"code": "forced_validation_failure",
+					"message": "Forced validation failure for stale-snapshot lifecycle coverage.",
+					"context": {"fixture": "automation_runner"},
+				}
+			],
+			"warnings": [],
+		}
+
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -29,6 +47,7 @@ func _run() -> void:
 	var plantuml_path: LineEdit = dock.get_node("%AutoExportPlantUMLPath")
 	var timer: Timer = dock.get_node("%AutoRescanTimer")
 	var status: Label = dock.get_node("%StatusLabel")
+	var export_button: Button = dock.get_node("%ExportButton")
 	var sync_on_changes: CheckBox = dock.get_node("%SyncOnEditorChanges")
 	var sync_debounce: SpinBox = dock.get_node("%EditorSyncDebounce")
 	var follow_active: CheckBox = dock.get_node("%FollowActiveScript")
@@ -131,6 +150,95 @@ func _run() -> void:
 	)
 	auto_rescan.button_pressed = false
 	timer.stop()
+
+	# A validator object can become invalid after an editor script hot reload.
+	# Root switching must recover the service rather than surface validator_unavailable.
+	dock.set("_snapshot_validator", null)
+	dock.call("_set_scan_root", "res://tests/contract_fixtures/hidden_member_scope")
+	_check(
+		str(dock.get("_snapshot_state")) == "current",
+		"A root switch must recover an unavailable validator and publish the valid candidate.",
+	)
+	_check(
+		not status.text.contains("validator_unavailable"),
+		"A recoverable validator lifecycle loss must not surface validator_unavailable.",
+	)
+
+	# The export boundary has the same hot-reload recovery obligation.
+	var export_service = dock.get("_export_service")
+	export_service.set("_validator", null)
+	var export_recovery: Dictionary = export_service.call(
+		"export_to_string", "json", dock.get("_snapshot"), {}
+	)
+	_check(
+		export_recovery.get("ok", false),
+		"Export validation must recover its validator service after a lifecycle loss.",
+	)
+
+	# OPEN-001: a fatal rescan preserves the last valid snapshot for inspection,
+	# labels it stale, and blocks all export until a later successful scan.
+	mermaid_check.button_pressed = false
+	plantuml_check.button_pressed = false
+	json_check.button_pressed = true
+	json_path.text = OUTPUT_ROOT + "/stale-must-not-export.json"
+	if FileAccess.file_exists(json_path.text):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(json_path.text))
+	var previous_snapshot_text: String = JSON.stringify(dock.get("_snapshot"))
+	var previous_success_at: String = str(dock.get("_last_successful_scan_at"))
+	dock.set("_snapshot_validator", RejectingValidator.new())
+	dock.call("_set_scan_root", "res://tests/contract_fixtures/hidden_member_scope/feature")
+	_check(
+		str(dock.get("_snapshot_state")) == "stale",
+		"A fatal rescan must mark the retained snapshot stale."
+	)
+	_check(
+		JSON.stringify(dock.get("_snapshot")) == previous_snapshot_text,
+		"A fatal rescan must preserve the exact last valid snapshot for inspection.",
+	)
+	_check(
+		(
+			str(dock.get("_last_successful_scan_at")) == previous_success_at
+			and not previous_success_at.is_empty()
+		),
+		"A stale snapshot must retain the last-successful-scan timestamp.",
+	)
+	_check(
+		status.text.begins_with("STALE"),
+		"The visible scan status must identify retained data as stale."
+	)
+	_check(
+		status.text.contains("forced_validation_failure"),
+		"The stale-state status must expose the failed-scan reason.",
+	)
+	_check(
+		(dock.get_node("%SummaryView") as RichTextLabel).text.contains("STALE SNAPSHOT"),
+		"The non-visual summary must identify the retained snapshot as stale.",
+	)
+	_check(
+		export_button.disabled,
+		"Manual export must remain disabled while the retained snapshot is stale."
+	)
+	_check(
+		not FileAccess.file_exists(json_path.text),
+		"Automatic export must not run from a stale retained snapshot.",
+	)
+
+	# A later successful scan clears stale state and can export the new current result.
+	dock.set("_snapshot_validator", null)
+	dock.call("scan_project")
+	_check(
+		str(dock.get("_snapshot_state")) == "current",
+		"A successful rescan must clear stale snapshot state."
+	)
+	_check(
+		status.text.begins_with("Current"),
+		"A successful rescan must be presented as the current result."
+	)
+	_check(
+		FileAccess.file_exists(json_path.text),
+		"Automatic export may resume only after a successful rescan publishes a current snapshot.",
+	)
+
 	dock.queue_free()
 	_finish()
 

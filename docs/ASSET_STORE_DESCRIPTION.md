@@ -49,6 +49,8 @@ Save/import synchronization is enabled by default and debounced after editor act
 - Bounded files, directories, scripts, and text scenes
 - Recoverable staged writes and independent per-format failures
 - Actionable validation diagnostics with stable issue codes, selected scan root, and bounded structured context
+- Failed rescans preserve the last valid graph as an explicitly **STALE**, inspection-only snapshot with the failure reason and last-success timestamp; export remains blocked until a successful rescan
+- Validator services recover after editor script lifecycle/hot-reload invalidation instead of exposing a recoverable `validator_unavailable` state
 - Explicit diagnostics instead of guessed dynamic relationships
 - Automated behavioral, negative, export, visual, performance, and compatibility tests
 

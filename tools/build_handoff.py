@@ -450,7 +450,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "tools/dist",
+        default=ROOT.parent / "script-dependency-inspector-handoff-artifacts",
         help="Output directory (default: sibling script-dependency-inspector-handoff-artifacts directory)",
     )
     parser.add_argument(

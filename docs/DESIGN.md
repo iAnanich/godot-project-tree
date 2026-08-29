@@ -1,12 +1,12 @@
 # Script Dependency Inspector — product design
 
 Artifact identity: `script-dependency-inspector-product-design`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
-Status: accepted implementation design for v0.3.1; release-specific verification remains separate
+Status: accepted implementation design for v0.4.0; release-specific verification remains separate
 Requirements: `REQUIREMENTS.md`
 Release process: `RELEASE-REQUIREMENTS.md`
 Use-case layer: `USE_CASES.md`, with cross-artifact mapping in `TRACEABILITY.md`
@@ -213,7 +213,7 @@ At minimum the design must distinguish:
 - `current` — snapshot comes from the most recent successful scan;
 - `current_with_diagnostics` — structurally valid snapshot contains non-fatal diagnostics.
 
-`stale` remains proposed under `OPEN-001`.
+`stale` is an accepted lifecycle state under `RESOLVED-OPEN-001`.
 
 ### 7.3 Saved-files-only semantics
 
@@ -247,19 +247,19 @@ A snapshot with diagnostics is publishable only when `SnapshotValidator` accepts
 
 The status layer should state that diagnostics mean some evidence can be missing. It should not equate zero structural-validation errors with complete runtime dependency coverage.
 
-### 8.3 Open stale-snapshot decision
+### 8.3 Retained stale-snapshot lifecycle
 
-`OPEN-001` remains unresolved.
+`RESOLVED-OPEN-001` selects this behavior:
 
-Recommended behavior:
+1. A successful scan publishes a `current` snapshot and records a UTC last-success timestamp.
+2. A later fatal scan does not replace that snapshot. The prior snapshot remains inspectable and becomes `stale`.
+3. Status and summary surfaces identify the stale state, failed-scan reason, and last-success timestamp.
+4. The stale snapshot is not described as the current scan result.
+5. Automatic export is suppressed while stale. Manual export is also disabled to prevent accidental publication of obsolete evidence.
+6. A later successful scan replaces the stale snapshot, returns state to `current`, and restores export behavior.
+7. If no valid snapshot existed before the failure, no stale inspection state is synthesized.
 
-1. Keep the last structurally valid snapshot after a fatal new scan.
-2. Mark it `stale` with the failure reason and last-successful-scan timestamp.
-3. Allow inspection with a visible stale-state marker.
-4. Do not start automatic exports from stale data.
-5. Require a successful rescan before the snapshot returns to `current`.
-
-Whether manual export should be disabled or require explicit confirmation is a secondary decision that should be made together with `OPEN-001`.
+The scan-root control can therefore describe the newly requested root while the retained snapshot metadata continues to identify the root of the last successful snapshot. This distinction is intentional.
 
 ## 9. Graph visualization contract
 
@@ -496,9 +496,9 @@ A required release gate can be waived only by an explicit owner decision. The ex
 
 ## 20. Design decisions still open
 
-### OPEN-001 — Prior snapshot after fatal rescan
+### RESOLVED-OPEN-001 — Prior snapshot after fatal rescan
 
-See `REQUIREMENTS.md`. This is the only material product decision introduced by this review.
+Accepted on 2026-08-29. See `REQUIREMENTS.md` and section 8.3 for the retained stale-snapshot lifecycle.
 
 ### Deferred, not currently open for implementation
 

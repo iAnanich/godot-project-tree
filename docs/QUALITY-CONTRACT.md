@@ -1,12 +1,12 @@
 # Script Dependency Inspector — quality contract
 
 Artifact identity: `script-dependency-inspector-quality-contract`
-Version: `0.2.1-alpha.1`
-Release state at issue: Accepted for v0.3.1 implementation
+Version: `0.3.0-alpha.1`
+Release state at issue: Accepted for v0.4.0 implementation
 Issue date: 2026-08-29
 
 
-Status: accepted quality contract for v0.3.0 implementation; release-specific results remain separate
+Status: accepted quality contract for v0.4.0 implementation; release-specific results remain separate
 Applies to: product behavior and release acceptance
 Decision owner: project owner
 
@@ -96,6 +96,13 @@ A quality scenario defines required assessment evidence. It is not a verificatio
 **Target property:** status and Log expose stable issue identity, selected root, message, and bounded structured context.
 **Acceptance:** behavioral test verifies stable code/root/context survive UI rendering.
 **Failure consequence:** users cannot diagnose a reproducible model-consistency defect.
+
+### QS-REL-04 — Failed-rescan state preservation
+
+**Condition:** a structurally valid current snapshot exists and a later scan fails fatally.
+**Target property:** the previous snapshot remains inspectable only as explicitly stale data with failure reason and last-success timestamp; no export can publish it.
+**Acceptance:** lifecycle test verifies exact snapshot preservation, visible stale/current state, automatic-export suppression, manual-export disablement, and recovery after a successful rescan.
+**Failure consequence:** useful context is lost or obsolete evidence can be mistaken for/published as the latest scan.
 
 ### QS-PERF-01 — Bounded synchronous work
 
