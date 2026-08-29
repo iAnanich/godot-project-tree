@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import subprocess
 import tempfile
 import textwrap
@@ -57,7 +56,9 @@ def environment(root: Path) -> dict[str, str]:
     return env
 
 
-def run(command: list[str], *, cwd: Path, env: dict[str, str], label: str, timeout: int) -> str:
+def run(
+    command: list[str], *, cwd: Path, env: dict[str, str], label: str, timeout: int
+) -> str:
     result = subprocess.run(
         command,
         cwd=cwd,
@@ -69,11 +70,15 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str], label: str, timeo
         check=False,
     )
     if result.returncode != 0:
-        raise RuntimeError(f"{label} failed with exit status {result.returncode}:\n{result.stdout}")
+        raise RuntimeError(
+            f"{label} failed with exit status {result.returncode}:\n{result.stdout}"
+        )
     lowered = result.stdout.lower()
     for token in ("parse error", "failed to load script", "could not resolve script"):
         if token in lowered:
-            raise RuntimeError(f"{label} reported a script-load failure:\n{result.stdout}")
+            raise RuntimeError(
+                f"{label} reported a script-load failure:\n{result.stdout}"
+            )
     return result.stdout
 
 
@@ -93,7 +98,8 @@ def write_smoke_project(project: Path) -> None:
         encoding="utf-8",
     )
     (project / "samples" / "base.gd").write_text(
-        "class_name PackagedBase\nextends RefCounted\nfunc ping() -> void:\n\tpass\n", encoding="utf-8"
+        "class_name PackagedBase\nextends RefCounted\nfunc ping() -> void:\n\tpass\n",
+        encoding="utf-8",
     )
     (project / "samples" / "consumer.gd").write_text(
         textwrap.dedent(
@@ -182,7 +188,15 @@ def main() -> int:
         write_smoke_project(project)
         env = environment(root / "env")
         import_log = run(
-            [str(godot), "--headless", "--editor", "--path", str(project), "--quit-after", "2"],
+            [
+                str(godot),
+                "--headless",
+                "--editor",
+                "--path",
+                str(project),
+                "--quit-after",
+                "2",
+            ],
             cwd=project,
             env=env,
             label="packaged add-on editor initialization",
@@ -196,11 +210,15 @@ def main() -> int:
             timeout=args.timeout,
         )
         if "Packaged add-on smoke verification passed." not in smoke_log:
-            raise RuntimeError("packaged add-on smoke script did not emit its success marker")
+            raise RuntimeError(
+                "packaged add-on smoke script did not emit its success marker"
+            )
         print(f"Packaged add-on verified: {addon}")
         if import_log.strip():
             print("Editor initialization completed.")
-        print("Representative scan/build/validate/export behavior completed without executing the scanned static initializer.")
+        print(
+            "Representative scan/build/validate/export behavior completed without executing the scanned static initializer."
+        )
     return 0
 
 

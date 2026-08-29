@@ -27,7 +27,10 @@ def gdscript_files() -> list[str]:
 def run_required(executable_name: str, arguments: list[str], label: str) -> int:
     executable = shutil.which(executable_name)
     if executable is None:
-        print(f"Required GDScript quality tool is unavailable: {executable_name}", file=sys.stderr)
+        print(
+            f"Required GDScript quality tool is unavailable: {executable_name}",
+            file=sys.stderr,
+        )
         return 2
     result = subprocess.run(
         [executable, *arguments],

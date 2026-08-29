@@ -52,13 +52,19 @@ def is_release_file(path: Path) -> bool:
         return False
     if any(part in EXCLUDED_DIRECTORY_NAMES for part in relative.parts):
         return False
-    if path.suffix in {".uid", ".import"} or path.name in {"MANIFEST.sha256", ".DS_Store"}:
+    if path.suffix in {".uid", ".import"} or path.name in {
+        "MANIFEST.sha256",
+        ".DS_Store",
+    }:
         return False
     return True
 
 
 def release_files() -> list[Path]:
-    return sorted((path for path in ROOT.rglob("*") if is_release_file(path)), key=lambda path: path.as_posix())
+    return sorted(
+        (path for path in ROOT.rglob("*") if is_release_file(path)),
+        key=lambda path: path.as_posix(),
+    )
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -78,13 +84,24 @@ def zip_datetime() -> tuple[int, int, int, int, int, int]:
     try:
         epoch = max(DEFAULT_ZIP_EPOCH, int(raw_epoch))
     except ValueError as error:
-        raise RuntimeError("SOURCE_DATE_EPOCH must be an integer Unix timestamp") from error
+        raise RuntimeError(
+            "SOURCE_DATE_EPOCH must be an integer Unix timestamp"
+        ) from error
     value = time.gmtime(epoch)
     # ZIP stores seconds at two-second precision.
-    return (value.tm_year, value.tm_mon, value.tm_mday, value.tm_hour, value.tm_min, value.tm_sec // 2 * 2)
+    return (
+        value.tm_year,
+        value.tm_mon,
+        value.tm_mday,
+        value.tm_hour,
+        value.tm_min,
+        value.tm_sec // 2 * 2,
+    )
 
 
-def add_bytes(archive: zipfile.ZipFile, archive_name: str, data: bytes, executable: bool = False) -> None:
+def add_bytes(
+    archive: zipfile.ZipFile, archive_name: str, data: bytes, executable: bool = False
+) -> None:
     info = zipfile.ZipInfo(archive_name, date_time=zip_datetime())
     info.create_system = 3
     mode = stat.S_IFREG | (0o755 if executable else 0o644)
@@ -93,7 +110,9 @@ def add_bytes(archive: zipfile.ZipFile, archive_name: str, data: bytes, executab
     archive.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
 
 
-def write_project_archive(destination: Path, files: list[Path], manifest: bytes) -> None:
+def write_project_archive(
+    destination: Path, files: list[Path], manifest: bytes
+) -> None:
     with zipfile.ZipFile(destination, "w") as archive:
         for path in files:
             relative = path.relative_to(ROOT).as_posix()
@@ -148,9 +167,16 @@ def build(output_directory: Path) -> list[Path]:
     files = release_files()
     manifest = manifest_bytes(files)
     addon = output_directory / f"script-dependency-inspector-addon-v{version}.zip"
-    project = output_directory / f"script-dependency-inspector-godot4-project-v{version}.zip"
-    media = output_directory / f"script-dependency-inspector-asset-store-media-v{version}.zip"
-    checksums = output_directory / f"script-dependency-inspector-v{version}-SHA256SUMS.txt"
+    project = (
+        output_directory / f"script-dependency-inspector-godot4-project-v{version}.zip"
+    )
+    media = (
+        output_directory
+        / f"script-dependency-inspector-asset-store-media-v{version}.zip"
+    )
+    checksums = (
+        output_directory / f"script-dependency-inspector-v{version}-SHA256SUMS.txt"
+    )
     for path in (addon, project, media, checksums):
         path.unlink(missing_ok=True)
 
@@ -167,7 +193,9 @@ def build(output_directory: Path) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, required=True, help="Directory for release artifacts")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Directory for release artifacts"
+    )
     arguments = parser.parse_args()
     artifacts = build(arguments.output.resolve())
     for artifact in artifacts:

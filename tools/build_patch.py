@@ -21,7 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_CONFIG = "addons/script_dependency_inspector/plugin.cfg"
 
 
-def run_git(arguments: list[str], *, cwd: Path = ROOT, binary: bool = False) -> bytes | str:
+def run_git(
+    arguments: list[str], *, cwd: Path = ROOT, binary: bool = False
+) -> bytes | str:
     result = subprocess.run(
         ["git", *arguments],
         cwd=cwd,
@@ -31,7 +33,9 @@ def run_git(arguments: list[str], *, cwd: Path = ROOT, binary: bool = False) -> 
         text=not binary,
     )
     if result.returncode != 0:
-        stderr = result.stderr.decode("utf-8", errors="replace") if binary else result.stderr
+        stderr = (
+            result.stderr.decode("utf-8", errors="replace") if binary else result.stderr
+        )
         raise RuntimeError(f"git {' '.join(arguments)} failed: {stderr.strip()}")
     return result.stdout
 
@@ -210,7 +214,9 @@ def main() -> int:
         "--base-ref",
         help="Previous release tag or commit; defaults to the nearest tag before target",
     )
-    parser.add_argument("--target-ref", default="HEAD", help="Target release tag or commit")
+    parser.add_argument(
+        "--target-ref", default="HEAD", help="Target release tag or commit"
+    )
     parser.add_argument(
         "--output",
         type=Path,

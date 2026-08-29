@@ -60,7 +60,9 @@ def run_git(
         check=False,
     )
     if check and result.returncode != 0:
-        stderr = result.stderr.decode("utf-8", errors="replace") if binary else result.stderr
+        stderr = (
+            result.stderr.decode("utf-8", errors="replace") if binary else result.stderr
+        )
         raise RuntimeError(f"git {' '.join(arguments)} failed: {stderr.strip()}")
     return result.stdout
 
@@ -70,7 +72,9 @@ def verify_repository() -> None:
         raise RuntimeError("git is required to build a local handoff")
     top = Path(str(run_git(["rev-parse", "--show-toplevel"])).strip()).resolve()
     if top != ROOT.resolve():
-        raise RuntimeError(f"run from the project repository rooted at {ROOT}; Git root is {top}")
+        raise RuntimeError(
+            f"run from the project repository rooted at {ROOT}; Git root is {top}"
+        )
 
 
 def verify_ref(ref: str) -> tuple[str, str]:
@@ -83,12 +87,16 @@ def project_version() -> str:
     path = ROOT / PLUGIN_CONFIG
     if not path.is_file():
         return "unknown"
-    match = re.search(r'^version="([^"]+)"$', path.read_text(encoding="utf-8"), re.MULTILINE)
+    match = re.search(
+        r'^version="([^"]+)"$', path.read_text(encoding="utf-8"), re.MULTILINE
+    )
     return match.group(1) if match else "unknown"
 
 
 def git_status() -> list[str]:
-    raw = str(run_git(["status", "--porcelain=v1", "--untracked-files=all", "--ignored=no"])).splitlines()
+    raw = str(
+        run_git(["status", "--porcelain=v1", "--untracked-files=all", "--ignored=no"])
+    ).splitlines()
     return [line for line in raw if line]
 
 
@@ -133,8 +141,16 @@ def materialize_target(destination: Path, paths: list[Path]) -> None:
 
 def init_temp_repo(repository: Path) -> None:
     subprocess.run(["git", "init", "-q"], cwd=repository, check=True)
-    subprocess.run(["git", "config", "user.name", "Script Dependency Inspector Handoff"], cwd=repository, check=True)
-    subprocess.run(["git", "config", "user.email", "handoff@invalid.local"], cwd=repository, check=True)
+    subprocess.run(
+        ["git", "config", "user.name", "Script Dependency Inspector Handoff"],
+        cwd=repository,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "handoff@invalid.local"],
+        cwd=repository,
+        check=True,
+    )
 
 
 def extract_baseline(base_ref: str, destination: Path) -> None:
@@ -161,7 +177,11 @@ def remove_worktree_files(repository: Path) -> None:
 
 def commit_all(repository: Path, message: str) -> str:
     subprocess.run(["git", "add", "-A", "--", "."], cwd=repository, check=True)
-    subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", message], cwd=repository, check=True)
+    subprocess.run(
+        ["git", "commit", "-q", "--allow-empty", "-m", message],
+        cwd=repository,
+        check=True,
+    )
     return subprocess.run(
         ["git", "rev-parse", "HEAD"],
         cwd=repository,
@@ -171,7 +191,9 @@ def commit_all(repository: Path, message: str) -> str:
     ).stdout.strip()
 
 
-def build_verified_patch(base_ref: str, target_paths: list[Path], temporary: Path) -> tuple[bytes, str, str]:
+def build_verified_patch(
+    base_ref: str, target_paths: list[Path], temporary: Path
+) -> tuple[bytes, str, str]:
     repository = temporary / "patch-repo"
     repository.mkdir()
     extract_baseline(base_ref, repository)
@@ -206,17 +228,29 @@ def build_verified_patch(base_ref: str, target_paths: list[Path], temporary: Pat
         stdout=subprocess.PIPE,
     ).stdout
 
-    subprocess.run(["git", "reset", "--hard", "-q", baseline_commit], cwd=repository, check=True)
+    subprocess.run(
+        ["git", "reset", "--hard", "-q", baseline_commit], cwd=repository, check=True
+    )
     if patch:
         check = subprocess.run(
-            ["git", "apply", "--check", "--index", "--binary", "--whitespace=nowarn", "-"],
+            [
+                "git",
+                "apply",
+                "--check",
+                "--index",
+                "--binary",
+                "--whitespace=nowarn",
+                "-",
+            ],
             cwd=repository,
             input=patch,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         if check.returncode != 0:
-            raise RuntimeError(f"generated handoff patch failed git apply --check: {check.stderr.decode().strip()}")
+            raise RuntimeError(
+                f"generated handoff patch failed git apply --check: {check.stderr.decode().strip()}"
+            )
         applied = subprocess.run(
             ["git", "apply", "--index", "--binary", "--whitespace=nowarn", "-"],
             cwd=repository,
@@ -225,7 +259,9 @@ def build_verified_patch(base_ref: str, target_paths: list[Path], temporary: Pat
             stderr=subprocess.PIPE,
         )
         if applied.returncode != 0:
-            raise RuntimeError(f"generated handoff patch failed to apply: {applied.stderr.decode().strip()}")
+            raise RuntimeError(
+                f"generated handoff patch failed to apply: {applied.stderr.decode().strip()}"
+            )
     patched_tree = subprocess.run(
         ["git", "write-tree"],
         cwd=repository,
@@ -234,7 +270,9 @@ def build_verified_patch(base_ref: str, target_paths: list[Path], temporary: Pat
         text=True,
     ).stdout.strip()
     if patched_tree != target_tree:
-        raise RuntimeError(f"handoff patch reconstruction mismatch: {patched_tree} != {target_tree}")
+        raise RuntimeError(
+            f"handoff patch reconstruction mismatch: {patched_tree} != {target_tree}"
+        )
     return patch, target_tree, baseline_commit
 
 
@@ -243,12 +281,23 @@ def zip_datetime() -> tuple[int, int, int, int, int, int]:
     try:
         epoch = max(DEFAULT_ZIP_EPOCH, int(raw_epoch))
     except ValueError as error:
-        raise RuntimeError("SOURCE_DATE_EPOCH must be an integer Unix timestamp") from error
+        raise RuntimeError(
+            "SOURCE_DATE_EPOCH must be an integer Unix timestamp"
+        ) from error
     value = time.gmtime(epoch)
-    return (value.tm_year, value.tm_mon, value.tm_mday, value.tm_hour, value.tm_min, value.tm_sec // 2 * 2)
+    return (
+        value.tm_year,
+        value.tm_mon,
+        value.tm_mday,
+        value.tm_hour,
+        value.tm_min,
+        value.tm_sec // 2 * 2,
+    )
 
 
-def add_bytes(archive: zipfile.ZipFile, name: str, data: bytes, *, executable: bool = False) -> None:
+def add_bytes(
+    archive: zipfile.ZipFile, name: str, data: bytes, *, executable: bool = False
+) -> None:
     info = zipfile.ZipInfo(name, date_time=zip_datetime())
     info.create_system = 3
     mode = stat.S_IFREG | (0o755 if executable else 0o644)
@@ -327,10 +376,14 @@ def build(base_ref: str, output: Path, *, allow_sensitive_looking: bool) -> Path
             "The patch was verified by reconstructing the target tree from the exact baseline in an isolated temporary repository.",
         ],
     }
-    manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
 
     checksum_lines = [f"{patch_sha256}  changes.patch"]
-    checksum_lines.extend(f"{record['sha256']}  source/{record['path']}" for record in source_records)
+    checksum_lines.extend(
+        f"{record['sha256']}  source/{record['path']}" for record in source_records
+    )
     checksums = ("\n".join(checksum_lines) + "\n").encode("utf-8")
 
     destination.unlink(missing_ok=True)
@@ -340,14 +393,18 @@ def build(base_ref: str, output: Path, *, allow_sensitive_looking: bool) -> Path
         add_bytes(archive, f"{HANDOFF_ARCHIVE_ROOT}/changes.patch", patch)
         for path, record in zip(paths, source_records, strict=True):
             relative = str(record["path"])
-            archive_name = f"{HANDOFF_ARCHIVE_ROOT}/source/{PROJECT_ARCHIVE_ROOT}/{relative}"
+            archive_name = (
+                f"{HANDOFF_ARCHIVE_ROOT}/source/{PROJECT_ARCHIVE_ROOT}/{relative}"
+            )
             if path.is_symlink():
                 # Store the link target as a Unix symlink entry.
                 info = zipfile.ZipInfo(archive_name, date_time=zip_datetime())
                 info.create_system = 3
                 info.external_attr = (stat.S_IFLNK | 0o777) << 16
                 info.compress_type = zipfile.ZIP_STORED
-                archive.writestr(info, os.readlink(path).encode("utf-8", errors="surrogateescape"))
+                archive.writestr(
+                    info, os.readlink(path).encode("utf-8", errors="surrogateescape")
+                )
             else:
                 add_bytes(
                     archive,

@@ -32,11 +32,17 @@ def check_member(name: str) -> PurePosixPath:
 
 def verify_project(path: Path) -> None:
     with zipfile.ZipFile(path) as archive:
-        names = [info.filename.rstrip("/") for info in archive.infolist() if not info.is_dir()]
+        names = [
+            info.filename.rstrip("/")
+            for info in archive.infolist()
+            if not info.is_dir()
+        ]
         for name in names:
             member = check_member(name)
             if not member.is_relative_to(PROJECT_ROOT):
-                raise RuntimeError(f"project archive member is outside canonical root: {name}")
+                raise RuntimeError(
+                    f"project archive member is outside canonical root: {name}"
+                )
         manifest_name = f"{PROJECT_ROOT}/MANIFEST.sha256"
         if manifest_name not in names:
             raise RuntimeError("project archive lacks MANIFEST.sha256")
@@ -52,7 +58,7 @@ def verify_project(path: Path) -> None:
         }
         if set(declared) != actual_names:
             raise RuntimeError(
-                f"project manifest inventory mismatch: missing={sorted(actual_names-set(declared))}, extra={sorted(set(declared)-actual_names)}"
+                f"project manifest inventory mismatch: missing={sorted(actual_names - set(declared))}, extra={sorted(set(declared) - actual_names)}"
             )
         for relative, expected in declared.items():
             data = archive.read(f"{PROJECT_ROOT}/{relative}")
@@ -62,7 +68,11 @@ def verify_project(path: Path) -> None:
 
 def verify_addon(path: Path) -> None:
     with zipfile.ZipFile(path) as archive:
-        files = [info.filename.rstrip("/") for info in archive.infolist() if not info.is_dir()]
+        files = [
+            info.filename.rstrip("/")
+            for info in archive.infolist()
+            if not info.is_dir()
+        ]
         if not files:
             raise RuntimeError("add-on archive is empty")
         for name in files:
@@ -77,11 +87,17 @@ def verify_addon(path: Path) -> None:
 
 def verify_media(path: Path) -> None:
     with zipfile.ZipFile(path) as archive:
-        files = [info.filename.rstrip("/") for info in archive.infolist() if not info.is_dir()]
+        files = [
+            info.filename.rstrip("/")
+            for info in archive.infolist()
+            if not info.is_dir()
+        ]
         for name in files:
             member = check_member(name)
             if not member.is_relative_to(MEDIA_ROOT):
-                raise RuntimeError(f"media archive member is outside canonical root: {name}")
+                raise RuntimeError(
+                    f"media archive member is outside canonical root: {name}"
+                )
         required = {
             f"{MEDIA_ROOT}/README.md",
             f"{MEDIA_ROOT}/media_manifest.json",
@@ -90,8 +106,14 @@ def verify_media(path: Path) -> None:
         missing = sorted(required - set(files))
         if missing:
             raise RuntimeError(f"media archive lacks required files: {missing}")
-        if any("source-captures" in PurePosixPath(name).parts or "documentation" in PurePosixPath(name).parts for name in files):
-            raise RuntimeError("media upload archive contains source/documentation captures")
+        if any(
+            "source-captures" in PurePosixPath(name).parts
+            or "documentation" in PurePosixPath(name).parts
+            for name in files
+        ):
+            raise RuntimeError(
+                "media upload archive contains source/documentation captures"
+            )
 
 
 def main() -> int:

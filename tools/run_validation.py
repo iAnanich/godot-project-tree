@@ -6,8 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -48,8 +48,12 @@ def parse_args() -> argparse.Namespace:
         help="Directory for logs and summary.json",
     )
     parser.add_argument("--timeout", type=int, default=120, help="Seconds per gate")
-    parser.add_argument("--keep-workdir", action="store_true", help="Retain isolated project copy")
-    parser.add_argument("--skip-static", action="store_true", help="Skip tools/validate_static.py")
+    parser.add_argument(
+        "--keep-workdir", action="store_true", help="Retain isolated project copy"
+    )
+    parser.add_argument(
+        "--skip-static", action="store_true", help="Skip tools/validate_static.py"
+    )
     return parser.parse_args()
 
 
@@ -102,9 +106,7 @@ def run_gate(
         f"{timeout}s",
         *command,
     ]
-    shell_command = (
-        f"{shlex.join(timeout_command)} > {shlex.quote(str(log_path))} 2>&1"
-    )
+    shell_command = f"{shlex.join(timeout_command)} > {shlex.quote(str(log_path))} 2>&1"
     completed = subprocess.run(
         ["bash", "-lc", shell_command],
         cwd=cwd,
@@ -199,7 +201,15 @@ def main() -> int:
             if not record(
                 run_gate(
                     "editor_import",
-                    [str(godot), "--headless", "--editor", "--path", ".", "--quit-after", "5"],
+                    [
+                        str(godot),
+                        "--headless",
+                        "--editor",
+                        "--path",
+                        ".",
+                        "--quit-after",
+                        "5",
+                    ],
                     base_project,
                     environment_for(base_home),
                     args.timeout,
@@ -209,22 +219,82 @@ def main() -> int:
                 expected_gate_count = len(results)
 
     prepared_gates: list[tuple[str, list[str]]] = [
-        ("public_tests", [str(godot), "--headless", "--path", ".", "--script", "tests/test_runner.gd"]),
-        ("automation", [str(godot), "--headless", "--path", ".", "--script", "tests/automation_runner.gd"]),
-        ("export_matrix", [str(godot), "--headless", "--path", ".", "--script", "tests/export_matrix_runner.gd"]),
-        ("showcase_export", [str(godot), "--headless", "--path", ".", "--script", "tests/generate_showcase_exports.gd"]),
+        (
+            "public_tests",
+            [
+                str(godot),
+                "--headless",
+                "--path",
+                ".",
+                "--script",
+                "tests/test_runner.gd",
+            ],
+        ),
+        (
+            "automation",
+            [
+                str(godot),
+                "--headless",
+                "--path",
+                ".",
+                "--script",
+                "tests/automation_runner.gd",
+            ],
+        ),
+        (
+            "export_matrix",
+            [
+                str(godot),
+                "--headless",
+                "--path",
+                ".",
+                "--script",
+                "tests/export_matrix_runner.gd",
+            ],
+        ),
+        (
+            "showcase_export",
+            [
+                str(godot),
+                "--headless",
+                "--path",
+                ".",
+                "--script",
+                "tests/generate_showcase_exports.gd",
+            ],
+        ),
         (
             "visual_showcase",
             [
-                shutil.which("xvfb-run") or "xvfb-run", "-a", str(godot),
-                "--path", ".", "--script", "tests/visual_showcase_runner.gd",
-                "--", "--state=scope",
+                shutil.which("xvfb-run") or "xvfb-run",
+                "-a",
+                str(godot),
+                "--path",
+                ".",
+                "--script",
+                "tests/visual_showcase_runner.gd",
+                "--",
+                "--state=scope",
                 f"--output={output / 'visual-validation.png'}",
             ],
         ),
-        ("performance", [str(godot), "--headless", "--path", ".", "--script", "tests/performance_runner.gd"]),
+        (
+            "performance",
+            [
+                str(godot),
+                "--headless",
+                "--path",
+                ".",
+                "--script",
+                "tests/performance_runner.gd",
+            ],
+        ),
     ]
-    if results and results[-1].ok and any(result.name == "editor_import" for result in results):
+    if (
+        results
+        and results[-1].ok
+        and any(result.name == "editor_import" for result in results)
+    ):
         for name, command in prepared_gates:
             gate_root = temporary_root / "gates" / name
             gate_project = gate_root / "project"
@@ -244,9 +314,9 @@ def main() -> int:
                 expected_gate_count = len(results)
                 break
 
-
     summary = {
-        "ok": all(result.ok for result in results) and len(results) == expected_gate_count,
+        "ok": all(result.ok for result in results)
+        and len(results) == expected_gate_count,
         "godot": str(godot),
         "source_project": str(project),
         "isolated_project": str(temporary_root) if args.keep_workdir else "removed",
