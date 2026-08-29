@@ -3,7 +3,9 @@
 /android/
 
 # Git addon
-addons/godot-it-plugin/
+addons/godot-git-plugin/
 
 # zipped addons
 addons/*.zip
+
+tools/dist/
