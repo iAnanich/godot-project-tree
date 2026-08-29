@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://1671jnva2eas" path="res://addons/script_dependency_inspector/ui/dependency_dock.gd" id="1_dock"]
 [ext_resource type="Script" uid="uid://bfk0ljefllq8u" path="res://addons/script_dependency_inspector/core/settings.gd" id="2_vh15q"]
+[ext_resource type="Script" path="res://addons/script_dependency_inspector/ui/dependency_graph_edit.gd" id="3_graph_edit"]
 
 [sub_resource type="Resource" id="Resource_6xsn6"]
 script = ExtResource("2_vh15q")
@@ -52,7 +53,7 @@ text = "Export"
 
 [node name="FormatOption" type="OptionButton" parent="Toolbar" unique_id=1269720622]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 tooltip_text = "JSON export: exact member endpoints; colors: yes; structured member links: yes"
 clip_text = true
@@ -1022,7 +1023,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-tooltip_text = "Interactive dependency graph. Pan, zoom, select nodes, inspect child tooltips, use the minimap, or press GraphEdit Arrange. Hide it with the Graph toggle for export-only use."
+tooltip_text = "Dependency graph. Hover a node, member, or connection for details."
+script = ExtResource("3_graph_edit")
 connection_lines_thickness = 3.0
 zoom = 0.7
 show_zoom_label = true

@@ -12,7 +12,7 @@ PROJECT_ROOT = PurePosixPath("script-dependency-inspector-godot4-project")
 MEDIA_ROOT = PurePosixPath("script-dependency-inspector-asset-store-media")
 ADDON_ROOT = PurePosixPath("addons/script_dependency_inspector")
 FORBIDDEN_PARTS = {".git", ".godot", "__pycache__", "dist", "validation-artifacts"}
-FORBIDDEN_SUFFIXES = {".uid", ".import", ".pyc"}
+FORBIDDEN_SUFFIXES = {".import", ".pyc", ".pyo"}
 
 
 def sha256(data: bytes) -> str:

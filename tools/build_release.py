@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build deterministic Script Dependency Inspector release archives.
 
-The builder excludes editor/cache/version-specific sidecars, writes the full-project
+The builder excludes editor/cache-only sidecars, writes the full-project
 manifest inside the project archive, creates stable ZIP member order and timestamps, and emits archive checksums.
 Set SOURCE_DATE_EPOCH to override the deterministic ZIP timestamp.
 """
@@ -52,7 +52,7 @@ def is_release_file(path: Path) -> bool:
         return False
     if any(part in EXCLUDED_DIRECTORY_NAMES for part in relative.parts):
         return False
-    if path.suffix in {".uid", ".import"} or path.name in {
+    if path.suffix == ".import" or path.name in {
         "MANIFEST.sha256",
         ".DS_Store",
     }:

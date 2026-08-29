@@ -284,7 +284,9 @@ func _add_resource_dependencies(
 			target_id,
 			"uses",
 			_member_link(
-				detail.get("source_member", {}),
+				_existing_member_reference(
+					node_index, str(record["id"]), detail.get("source_member", {})
+				),
 				{},
 				str(detail.get("evidence", "load")),
 				detail.get("source_location", {})
@@ -342,7 +344,9 @@ func _add_type_dependencies(
 				target_id,
 				"type_uses",
 				_member_link(
-					detail.get("source_member", {}),
+					_existing_member_reference(
+						node_index, str(record["id"]), detail.get("source_member", {})
+					),
 					{},
 					str(detail.get("evidence", "type")),
 					detail.get("source_location", {})
@@ -389,7 +393,9 @@ func _add_member_access_dependencies(
 			target_id,
 			"uses",
 			_member_link(
-				access.get("source_member", {}),
+				_existing_member_reference(
+					node_index, str(record["id"]), access.get("source_member", {})
+				),
 				target_member,
 				str(access.get("evidence", "class_member_access")),
 				access.get("source_location", {})

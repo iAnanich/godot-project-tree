@@ -20,6 +20,8 @@ Script Dependency Inspector scans saved GDScript source without loading analyzed
 
 - Visualize path-based, `class_name`, native, add-on, and unresolved inheritance.
 - Distinguish literal `load()`/`preload()`, type-annotation, and statically resolvable class-qualified member dependencies.
+- Hover a connection for its canonical dependent/dependency direction, exact evidence kind, source/member provenance, and represented occurrence count.
+- Hover compact member rows for full signatures/declarations, exact declaration locations, and static incoming/outgoing evidence counts.
 - Search classes, paths, members, autoloads, scenes, and scene-node paths.
 - Navigate to exact supported declarations, dependency occurrences, and text-scene attachments.
 - Select project-folder scopes while retaining required outside context.
@@ -46,6 +48,7 @@ Save/import synchronization is enabled by default and debounced after editor act
 - Validation before every serialization
 - Bounded files, directories, scripts, and text scenes
 - Recoverable staged writes and independent per-format failures
+- Actionable validation diagnostics with stable issue codes, selected scan root, and bounded structured context
 - Explicit diagnostics instead of guessed dynamic relationships
 - Automated behavioral, negative, export, visual, performance, and compatibility tests
 
@@ -61,4 +64,4 @@ This is not a runtime profiler or complete call graph. It does not infer aliases
 
 Generative AI was used extensively for requirements synthesis, code and refactoring drafts, tests, documentation, diagrams, review suggestions, and release support. The project owner directed scope and feature decisions. AI output was treated as proposed work and checked through documented contracts, review, Godot parser/import and runtime tests across the claimed engine matrix, negative and boundary tests, deterministic builds, checksums, patch reconstruction, and rendered-artifact inspection. This does not claim an independent human line-by-line audit or independent accessibility/security certification. Full details and provenance limits are in `AI_USAGE_NOTICE.md`.
 
-Licensed under Apache License 2.0.
+Licensed under the MIT License.

@@ -1,14 +1,14 @@
 # Script Dependency Inspector — product requirements
 
-Artifact identity: `script-dependency-inspector-product-requirements`  
-Version: `0.2.0-alpha.1`  
-Release state at issue: Accepted for v0.3.0 implementation  
-Issue date: 2026-08-27
+Artifact identity: `script-dependency-inspector-product-requirements`
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: draft successor baseline for owner review  
-Basis: the 2026-08-26 requirements/design revision plus the adopted Software Quality Guidelines v0.3.0-alpha.1  
-Implementation conformance: not assessed against the exact v0.2.4 source because that artifact is unavailable in the active runtime
+Status: accepted implementation requirements for v0.3.1; release-specific verification remains separate
+Basis: the 2026-08-26 requirements/design revision plus the adopted Software Quality Guidelines v0.3.0-alpha.3
+Implementation conformance: assessed against the synchronized v0.3.0 handoff baseline and the resulting v0.3.1 source; release-specific verification evidence is retained outside this substantive requirements artifact
 
 ## 1. Purpose and document role
 
@@ -248,6 +248,12 @@ Automatic export must run only from the structurally valid snapshot produced by 
 
 The product must not synthesize an export from renderer state.
 
+### REQ-VALID-005 — Self-contained member provenance
+
+A published snapshot must not retain a `source_member` or `target_member` reference to a member that was intentionally omitted from its endpoint node by the active content options.
+
+When a member category is hidden, exact dependency evidence such as evidence kind and source occurrence may remain, but the omitted member reference must be removed rather than contradicting the endpoint node.
+
 ### OPEN-001 — Previous valid snapshot after fatal rescan
 
 The current retrievable contract does not define the state of a previous valid snapshot after a later fatal scan.
@@ -452,6 +458,18 @@ Fold state may persist project-locally and must not change canonical analysis se
 
 Every interactive option and fold header must provide an explanatory tooltip or equivalent nearby explanation.
 
+### REQ-UI-005 — Connection-specific graph tooltips
+
+Hovering sufficiently close to a rendered graph connection must expose relationship-specific information for that rendered connection, including relationship kind, canonical dependent and dependency, canonical versus layout-only rendered direction, and the number of exact evidence occurrences represented.
+
+When member/source-location evidence exists, the tooltip should expose a bounded representative set without presenting static evidence as runtime frequency.
+
+### REQ-UI-006 — Member evidence tooltips
+
+A member row tooltip must preserve the full captured declaration or signature independently of compact visible-row settings. It must expose the declaration location when known and bounded static-evidence counts for incoming exact member references and outgoing dependency occurrences.
+
+The UI must describe these counts as static source evidence, not runtime call/use counts.
+
 ### REQ-DIAG-001 — Structured diagnostics
 
 Material scan/export problems must produce stable structured diagnostics with at least severity, code, human-readable message, and relevant context when safe to expose.
@@ -467,6 +485,12 @@ The UI must distinguish, at minimum:
 - per-format export failure.
 
 The UI must not report success before the corresponding operation has reached its defined completion state.
+
+### REQ-DIAG-003 — Actionable snapshot-validation failure
+
+When structural snapshot validation rejects a selected-root result, the immediate status must identify the first stable validator issue code and selected scan root. The Log must retain each issue message, stable code, selected root, issue index, and available bounded structured context.
+
+A generic `snapshot validator failed` message without the stable issue identity is insufficient.
 
 ## 15. Security and trust-boundary requirements
 

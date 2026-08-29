@@ -1,11 +1,19 @@
-# Godot 4+ specific ignores
+# Godot 4+ generated project state
 .godot/
 /android/
+*.import
 
-# Git addon
+# Git addon installed locally
 addons/godot-git-plugin/
 
-# zipped addons
-addons/*.zip
+# Local IDE and Python state
+.idea/
+__pycache__/
+*.py[cod]
 
+# Generated delivery/output artifacts
+addons/*.zip
 tools/dist/
+validation-artifacts/
+
+.idea/

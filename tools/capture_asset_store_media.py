@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "docs/asset_store/source-captures/v0.2.4/raw"
+RAW = ROOT / "docs/asset_store/source-captures/v0.3.1/raw"
 STATES = {
     "overview": "media_overview",
     "max_info": "media_max_info",
@@ -25,6 +25,8 @@ STATES = {
     "scope": "media_scope",
     "search": "media_search",
     "export_only": "media_export_only",
+    "member_tooltip": "media_member_tooltip",
+    "connection_tooltip": "media_connection_tooltip",
 }
 
 

@@ -49,7 +49,7 @@ def main() -> int:
             errors.append(f"below 1280x720: {name} ({w}x{h})")
         if tuple(entry.get("dimensions", [])) != (w, h):
             errors.append(f"manifest dimensions mismatch: {name}")
-        if entry.get("release") != "0.2.4":
+        if entry.get("release") != "0.3.1":
             errors.append(f"wrong release in manifest: {name}")
     actual = {p.name for p in MEDIA.glob("*.webp")}
     if actual != declared:

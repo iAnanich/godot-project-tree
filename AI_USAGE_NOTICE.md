@@ -38,8 +38,8 @@ Failures or unavailable tools are reported rather than converted into pass claim
 
 ## Provenance and licensing boundary
 
-The project does **not** represent or warrant that datasets used to train any AI system were lawfully obtained, licensed, consented to, or otherwise authorized by every underlying rightsholder. Distribution under Apache License 2.0 does not approve, ratify, or grant rights to third-party material that may have been used to train an AI system.
+The project does **not** represent or warrant that datasets used to train any AI system were lawfully obtained, licensed, consented to, or otherwise authorized by every underlying rightsholder. Distribution under the MIT License does not approve, ratify, or grant rights to third-party material that may have been used to train an AI system.
 
-Apache License 2.0 applies only to the copyrightable contents distributed with this project. Third-party names, trademarks, engine code, documentation, and other materials remain governed by their respective rights and licenses.
+The MIT License applies only to the copyrightable contents distributed with this project. Third-party names, trademarks, engine code, documentation, and other materials remain governed by their respective rights and licenses.
 
 Contributors must submit only material they have the right to contribute. AI-generated or AI-assisted contributions must be reviewed for correctness, provenance risks, incompatible copying, security issues, and license conflicts before acceptance.

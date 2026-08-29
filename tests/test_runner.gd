@@ -6,7 +6,10 @@ const SCANNER_SCRIPT_PATH: String = ADDON_ROOT + "core/project_scanner.gd"
 const BUILDER_SCRIPT_PATH: String = ADDON_ROOT + "core/graph_builder.gd"
 const EXPORT_SERVICE_SCRIPT_PATH: String = ADDON_ROOT + "export/export_service.gd"
 const GRAPH_NODE_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_graph_node.tscn"
+const GRAPH_EDIT_SCRIPT_PATH: String = ADDON_ROOT + "ui/dependency_graph_edit.gd"
 const DOCK_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_dock.tscn"
+const VALIDATOR_SCRIPT_PATH: String = ADDON_ROOT + "core/snapshot_validator.gd"
+const SNAPSHOT_SCOPE_SCRIPT_PATH: String = ADDON_ROOT + "core/snapshot_scope.gd"
 const QUALITY_SUITE_PATH: String = "res://tests/suites/quality_contract_suite.gd"
 
 var _analyzer_script: Script
@@ -37,6 +40,9 @@ func _run() -> void:
 	_test_depth_layout()
 	_test_rendered_connection_direction()
 	_test_member_rendered_connections()
+	_test_connection_tooltip_evidence()
+	_test_hidden_member_scope_validation()
+	_test_validator_log_rendering()
 	_test_exporters()
 	_test_showcase_representations()
 	_test_missing_root_failure()
@@ -69,6 +75,7 @@ func _test_packaged_resource_paths() -> void:
 			"export/plantuml_exporter.gd",
 			"ui/dependency_dock.gd",
 			"ui/dependency_dock.tscn",
+			"ui/dependency_graph_edit.gd",
 			"ui/dependency_graph_node.gd",
 			"ui/dependency_graph_node.tscn",
 		]
@@ -557,12 +564,20 @@ func _test_graph_presentation() -> void:
 			}
 		],
 		"properties":
-		[{"name": "target", "type": "FixtureBase", "source_location": {"line": 3, "column": 1}}],
+		[
+			{
+				"name": "target",
+				"type": "FixtureBase",
+				"declaration": "var target: FixtureBase",
+				"source_location": {"line": 3, "column": 1},
+			}
+		],
 		"signals":
 		[
 			{
 				"name": "changed",
 				"arguments": "value: int",
+				"signature": "signal changed(value: int)",
 				"source_location": {"line": 4, "column": 1}
 			}
 		],
@@ -572,10 +587,20 @@ func _test_graph_presentation() -> void:
 				"name": "resolve",
 				"arguments": "target: FixtureBase",
 				"return_type": "FixtureHelper",
+				"signature": "func resolve(target: FixtureBase) -> FixtureHelper",
 				"source_location": {"line": 7, "column": 1},
 			}
 		],
 		"inner_classes": [{"name": "LocalState", "source_location": {"line": 10, "column": 1}}],
+		"member_evidence":
+		{
+			"method:resolve":
+			{
+				"incoming": 2,
+				"outgoing": 3,
+				"relationship_kinds": ["uses", "type_uses"],
+			}
+		},
 		"relationship_occurrences":
 		[
 			{
@@ -652,10 +677,21 @@ func _test_graph_presentation() -> void:
 	_check(
 		(
 			compact_method_label != null
-			and compact_method_label.tooltip_text.begins_with("resolve")
+			and compact_method_label.tooltip_text.begins_with(
+				"func resolve(target: FixtureBase) -> FixtureHelper"
+			)
+			and compact_method_label.tooltip_text.contains(
+				"Declaration: res://presentation_example.gd:7:1"
+			)
+			and compact_method_label.tooltip_text.contains("Incoming exact member references: 2")
+			and compact_method_label.tooltip_text.contains("Outgoing dependency occurrences: 3")
+			and compact_method_label.tooltip_text.contains(
+				"Relationship evidence: direct dependency, type dependency"
+			)
+			and compact_method_label.tooltip_text.contains("not runtime call counts")
 			and compact_method_label.tooltip_text.contains("open the declaration")
 		),
-		"Member actions should retain their own tooltips."
+		"Member actions should retain full declarations and bounded static-evidence context in their tooltips."
 	)
 	if compact_method_label != null:
 		compact_method_label.pressed.emit()
@@ -1084,6 +1120,173 @@ func _test_member_rendered_connections() -> void:
 			int(connection.get("from_port", 1)) != 1 and int(connection.get("to_port", 1)) != 1,
 			"Member-anchored rendering should connect dedicated member ports instead of class ports."
 		)
+	dock.queue_free()
+
+
+func _test_connection_tooltip_evidence() -> void:
+	var graph_edit_script = _load_test_script(GRAPH_EDIT_SCRIPT_PATH)
+	if graph_edit_script == null:
+		return
+	var graph_edit: GraphEdit = graph_edit_script.new()
+	root.add_child(graph_edit)
+	_check(
+		graph_edit.has_method("get_closest_connection_at_point"),
+		"Supported GraphEdit must expose get_closest_connection_at_point()."
+	)
+	var nearest_connection: Dictionary = graph_edit.get_closest_connection_at_point(Vector2.ZERO)
+	_check(
+		nearest_connection is Dictionary,
+		"GraphEdit connection lookup must return a Dictionary on supported Godot versions."
+	)
+	(
+		graph_edit
+		. call(
+			"register_connection_evidence",
+			StringName("DependencyNode_1"),
+			1,
+			StringName("DependencyNode_0"),
+			1,
+			{
+				"kind": "uses",
+				"dependent": "res://tests/fixtures/child.gd",
+				"dependency": "res://tests/fixtures/helper.gd",
+				"source_member": {"kind": "method", "name": "consume"},
+				"target_member": {"kind": "method", "name": "make"},
+				"source_location": {"line": 14, "column": 3},
+				"evidence": "class_member_access",
+			}
+		)
+	)
+	var stored: Dictionary = graph_edit.get("_connection_evidence")
+	_check(stored.size() == 1, "GraphEdit should retain evidence for one rendered connection.")
+	if stored.size() == 1:
+		var values: Array = stored.values()[0]
+		var tooltip := str(graph_edit.call("_connection_tooltip", values))
+		_check(
+			(
+				tooltip.contains("Direct dependency")
+				and tooltip.contains("Dependent: res://tests/fixtures/child.gd")
+				and tooltip.contains("Dependency: res://tests/fixtures/helper.gd")
+				and tooltip.contains("Canonical direction: dependent → dependency")
+				and tooltip.contains("Rendered direction: dependency → dependent (layout only)")
+				and tooltip.contains("Exact evidence occurrences represented: 1")
+				and tooltip.contains("class-member access")
+				and tooltip.contains("source method consume")
+				and tooltip.contains("target method make")
+				and tooltip.contains("line 14:3")
+			),
+			"Connection tooltip should explain the exact canonical relationship and bounded occurrence evidence."
+		)
+	graph_edit.queue_free()
+
+
+func _test_hidden_member_scope_validation() -> void:
+	var validator_script = _load_test_script(VALIDATOR_SCRIPT_PATH)
+	var scope_script = _load_test_script(SNAPSHOT_SCOPE_SCRIPT_PATH)
+	if validator_script == null or scope_script == null:
+		return
+	var scanner = _scanner_script.new()
+	var scan_result: Dictionary = (
+		scanner
+		. scan(
+			"res://tests/contract_fixtures/hidden_member_scope",
+			{
+				"include_addons": true,
+				"use_runtime_reflection": false,
+				"excluded_path_prefixes": PackedStringArray(),
+			}
+		)
+	)
+	_check(
+		scan_result.get("errors", []).is_empty(),
+		"Hidden-member regression fixture scan should not have acquisition errors."
+	)
+	var builder = _builder_script.new()
+	var snapshot: Dictionary = (
+		builder
+		. build(
+			scan_result,
+			{
+				"include_native_bases": true,
+				"include_external_bases": true,
+				"include_methods": false,
+				"include_signals": true,
+				"include_properties": true,
+				"include_resource_dependencies": true,
+				"include_type_dependencies": true,
+				"include_member_access_dependencies": true,
+				"show_member_dependency_edges": true,
+				"show_method_signatures": false,
+				"show_signal_signatures": false,
+				"show_property_types": false,
+				"style": {},
+			}
+		)
+	)
+	var validator = validator_script.new()
+	var projector = scope_script.new()
+	for root_path in [
+		"res://tests/contract_fixtures/hidden_member_scope",
+		"res://tests/contract_fixtures/hidden_member_scope/feature",
+	]:
+		var projected: Dictionary = projector.project(snapshot, root_path)
+		var validation: Dictionary = validator.validate(projected)
+		_check(
+			validation.get("ok", false),
+			(
+				"Filtered methods must not leave unknown source-member references for selected root %s: %s"
+				% [root_path, validation.get("errors", [])]
+			)
+		)
+		for edge_value in projected.get("edges", []):
+			if not edge_value is Dictionary:
+				continue
+			for link_value in (edge_value as Dictionary).get("member_links", []):
+				if not link_value is Dictionary:
+					continue
+				_check(
+					(link_value as Dictionary).get("source_member", {}).is_empty(),
+					"Hidden methods must be omitted from source-member provenance while exact location/evidence is retained."
+				)
+
+
+func _test_validator_log_rendering() -> void:
+	var dock: Control = _dock_scene.instantiate()
+	root.add_child(dock)
+	var log_view: RichTextLabel = dock.get_node("MainSplit/ControlsTabs/Log/LogView")
+	log_view.clear()
+	(
+		dock
+		. call(
+			"_on_log_entry",
+			{
+				"level": "error",
+				"message": "Edge source member does not exist on its endpoint node.",
+				"context":
+				{
+					"code": "unknown_member_reference",
+					"scan_root": "res://tests/contract_fixtures/hidden_member_scope/feature",
+					"issue_index": 0,
+					"node_id":
+					"res://tests/contract_fixtures/hidden_member_scope/feature/consumer.gd",
+					"member": "consume",
+				},
+			}
+		)
+	)
+	var rendered_log := log_view.get_parsed_text()
+	_check(
+		(
+			rendered_log.contains("unknown_member_reference")
+			and rendered_log.contains("res://tests/contract_fixtures/hidden_member_scope/feature")
+			and rendered_log.contains(
+				"res://tests/contract_fixtures/hidden_member_scope/feature/consumer.gd"
+			)
+			and rendered_log.contains("consume")
+			and rendered_log.contains("Edge source member does not exist")
+		),
+		"Validator Log rendering should retain the stable code, selected root, affected context, and message."
+	)
 	dock.queue_free()
 
 

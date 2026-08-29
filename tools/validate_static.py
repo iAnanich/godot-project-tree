@@ -41,6 +41,7 @@ EXPECTED = [
     ROOT / "docs" / "ROADMAP.md",
     ROOT / "docs" / "RELEASING.md",
     ROOT / "docs" / "COMPREHENSION_TEST.md",
+    ROOT / "docs" / "HANDOFF.md",
     ROOT / "docs" / "diagrams" / "use-cases-overview.dot",
     ROOT / "docs" / "diagrams" / "use-cases-overview.svg",
     ROOT / "docs" / "diagrams" / "use-cases-analysis.dot",
@@ -71,6 +72,7 @@ EXPECTED = [
     PLUGIN / "core" / "snapshot_scope.gd",
     PLUGIN / "core" / "graph_query.gd",
     PLUGIN / "ui" / "dependency_dock.tscn",
+    PLUGIN / "ui" / "dependency_graph_edit.gd",
     PLUGIN / "ui" / "dependency_graph_node.tscn",
     ROOT / "tests" / "README.md",
     ROOT / "tests" / "test_runner.gd",
@@ -92,6 +94,7 @@ EXPECTED = [
     ROOT / "tools" / "verify_packaged_addon.py",
     ROOT / "tools" / "verify_release_artifacts.py",
     ROOT / "tools" / "build_release.py",
+    ROOT / "tools" / "build_handoff.py",
     ROOT / "tools" / "package_addon.py",
     ROOT / "tools" / "build_patch.py",
     ROOT / "tools" / "capture_asset_store_media.py",
@@ -103,6 +106,17 @@ EXPECTED = [
     ROOT / "docs" / "asset_store" / ".gdignore",
     ROOT / "docs" / "asset_store" / "media_manifest.json",
     ROOT / "docs" / "asset_store" / "current" / "thumbnail.webp",
+    ROOT
+    / "docs"
+    / "asset_store"
+    / "current"
+    / "featured-08-member-evidence-tooltip.webp",
+    ROOT
+    / "docs"
+    / "asset_store"
+    / "current"
+    / "featured-09-connection-evidence-tooltip.webp",
+    ROOT / "docs" / "asset_store" / "source-captures" / "v0.3.1" / "notes.md",
     ROOT / "docs" / "INTERFACE_GALLERY.md",
     ROOT / "examples" / "showcase" / "README.md",
     ROOT / "examples" / "showcase" / "services" / "targeting_service.gd",
@@ -428,7 +442,7 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.3.0"' in plugin_cfg, "plugin.cfg version is not 0.3.0.")
+    check('version="0.3.1"' in plugin_cfg, "plugin.cfg version is not 0.3.1.")
 
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
     check(
@@ -436,8 +450,8 @@ def validate_release_regressions() -> None:
         "Release builder must exclude VCS metadata from archives and manifests.",
     )
     check(
-        '".import"' in release_builder
-        and 'path.suffix in {".uid", ".import"}' in release_builder,
+        'path.suffix == ".import"' in release_builder
+        and 'path.suffix in {".uid", ".import"}' not in release_builder,
         "Release builder must exclude generated Godot import sidecars from archives and manifests.",
     )
     check(
@@ -1018,6 +1032,176 @@ def validate_v030_feature_contracts(*, allow_root_manifest: bool = False) -> Non
         )
 
 
+def validate_v031_feature_contracts() -> None:
+    root_license = (ROOT / "LICENSE").read_text(encoding="utf-8")
+    plugin_license = (PLUGIN / "LICENSE").read_text(encoding="utf-8")
+    plugin_config = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    asset_store = (ROOT / "docs" / "ASSET_STORE_DESCRIPTION.md").read_text(
+        encoding="utf-8"
+    )
+    requirements = (ROOT / "docs" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    use_cases = (ROOT / "docs" / "USE_CASES.md").read_text(encoding="utf-8")
+    traceability = (ROOT / "docs" / "TRACEABILITY.md").read_text(encoding="utf-8")
+    design = (ROOT / "docs" / "DESIGN.md").read_text(encoding="utf-8")
+    dock = (PLUGIN / "ui" / "dependency_dock.gd").read_text(encoding="utf-8")
+    graph_edit = (PLUGIN / "ui" / "dependency_graph_edit.gd").read_text(
+        encoding="utf-8"
+    )
+    graph_node = (PLUGIN / "ui" / "dependency_graph_node.gd").read_text(
+        encoding="utf-8"
+    )
+    graph_builder = (PLUGIN / "core" / "graph_builder.gd").read_text(encoding="utf-8")
+    tests = (ROOT / "tests" / "test_runner.gd").read_text(encoding="utf-8")
+    handoff = (ROOT / "tools" / "build_handoff.py").read_text(encoding="utf-8")
+    handoff_doc = (ROOT / "docs" / "HANDOFF.md").read_text(encoding="utf-8")
+    release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
+    release_verifier = (ROOT / "tools" / "verify_release_artifacts.py").read_text(
+        encoding="utf-8"
+    )
+    validation_runner = (ROOT / "tools" / "run_validation.py").read_text(
+        encoding="utf-8"
+    )
+    ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+
+    check('version="0.3.1"' in plugin_config, "Plugin version must be 0.3.1.")
+    check(
+        "MIT License" in root_license, "Repository LICENSE must use MIT License text."
+    )
+    check(
+        root_license == plugin_license,
+        "Root and packaged add-on LICENSE files must match.",
+    )
+    check(
+        "Licensed under the MIT License" in asset_store,
+        "Asset Library description must state MIT licensing.",
+    )
+    check(
+        "## License" in readme and "MIT" in readme,
+        "README must expose the current MIT license.",
+    )
+
+    for req in ("REQ-VALID-005", "REQ-UI-005", "REQ-UI-006", "REQ-DIAG-003"):
+        check(req in requirements, f"Missing v0.3.1 requirement: {req}")
+        check(req in traceability, f"Missing v0.3.1 traceability mapping: {req}")
+    for use_case in ("UC-14", "UC-15", "UC-16"):
+        check(use_case in use_cases, f"Missing v0.3.1 use case: {use_case}")
+    check(
+        "Filtered member provenance" in design,
+        "Design must document filtered member provenance.",
+    )
+    check(
+        "Validator failure diagnostics" in design,
+        "Design must document validator failure diagnostics.",
+    )
+
+    check(
+        "get_closest_connection_at_point" in graph_edit,
+        "GraphEdit tooltip layer must resolve hovered connections.",
+    )
+    check(
+        "Exact evidence occurrences represented" in graph_edit,
+        "Connection tooltip must report represented exact evidence.",
+    )
+    check(
+        "Rendered direction: dependency → dependent (layout only)" in graph_edit,
+        "Connection tooltip must distinguish layout direction from canonical direction.",
+    )
+    check(
+        "clear_connection_evidence" in dock and "register_connection_evidence" in dock,
+        "Dock must own the rendered-connection evidence lifecycle.",
+    )
+    check(
+        "Counts are static source evidence, not runtime call counts." in graph_node,
+        "Member tooltip must qualify static evidence counts.",
+    )
+    check(
+        "_member_full_declaration" in graph_node and "Declaration:" in graph_node,
+        "Member tooltip must retain full declaration/signature provenance.",
+    )
+
+    check(
+        graph_builder.count("_existing_member_reference(") >= 4,
+        "GraphBuilder must filter both source and target member provenance through endpoint membership.",
+    )
+    check(
+        "_test_hidden_member_scope_validation" in tests,
+        "Hidden-member selected-root regression test is missing.",
+    )
+    check(
+        "_test_connection_tooltip_evidence" in tests,
+        "Connection-tooltip behavioral test is missing.",
+    )
+    check(
+        "_test_validator_log_rendering" in tests,
+        "Validator diagnostic rendering test is missing.",
+    )
+    check(
+        "get_closest_connection_at_point" in tests,
+        "Compatibility tests must exercise the GraphEdit connection lookup API.",
+    )
+
+    check(
+        "source/{PROJECT_ARCHIVE_ROOT}/{record['path']}" in handoff,
+        "Handoff checksums must use actual source archive member paths.",
+    )
+    check(
+        "def verify_handoff_archive" in handoff
+        and "verify_handoff_archive(artifact)" in handoff,
+        "Handoff archive must self-verify after construction.",
+    )
+    check(
+        'ROOT.parent / "script-dependency-inspector-handoff-artifacts"' in handoff,
+        "Handoff default output must be outside the repository.",
+    )
+    check(
+        "verifies every `sha256sums.txt` entry" in handoff_doc.lower(),
+        "Handoff documentation must describe archive verification.",
+    )
+
+    check(
+        'path.suffix == ".import"' in release_builder
+        and '".uid"'
+        not in release_builder.split("def is_release_file", 1)[1].split(
+            "def release_files", 1
+        )[0],
+        "Release packaging must exclude generated .import files without dropping .uid source sidecars.",
+    )
+    check(
+        '".uid"'
+        not in release_verifier.split("FORBIDDEN_SUFFIXES", 1)[1].split(
+            "def sha256", 1
+        )[0],
+        "Release verification must not reject .uid source sidecars by suffix.",
+    )
+    copy_body = validation_runner.split("def copy_project", 1)[1].split(
+        "def suspicious_output", 1
+    )[0]
+    check(
+        '.endswith(".uid")' not in copy_body,
+        "Isolated validation must preserve tracked .uid source sidecars.",
+    )
+    for token in (".idea/", "__pycache__/", "*.py[cod]", "*.import"):
+        check(token in ignore, f"Repository ignore contract is missing {token}.")
+    check(
+        "*.uid" not in ignore,
+        "Godot .uid source sidecars must not be globally ignored.",
+    )
+    for generated in (
+        ROOT / ".idea",
+        ROOT / "tools" / "__pycache__",
+        ROOT / "docs" / "images",
+    ):
+        check(
+            not generated.exists(),
+            f"Generated/local repository state remains: {generated.relative_to(ROOT)}",
+        )
+    check(
+        not any(ROOT.rglob("*.import")),
+        "Generated Godot .import sidecars must not remain in source.",
+    )
+
+
 def validate_schema_contract() -> None:
     schema_path = ROOT / "docs" / "schema" / "snapshot-v2.schema.json"
     showcase_path = ROOT / "examples" / "showcase" / "representations" / "showcase.json"
@@ -1205,7 +1389,7 @@ def validate_documentation_contract() -> None:
             required_reference in readme,
             f"README does not link to {required_reference}.",
         )
-    check("0.3.0" in readme, "README release identifier is not 0.3.0.")
+    check("0.3.1" in readme, "README release identifier is not 0.3.1.")
 
 
 def validate_quality_contracts() -> None:
@@ -1367,6 +1551,7 @@ def main() -> int:
     validate_v022_feature_contracts()
     validate_v023_feature_contracts()
     validate_v030_feature_contracts(allow_root_manifest=arguments.allow_root_manifest)
+    validate_v031_feature_contracts()
     validate_schema_contract()
     validate_default_color_contract()
     validate_documentation_contract()

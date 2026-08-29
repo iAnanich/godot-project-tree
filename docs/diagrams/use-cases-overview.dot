@@ -19,15 +19,22 @@ digraph UseCasesOverview {
     export [label="UC-10\nExport files"];
     exportonly [label="UC-12\nExport-only mode"];
     controls [label="UC-13\nConfigure controls"];
+    connection_hover [label="UC-14\nInspect connection"];
+    member_hover [label="UC-15\nInspect member"];
+    rejected [label="UC-16\nDiagnose rejected snapshot"];
   }
 
   developer -> build; developer -> scope; developer -> inspect; developer -> navigate;
   developer -> export; developer -> exportonly; developer -> controls;
+  developer -> connection_hover; developer -> member_hover; developer -> rejected;
   editor -> sync; editor -> navigate [dir=both];
   sync -> build [label="triggers", style=dashed];
   scope -> build [label="projects", style=dashed];
   inspect -> context [label="includes", style=dashed];
   build -> inspect [label="when graph shown", style=dashed];
+  inspect -> connection_hover [label="hover", style=dashed];
+  inspect -> member_hover [label="hover", style=dashed];
+  build -> rejected [label="validation fails", style=dashed];
   build -> export [label="after validation", style=dashed];
   exportonly -> export [label="without GraphEdit", style=dashed];
   export -> tool; tool -> consumer;

@@ -2,7 +2,7 @@
 
 Godot 4 editor add-on for deterministic GDScript inheritance/dependency analysis, scoped architectural inspection, editor navigation, exact text-scene usage, and JSON/Mermaid/PlantUML export.
 
-Release `0.3.0` targets the supplied Linux x86_64 editor builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7. Release-specific verification results are delivered outside the source repository.
+Release `0.3.1` targets the supplied Linux x86_64 editor builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7. Release-specific verification results are delivered outside the source repository.
 
 ## Install
 
@@ -66,3 +66,7 @@ The repository-owned current Godot Asset Library media lives under `docs/asset_s
 - [Current Godot Asset Library media](docs/asset_store/README.md)
 
 ![Current Godot Asset Library thumbnail](docs/asset_store/current/thumbnail.webp)
+
+## License
+
+Script Dependency Inspector is distributed under the MIT License. See [`LICENSE`](LICENSE).

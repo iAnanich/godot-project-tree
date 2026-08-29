@@ -276,19 +276,33 @@ func _member_descriptors(
 	node_data: Dictionary, style: Dictionary, display_options: Dictionary
 ) -> Array:
 	var descriptors: Array = []
+	var member_evidence: Dictionary = node_data.get("member_evidence", {})
 	_append_member_descriptors(
 		descriptors,
 		"Properties",
 		node_data.get("properties", []),
 		"property",
 		style,
-		display_options
+		display_options,
+		member_evidence
 	)
 	_append_member_descriptors(
-		descriptors, "Signals", node_data.get("signals", []), "signal", style, display_options
+		descriptors,
+		"Signals",
+		node_data.get("signals", []),
+		"signal",
+		style,
+		display_options,
+		member_evidence
 	)
 	_append_member_descriptors(
-		descriptors, "Methods", node_data.get("methods", []), "method", style, display_options
+		descriptors,
+		"Methods",
+		node_data.get("methods", []),
+		"method",
+		style,
+		display_options,
+		member_evidence
 	)
 	_append_member_descriptors(
 		descriptors,
@@ -296,7 +310,8 @@ func _member_descriptors(
 		node_data.get("inner_classes", []),
 		"inner_class",
 		style,
-		display_options
+		display_options,
+		member_evidence
 	)
 	_append_relationship_descriptors(
 		descriptors, node_data.get("relationship_occurrences", []), style
@@ -310,7 +325,8 @@ func _append_member_descriptors(
 	members: Array,
 	member_kind: String,
 	style: Dictionary,
-	display_options: Dictionary
+	display_options: Dictionary,
+	member_evidence: Dictionary
 ) -> void:
 	if members.is_empty():
 		return
@@ -332,6 +348,10 @@ func _append_member_descriptors(
 	for index in range(displayed):
 		var member: Dictionary = members[index]
 		var full_text = _member_text(member, member_kind, display_options)
+		var member_key: String = _member_key(member_kind, str(member.get("name", "")))
+		var tooltip: String = _member_tooltip(
+			member, member_kind, member_evidence.get(member_key, {})
+		)
 		(
 			descriptors
 			. append(
@@ -339,7 +359,7 @@ func _append_member_descriptors(
 					"heading": false,
 					"text":
 					_truncate(full_text, int(style.get("graph_member_character_limit", 120))),
-					"full_text": full_text,
+					"full_text": tooltip,
 					"color": color,
 					"member":
 					{
@@ -367,6 +387,66 @@ func _append_member_descriptors(
 				}
 			)
 		)
+
+
+func _member_tooltip(member: Dictionary, member_kind: String, evidence_value) -> String:
+	var evidence: Dictionary = evidence_value if evidence_value is Dictionary else {}
+	var declaration: String = _member_full_declaration(member, member_kind)
+	var location: Dictionary = member.get("source_location", {})
+	var lines: Array[String] = [declaration]
+	if not _source_path.is_empty() and not location.is_empty():
+		(
+			lines
+			. append(
+				(
+					"Declaration: %s:%s:%s"
+					% [
+						_source_path,
+						int(location.get("line", 1)),
+						int(location.get("column", 1)),
+					]
+				)
+			)
+		)
+	lines.append("Incoming exact member references: %s" % int(evidence.get("incoming", 0)))
+	lines.append("Outgoing dependency occurrences: %s" % int(evidence.get("outgoing", 0)))
+	var relationship_labels: Array[String] = []
+	for kind_value in evidence.get("relationship_kinds", []):
+		var label: String = _relationship_kind_label(str(kind_value))
+		if not relationship_labels.has(label):
+			relationship_labels.append(label)
+	if relationship_labels.is_empty():
+		lines.append("Relationship evidence: none")
+	else:
+		lines.append("Relationship evidence: %s" % ", ".join(relationship_labels))
+	lines.append("Counts are static source evidence, not runtime call counts.")
+	return "\n".join(lines)
+
+
+func _member_full_declaration(member: Dictionary, member_kind: String) -> String:
+	match member_kind:
+		"method", "signal":
+			var signature: String = str(member.get("signature", ""))
+			return signature if not signature.is_empty() else str(member.get("name", member_kind))
+		"property":
+			var declaration: String = str(member.get("declaration", ""))
+			return (
+				declaration if not declaration.is_empty() else str(member.get("name", "property"))
+			)
+		"inner_class":
+			return "class %s" % str(member.get("name", "inner class"))
+		_:
+			return str(member.get("name", member_kind))
+
+
+func _relationship_kind_label(kind: String) -> String:
+	match kind:
+		"type_uses":
+			return "type dependency"
+		"extends":
+			return "inheritance"
+		_:
+			return "direct dependency"
 
 
 func _append_relationship_descriptors(

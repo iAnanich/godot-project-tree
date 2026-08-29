@@ -1,12 +1,12 @@
 # Script Dependency Inspector — user use cases
 
 Artifact identity: `script-dependency-inspector-use-cases`
-Version: `0.2.0-alpha.1`
-Release state at issue: Accepted for v0.3.0 implementation
-Issue date: 2026-08-27
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: accepted user-outcome layer for v0.3.0 implementation
+Status: accepted user-outcome layer for v0.3.1 implementation
 Authority role: intended use and workflow boundary; product obligations are normative only through referenced `REQ-*` requirements
 
 Related acceptance model: `QUALITY-CONTRACT.md` and `RELEASE-GATES.md`.
@@ -41,6 +41,9 @@ Use-case diagrams are navigation aids. The text catalogue is the authoritative a
 | UC-11 | Keep exports synchronized | Enabled formats are attempted independently after a completed scan. | One failed format does not block another; automatic export must not use an invalid scan result. | `REQ-SYNC-003..005`, `REQ-EXPORT-004..007` |
 | UC-12 | Operate in export-only mode without the built-in graph | The developer hides GraphEdit while retaining scan, synchronization, summary, diagnostics, and exports. | Re-enabling Graph renders the retained accepted snapshot without a forced rescan. | `REQ-GRAPH-001..003` |
 | UC-13 | Configure controls efficiently | The developer sees scan trigger mode and can fold semantic control groups. | Fold state and graph visibility are presentation/editor state; every interactive option remains explainable. | `REQ-UI-*`, `REQ-SYNC-006`, `REQ-STATE-*` |
+| UC-14 | Inspect a graph connection on hover | Hovering a rendered line identifies the relationship, canonical dependent/dependency direction, layout-only reversed rendering, and represented static evidence occurrences. | Hover supplements visible relationship encoding; it does not make hover the only carrier of relationship kind/direction. | `REQ-UI-005`, `REQ-GRAPH-005..007`, `REQ-MODEL-004..007` |
+| UC-15 | Inspect a member on hover | A compact member row exposes its full declaration/signature, exact declaration location, and incoming/outgoing static evidence counts. | Counts describe captured static evidence, not runtime call frequency. | `REQ-UI-006`, `REQ-MODEL-007`, `REQ-GRAPH-004` |
+| UC-16 | Diagnose a rejected snapshot | A structural validation failure shows a stable issue code and selected root immediately, with bounded issue context in Log. | A rejected candidate is not accepted or automatically exported. | `REQ-VALID-003..005`, `REQ-DIAG-001..003` |
 
 ## 4. Cross-use-case limitations
 

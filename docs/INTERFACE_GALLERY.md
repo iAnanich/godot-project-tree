@@ -25,3 +25,10 @@ These screenshots document each principal dock tab using the same small real pro
 ## Log
 
 ![Log tab](asset_store/documentation/tab_log.png)
+
+## Evidence tooltips
+
+The v0.3.1 Asset Library media includes dedicated captures for both hover surfaces:
+
+- `asset_store/current/featured-08-member-evidence-tooltip.webp` — full member declaration plus static incoming/outgoing evidence counts.
+- `asset_store/current/featured-09-connection-evidence-tooltip.webp` — canonical dependency direction, relationship kind, and represented exact evidence occurrences.

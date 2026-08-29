@@ -83,6 +83,7 @@ func _configure_state(state: String) -> void:
 	(_dock.get_node("%AutoExportJson") as CheckBox).button_pressed = false
 	(_dock.get_node("%AutoExportMermaid") as CheckBox).button_pressed = false
 	(_dock.get_node("%AutoExportPlantUML") as CheckBox).button_pressed = false
+	(_dock.get_node("%ShowGraph") as CheckButton).button_pressed = true
 	var content_paths: Dictionary = {
 		"addons": "%IncludeAddons",
 		"native": "%IncludeNative",
@@ -103,7 +104,15 @@ func _configure_state(state: String) -> void:
 	if media_state:
 		for key in ["methods", "signals", "properties", "loads", "types"]:
 			(_dock.get_node(content_paths[key]) as CheckBox).button_pressed = true
-		if state in ["media_max_info", "media_navigation"]:
+		if (
+			state
+			in [
+				"media_max_info",
+				"media_navigation",
+				"media_member_tooltip",
+				"media_connection_tooltip"
+			]
+		):
 			for key in [
 				"native",
 				"external",
@@ -176,7 +185,7 @@ func _configure_after_scan(state: String) -> void:
 		"media_tab_content":
 			split.split_offset = 500
 			tabs.current_tab = 0
-		"media_overview", "media_max_info", "media_complex", "media_navigation", "media_scope", "media_search":
+		"media_overview", "media_max_info", "media_complex", "media_navigation", "media_scope", "media_search", "media_member_tooltip", "media_connection_tooltip":
 			split.split_offset = 125
 			tabs.current_tab = 0
 		_:
@@ -223,6 +232,10 @@ func _configure_after_scan(state: String) -> void:
 		call_deferred("_prepare_media_scope_view")
 	if state == "media_search":
 		call_deferred("_prepare_media_search_view")
+	if state == "media_member_tooltip":
+		call_deferred("_prepare_media_member_tooltip")
+	if state == "media_connection_tooltip":
+		call_deferred("_prepare_media_connection_tooltip")
 
 
 func _prepare_media_simple_view(maximum_information: bool) -> void:
@@ -300,6 +313,98 @@ func _prepare_media_search_view() -> void:
 	_dock.call("_apply_search")
 	await process_frame
 	_fit_graph_to_nodes(70.0, 0.9)
+
+
+func _prepare_media_member_tooltip() -> void:
+	_restrict_snapshot_to_names(["MediaPlayerCharacter"])
+	await process_frame
+	await process_frame
+	_place_nodes_by_name({"MediaPlayerCharacter": Vector2(220, 60)})
+	var graph: GraphEdit = _dock.get_node("%GraphEdit")
+	graph.zoom = 1.0
+	graph.scroll_offset = Vector2.ZERO
+	await process_frame
+	var id_to_graph_node_value = _dock.get("_id_to_graph_node")
+	if not id_to_graph_node_value is Dictionary:
+		return
+	var id_to_graph_node: Dictionary = id_to_graph_node_value
+	var target_id: String = "res://examples/media_showcase/player_character.gd"
+	if not id_to_graph_node.has(target_id):
+		return
+	var graph_node: GraphNode = id_to_graph_node[target_id] as GraphNode
+	var member_button: Button = _find_button_with_text(graph_node, "perform_attack")
+	if member_button == null:
+		return
+	await _warp_mouse_to_control_position(member_button, member_button.size * 0.5)
+
+
+func _prepare_media_connection_tooltip() -> void:
+	_restrict_snapshot_to_names(["MediaPlayerCharacter", "MediaDamageService", "MediaWeaponData"])
+	await process_frame
+	await process_frame
+	_place_nodes_by_name(
+		{
+			"MediaPlayerCharacter": Vector2(120, 20),
+			"MediaDamageService": Vector2(760, 20),
+			"MediaWeaponData": Vector2(760, 260),
+		}
+	)
+	var graph: GraphEdit = _dock.get_node("%GraphEdit")
+	graph.zoom = 0.9
+	graph.scroll_offset = Vector2.ZERO
+	await process_frame
+	for connection_value in graph.get_connection_list():
+		if not connection_value is Dictionary:
+			continue
+		var connection: Dictionary = connection_value
+		var from_node: GraphNode = (
+			graph.get_node_or_null(NodePath(str(connection.get("from_node", "")))) as GraphNode
+		)
+		var to_node: GraphNode = (
+			graph.get_node_or_null(NodePath(str(connection.get("to_node", "")))) as GraphNode
+		)
+		if from_node == null or to_node == null:
+			continue
+		var from_port: int = int(connection.get("from_port", 0))
+		var to_port: int = int(connection.get("to_port", 0))
+		var from_position: Vector2 = (
+			from_node.position + from_node.get_output_port_position(from_port)
+		)
+		var to_position: Vector2 = to_node.position + to_node.get_input_port_position(to_port)
+		var line: PackedVector2Array = graph.get_connection_line(from_position, to_position)
+		for point: Vector2 in line:
+			var tooltip: String = str(graph.call("_get_tooltip", point))
+			if tooltip == graph.tooltip_text:
+				continue
+			await _warp_mouse_to_control_position(graph, point)
+			if (
+				str(graph.call("_get_tooltip", graph.get_local_mouse_position()))
+				!= graph.tooltip_text
+			):
+				return
+
+
+func _warp_mouse_to_control_position(control: Control, local_position: Vector2) -> void:
+	var screen_target: Vector2 = control.get_screen_transform() * local_position
+	for _attempt in range(3):
+		Input.warp_mouse(screen_target)
+		await process_frame
+		await process_frame
+		var actual_local: Vector2 = control.get_local_mouse_position()
+		var local_error: Vector2 = local_position - actual_local
+		if local_error.length() <= 1.0:
+			return
+		screen_target += local_error
+
+
+func _find_button_with_text(node: Node, expected: String) -> Button:
+	if node is Button and expected in (node as Button).text:
+		return node as Button
+	for child in node.get_children():
+		var match: Button = _find_button_with_text(child, expected)
+		if match != null:
+			return match
+	return null
 
 
 func _fit_graph_to_nodes(margin: float, maximum_zoom: float) -> void:

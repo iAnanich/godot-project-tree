@@ -383,7 +383,6 @@ func _read_text_file(path: String, maximum_bytes: int) -> Dictionary:
 	return {"ok": true, "text": text, "error": OK}
 
 
-
 func _global_class_index() -> Dictionary:
 	var index = {}
 	if not ProjectSettings.has_method("get_global_class_list"):
@@ -424,10 +423,7 @@ func _resolve_direct_base(
 
 
 func _resolve_symbol_base(
-	symbol: String,
-	path_index: Dictionary,
-	class_index: Dictionary,
-	global_classes: Dictionary
+	symbol: String, path_index: Dictionary, class_index: Dictionary, global_classes: Dictionary
 ) -> Dictionary:
 	var resolved: Dictionary
 	if class_index.has(symbol):

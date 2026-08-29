@@ -17,6 +17,9 @@ digraph UseCasesAnalysis {
   isolate [shape=ellipse, label="Isolate neighborhood"];
   navigate [shape=ellipse, label="Open stored source or\nscene location"];
   fallback [shape=note, label="Missing/stale exact location:\nopen safe fallback and diagnose", fillcolor="#FFF7ED"];
+  connection_hover [shape=ellipse, label="Inspect connection\nstatic evidence on hover"];
+  member_hover [shape=ellipse, label="Inspect member declaration\nand evidence on hover"];
+  rejected [shape=note, label="Rejected snapshot:\nstable code + root + bounded Log context", fillcolor="#FFF7ED"];
 
   developer -> acquire; acquire -> analyze -> build -> scope -> validate -> visible;
   visible -> render [label="yes"];
@@ -26,5 +29,8 @@ digraph UseCasesAnalysis {
   focus -> render [style=dashed, label="presentation only"];
   isolate -> render [style=dashed, label="presentation only"];
   developer -> navigate; render -> navigate [style=dashed, label="actions carry evidence"];
+  developer -> connection_hover; render -> connection_hover [style=dashed, label="UC-14"];
+  developer -> member_hover; render -> member_hover [style=dashed, label="UC-15"];
+  validate -> rejected [style=dashed, label="UC-16 on failure"];
   navigate -> fallback [style=dashed, label="when exact action fails"];
 }

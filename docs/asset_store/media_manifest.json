@@ -1,21 +1,129 @@
 {
   "schema_version": 1,
-  "release": "0.2.4",
+  "release": "0.3.1",
   "requirements": {
     "aspect_ratio": "16:9",
-    "minimum_dimensions": [1280, 720],
-    "recommended_dimensions": [1920, 1080],
+    "minimum_dimensions": [
+      1280,
+      720
+    ],
+    "recommended_dimensions": [
+      1920,
+      1080
+    ],
     "maximum_bytes": 614400,
     "format": "webp"
   },
   "media": [
-    {"file":"thumbnail.webp","role":"thumbnail","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/overview.png","scenario":"Informational title card embedding the real default overview capture."},
-    {"file":"featured-01-default-overview.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/overview.png","scenario":"Default dock with a small readable project slice."},
-    {"file":"featured-02-maximum-information.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/max_info.png","scenario":"The same small slice with all supported information categories enabled."},
-    {"file":"featured-03-complex-project.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/complex.png","scenario":"Zoomed-out complex project graph within the dock."},
-    {"file":"featured-04-editor-navigation.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/editor-navigation.png","scenario":"Selected graph member and exact Script Editor cursor destination."},
-    {"file":"featured-05-export-workflow.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/export_only.png","scenario":"Graph-hidden export and synchronization workflow."},
-    {"file":"featured-06-scoped-context.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/scope.png","scenario":"Selected scan root with retained architectural context."},
-    {"file":"featured-07-search-and-focus.webp","role":"featured","release":"0.2.4","dimensions":[1920,1080],"source":"source-captures/v0.2.4/raw/search.png","scenario":"Member search and focused graph result."}
+    {
+      "file": "thumbnail.webp",
+      "role": "thumbnail",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/overview.png",
+      "scenario": "Informational title card embedding the real default overview capture."
+    },
+    {
+      "file": "featured-01-default-overview.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/overview.png",
+      "scenario": "Default dock with a small readable project slice."
+    },
+    {
+      "file": "featured-02-maximum-information.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/max_info.png",
+      "scenario": "The same small slice with all supported information categories enabled."
+    },
+    {
+      "file": "featured-03-complex-project.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/complex.png",
+      "scenario": "Zoomed-out complex project graph within the dock."
+    },
+    {
+      "file": "featured-04-editor-navigation.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/editor-navigation.png",
+      "scenario": "Selected graph member and exact Script Editor cursor destination."
+    },
+    {
+      "file": "featured-05-export-workflow.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/export_only.png",
+      "scenario": "Graph-hidden export and synchronization workflow."
+    },
+    {
+      "file": "featured-06-scoped-context.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/scope.png",
+      "scenario": "Selected scan root with retained architectural context."
+    },
+    {
+      "file": "featured-07-search-and-focus.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/search.png",
+      "scenario": "Member search and focused graph result."
+    },
+    {
+      "file": "featured-08-member-evidence-tooltip.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/member_tooltip.png",
+      "scenario": "Compact member row hovered to expose the full declaration and static incoming/outgoing relationship evidence."
+    },
+    {
+      "file": "featured-09-connection-evidence-tooltip.webp",
+      "role": "featured",
+      "release": "0.3.1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "source": "source-captures/v0.3.1/raw/connection_tooltip.png",
+      "scenario": "Rendered dependency line hovered to expose canonical direction, relationship type, and exact represented source evidence."
+    }
   ]
 }

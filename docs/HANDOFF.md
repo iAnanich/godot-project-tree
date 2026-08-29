@@ -28,7 +28,7 @@ Upload that ZIP as the synchronization handoff. It contains:
 
 - `HANDOFF.json` — baseline commit/tree, captured target tree, Git status, and source inventory;
 - `changes.patch` — binary-capable patch from the named baseline;
-- `SHA256SUMS.txt` — hashes for the patch and captured source files; and
+- `SHA256SUMS.txt` — hashes using the actual archive member paths for the patch and captured source files; and
 - `source/script-dependency-inspector-godot4-project/` — complete captured source state.
 
 ## What is included
@@ -36,6 +36,8 @@ Upload that ZIP as the synchronization handoff. It contains:
 The source snapshot is based on Git's tracked files plus untracked files that are not ignored by `.gitignore` or other Git exclude rules. Deleted tracked files are represented by their absence from the source snapshot and by the deletion in `changes.patch`.
 
 Ignored editor/cache/local-output state is not included. Review `git status --short --untracked-files=all` before building so newly created source files are intentional.
+
+The builder verifies every `SHA256SUMS.txt` entry against the completed ZIP before reporting success. This prevents a handoff from claiming checksums for paths that do not exist in the archive.
 
 The builder refuses common credential-looking filenames such as `.env`, private-key files, and `credentials`/`secrets` paths. If such a path is genuinely intended source material, inspect it first and opt in with `--allow-sensitive-looking`.
 

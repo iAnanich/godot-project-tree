@@ -83,7 +83,7 @@ Review correctness, compatibility, test evidence, security, maintainability, per
 
 ## Licensing and release ownership
 
-Contributions are accepted under Apache License 2.0. Contributors must have the right to submit their material and must review AI-assisted contributions for incompatible copying, provenance risks, correctness, and security. See `AI_USAGE_NOTICE.md`.
+Contributions are accepted under the MIT License. Contributors must have the right to submit their material and must review AI-assisted contributions for incompatible copying, provenance risks, correctness, and security. See `AI_USAGE_NOTICE.md`.
 
 A marketplace release still requires the project owner to choose the final publisher identity, support channel, and security contact. Contributors must not invent those governance decisions.
 

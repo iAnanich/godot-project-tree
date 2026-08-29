@@ -382,7 +382,8 @@ def build(base_ref: str, output: Path, *, allow_sensitive_looking: bool) -> Path
 
     checksum_lines = [f"{patch_sha256}  changes.patch"]
     checksum_lines.extend(
-        f"{record['sha256']}  source/{record['path']}" for record in source_records
+        f"{record['sha256']}  source/{PROJECT_ARCHIVE_ROOT}/{record['path']}"
+        for record in source_records
     )
     checksums = ("\n".join(checksum_lines) + "\n").encode("utf-8")
 
@@ -415,6 +416,30 @@ def build(base_ref: str, output: Path, *, allow_sensitive_looking: bool) -> Path
     return destination
 
 
+def verify_handoff_archive(path: Path) -> None:
+    """Verify every checksum entry against its actual member path in the handoff ZIP."""
+    with zipfile.ZipFile(path, "r") as archive:
+        prefix = f"{HANDOFF_ARCHIVE_ROOT}/"
+        checksum_name = prefix + "SHA256SUMS.txt"
+        lines = archive.read(checksum_name).decode("utf-8").splitlines()
+        for line in lines:
+            if not line.strip():
+                continue
+            expected, relative = line.split("  ", 1)
+            member_name = prefix + relative
+            try:
+                payload = archive.read(member_name)
+            except KeyError as error:
+                raise RuntimeError(
+                    f"handoff checksum references missing archive member: {relative}"
+                ) from error
+            actual = hashlib.sha256(payload).hexdigest()
+            if actual != expected:
+                raise RuntimeError(
+                    f"handoff checksum mismatch for {relative}: {actual} != {expected}"
+                )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -425,7 +450,7 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "tools/dist/",
+        default=ROOT / "tools/dist",
         help="Output directory (default: sibling script-dependency-inspector-handoff-artifacts directory)",
     )
     parser.add_argument(
@@ -439,6 +464,7 @@ def main() -> int:
         arguments.output.resolve(),
         allow_sensitive_looking=arguments.allow_sensitive_looking,
     )
+    verify_handoff_archive(artifact)
     print(artifact)
     return 0
 

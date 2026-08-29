@@ -33,11 +33,11 @@ Build release archives, verify their structure, then verify the actual redistrib
 ```sh
 python tools/build_release.py --output dist
 python tools/verify_release_artifacts.py \
-  --addon dist/script-dependency-inspector-addon-v0.3.0.zip \
-  --project dist/script-dependency-inspector-godot4-project-v0.3.0.zip \
-  --media dist/script-dependency-inspector-asset-store-media-v0.3.0.zip
+  --addon dist/script-dependency-inspector-addon-v0.3.1.zip \
+  --project dist/script-dependency-inspector-godot4-project-v0.3.1.zip \
+  --media dist/script-dependency-inspector-asset-store-media-v0.3.1.zip
 python tools/verify_packaged_addon.py \
-  --addon dist/script-dependency-inspector-addon-v0.3.0.zip \
+  --addon dist/script-dependency-inspector-addon-v0.3.1.zip \
   --godot /path/to/godot
 ```
 
@@ -45,9 +45,11 @@ The packaged-add-on check covers archive layout, required notices, editor plugin
 
 When independently checking the extracted full-project archive, verify its embedded `MANIFEST.sha256` first. Then run `python tools/validate_static.py --allow-root-manifest`. The flag is only for the extracted release archive, because the development source tree must not contain a generated root manifest.
 
-## Reproducibility claim
+## Repeatability and reproducibility claims
 
-A deterministic construction design is not by itself a reproducibility result. Build the claimed archives twice from the same accepted source state and environment, then compare the archive bytes. Record which artifacts matched.
+A deterministic construction design is not by itself a verification result. Build the claimed archives twice from the same accepted source state and environment, then compare the archive bytes. A byte-identical result supports repeatability under that tested environment.
+
+Do not report an unqualified reproducibility result unless a separate operator or independently controlled build service recreates the specified artifact byte for byte from the declared source, environment, and instructions. Record the builder relationship, scope, and remaining limits.
 
 ## Patch reconstruction
 

@@ -1,13 +1,13 @@
 # Script Dependency Inspector — quality contract
 
-Artifact identity: `script-dependency-inspector-quality-contract`  
-Version: `0.2.0-alpha.1`  
-Release state at issue: Accepted for v0.3.0 implementation  
-Issue date: 2026-08-27
+Artifact identity: `script-dependency-inspector-quality-contract`
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: accepted quality contract for v0.3.0 implementation; release-specific results remain separate  
-Applies to: product behavior and release acceptance  
+Status: accepted quality contract for v0.3.0 implementation; release-specific results remain separate
+Applies to: product behavior and release acceptance
 Decision owner: project owner
 
 ## 1. Purpose
@@ -50,58 +50,72 @@ A quality scenario defines required assessment evidence. It is not a verificatio
 
 ### QS-FS-01 — Deterministic supported analysis
 
-**Actor/condition:** developer scans equivalent saved project inputs with equivalent options.  
-**Target property:** canonical supported evidence and ordering are deterministic.  
-**Acceptance:** contract-linked fixtures and schema comparisons match expected canonical output.  
+**Actor/condition:** developer scans equivalent saved project inputs with equivalent options.
+**Target property:** canonical supported evidence and ordering are deterministic.
+**Acceptance:** contract-linked fixtures and schema comparisons match expected canonical output.
 **Failure consequence:** misleading or unstable architecture evidence.
 
 ### QS-REL-01 — Partial-result distinction
 
-**Condition:** an optional file or evidence class cannot be acquired or recognized, but structural invariants remain satisfiable.  
-**Target property:** the product reports diagnostics and preserves only supported evidence.  
-**Acceptance:** failure-path tests distinguish publishable partial results from fatal scan failure.  
+**Condition:** an optional file or evidence class cannot be acquired or recognized, but structural invariants remain satisfiable.
+**Target property:** the product reports diagnostics and preserves only supported evidence.
+**Acceptance:** failure-path tests distinguish publishable partial results from fatal scan failure.
 **Failure consequence:** false completeness or avoidable loss of valid evidence.
 
 ### QS-REL-02 — Export replacement recovery
 
-**Condition:** replacement of an existing export fails after serialization has started.  
-**Target property:** the product reports the final state and preserves or restores the prior destination where the filesystem permits it.  
-**Acceptance:** failure-injection tests inspect the destination after the failed operation.  
+**Condition:** replacement of an existing export fails after serialization has started.
+**Target property:** the product reports the final state and preserves or restores the prior destination where the filesystem permits it.
+**Acceptance:** failure-injection tests inspect the destination after the failed operation.
 **Failure consequence:** silent loss or corruption of previously valid documentation output.
 
 ### QS-COMP-01 — Claimed Godot compatibility
 
-**Condition:** the release is evaluated on each claimed Godot editor version.  
-**Target property:** plugin initialization and representative public behavior remain compatible.  
-**Acceptance:** isolated per-engine execution passes for every claimed version.  
+**Condition:** the release is evaluated on each claimed Godot editor version.
+**Target property:** plugin initialization and representative public behavior remain compatible.
+**Acceptance:** isolated per-engine execution passes for every claimed version.
 **Failure consequence:** published compatibility claim is unsupported.
 
 ### QS-INT-01 — Decodable graph meaning
 
-**Condition:** developer views the graph at intended dock sizes.  
-**Target property:** relationship kind, direction, and scope/context role are available without color or hover as the only cue.  
-**Acceptance:** static UI checks plus final rendered review of representative states.  
+**Condition:** developer views the graph at intended dock sizes.
+**Target property:** relationship kind, direction, and scope/context role are available without color or hover as the only cue.
+**Acceptance:** static UI checks plus final rendered review of representative states.
 **Failure consequence:** users can misread relationship semantics.
+
+### QS-INT-02 — Evidence-rich hover inspection
+
+**Condition:** developer hovers a graph connection or member row.
+**Target property:** the tooltip identifies the exact static relationship/member evidence without replacing visible graph semantics or implying runtime frequency.
+**Acceptance:** behavioral tests verify full member declarations/count terminology, connection direction/evidence aggregation, and bounded occurrence presentation.
+**Failure consequence:** hover repeats visible labels or misrepresents static evidence.
+
+### QS-REL-03 — Actionable structural rejection
+
+**Condition:** a candidate snapshot fails structural validation.
+**Target property:** status and Log expose stable issue identity, selected root, message, and bounded structured context.
+**Acceptance:** behavioral test verifies stable code/root/context survive UI rendering.
+**Failure consequence:** users cannot diagnose a reproducible model-consistency defect.
 
 ### QS-PERF-01 — Bounded synchronous work
 
-**Condition:** representative regression fixture exercises the synchronous scan path.  
-**Target property:** acquisition remains within explicit file/byte limits and the release-specific regression budget.  
-**Acceptance:** fresh measured run records fixture, hardware/environment, threshold, and result.  
+**Condition:** representative regression fixture exercises the synchronous scan path.
+**Target property:** acquisition remains within explicit file/byte limits and the release-specific regression budget.
+**Acceptance:** fresh measured run records fixture, hardware/environment, threshold, and result.
 **Failure consequence:** editor stalls beyond the project's accepted regression envelope.
 
 ### QS-MAINT-01 — Localizable change boundaries
 
-**Condition:** a maintainer changes one evidence class, exporter, projection policy, or presentation behavior.  
-**Target property:** the governing policy is identifiable and unrelated components need not change unless the contract couples them.  
-**Acceptance:** requirement-to-component mapping remains current; tests localize the changed contract; review records any cross-boundary edits that are necessary.  
+**Condition:** a maintainer changes one evidence class, exporter, projection policy, or presentation behavior.
+**Target property:** the governing policy is identifiable and unrelated components need not change unless the contract couples them.
+**Acceptance:** requirement-to-component mapping remains current; tests localize the changed contract; review records any cross-boundary edits that are necessary.
 **Failure consequence:** future changes require hidden knowledge or unrelated edits.
 
 ### QS-PKG-01 — Distributed add-on usability
 
-**Condition:** recipient installs the release add-on ZIP into a clean supported Godot project.  
-**Target property:** package layout, notices, plugin discovery, initialization, and representative behavior are intact.  
-**Acceptance:** isolated extracted-package smoke test passes.  
+**Condition:** recipient installs the release add-on ZIP into a clean supported Godot project.
+**Target property:** package layout, notices, plugin discovery, initialization, and representative behavior are intact.
+**Acceptance:** isolated extracted-package smoke test passes.
 **Failure consequence:** source-tree tests pass while the distributed product is unusable.
 
 ## 5. Evidence portfolio
@@ -117,7 +131,7 @@ Use complementary evidence only where it controls a material failure mode:
 - per-engine compatibility runs;
 - packaged-add-on smoke test;
 - rendered UI/media review;
-- second controlled build for any reproducibility claim;
+- second controlled build for a same-environment repeatability claim; independent rebuild evidence for any unqualified reproducibility claim;
 - patch reconstruction against the exact baseline.
 
 A green CI job is evidence that its configured checks ran successfully in that environment. It is not a substitute for the individual claims above.

@@ -1,12 +1,12 @@
 # Script Dependency Inspector — repository and release requirements
 
-Artifact identity: `script-dependency-inspector-release-requirements`  
-Version: `0.2.0-alpha.1`  
-Release state at issue: Accepted for v0.3.0 implementation  
-Issue date: 2026-08-27
+Artifact identity: `script-dependency-inspector-release-requirements`
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: proposed successor baseline for owner review  
+Status: proposed successor baseline for owner review
 Scope: repository knowledge, packaging, release automation, patching, quality gates, AI disclosure, and Godot Asset Library media
 
 ## 1. Purpose and separation from product behavior
@@ -124,7 +124,8 @@ Release archives must exclude generated or local state that is not part of the s
 
 - `.git/`;
 - `.godot/`;
-- Godot import sidecars and cache-only metadata such as `.import` and `.uid` where they are not source artifacts;
+- generated Godot import sidecars such as `.import`;
+- `.uid` files only when they are demonstrably cache-only for the affected resource; tracked script/resource UID sidecars are source artifacts and must not be excluded solely by suffix;
 - Python cache/bytecode;
 - local validation output;
 - `dist/` build products nested inside the source archive.
@@ -134,6 +135,12 @@ Release archives must exclude generated or local state that is not part of the s
 Release verification must exercise the redistributable add-on ZIP after extraction into a clean Godot project or an equivalent isolated install surface.
 
 The check must verify at least package structure, required notices/licenses, plugin discovery/initialization, and one representative public behavior. Source-tree execution alone does not satisfy this requirement.
+
+### REL-PKG-006 — MIT license consistency
+
+The repository and redistributable add-on must contain the MIT License as the current project license. Current contribution, AI-usage, and Asset Library license statements must agree. Historical changelog entries may retain the license that applied to the historical release they describe.
+
+`NOTICE` may remain for provenance/attribution that is independently required; its presence must not be described as an Apache-2.0 license requirement.
 
 ## 7. Patch requirements
 
@@ -305,11 +312,13 @@ The project owner may accept a release exception only when the exception record 
 
 Tests generated or materially rewritten with AI assistance must receive assertion review against the requirement or defect they claim to verify. A passing generated test is not independent evidence that its oracle is correct.
 
-### REL-VERIFY-009 — Reproducibility claim requires a second controlled build
+### REL-VERIFY-009 — Repeatability and reproducibility claims require distinct evidence
 
-The project may describe a specified release archive as reproducible only after a second controlled build recreates that artifact byte for byte under the declared source state, build instructions, and environment assumptions.
+The project may describe a specified release archive as repeatable under the tested environment after a second controlled build by the same operator or environment recreates that artifact byte for byte from the declared source state and build instructions.
 
-A single successful build may establish build completion. It does not establish reproducibility.
+An unqualified reproducibility claim additionally requires a separate operator or independently controlled build service to recreate the specified artifact byte for byte from the declared source, environment, and instructions.
+
+A single successful build may establish build completion. It establishes neither repeatability nor reproducibility.
 
 ## 12. Release completion states
 

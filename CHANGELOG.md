@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.3.1 — 2026-08-29
+
+### Fixed
+
+- Filtered member categories no longer leave `member_links` that reference members omitted from their endpoint nodes. This fixes selected-root scans that could fail structural validation with `unknown_member_reference`.
+- Snapshot-validation failures now identify the first stable issue code and selected root in the immediate status, while Log retains each issue message and bounded structured context.
+- Restored the compact manual export selector width and removed accidentally captured IDE, Python-cache, and Godot `.import` state from the repository source surface.
+- Local handoff checksum entries now use the actual ZIP member paths and the handoff builder verifies every checksum entry before reporting success.
+- Release-archive verification now preserves tracked Godot `.uid` source sidecars while continuing to reject generated `.import` and Python-bytecode state.
+
+### Added
+
+- Connection-specific graph tooltips showing relationship type, canonical dependent/dependency direction, layout-only rendered direction, member/source evidence when available, and represented exact-occurrence counts.
+- Member tooltips that preserve full signatures/declarations, exact declaration locations, incoming exact member-reference counts, outgoing dependency-occurrence counts, and explicit static-evidence terminology.
+- Regression fixtures and behavioral checks for hidden-member selected-root validation, connection evidence tooltips, member evidence tooltips, and validator Log rendering.
+- UC-14 connection inspection, UC-15 member inspection, and UC-16 rejected-snapshot diagnosis with updated requirements, design, traceability, and quality scenarios.
+
+### Changed
+
+- Project and packaged add-on licensing changed from Apache License 2.0 to the MIT License. Historical changelog statements remain historical.
+- Tracked Godot `.uid` sidecars are treated as source artifacts; generated `.import` sidecars remain excluded.
+- Asset Library copy now describes evidence-rich connection/member hover inspection and actionable validation diagnostics.
+- Release documentation now distinguishes same-environment repeatability from independently demonstrated reproducibility.
+
+### Compatibility
+
+- Snapshot schema remains v2 and editor-state schema remains v4.
+- `GraphEdit.get_closest_connection_at_point()` is used only after compatibility verification across the claimed Godot 4.3–4.7 matrix.
+- `OPEN-001` remains unresolved; this release does not silently select a stale-snapshot policy.
+
 ## 0.3.0 — 2026-08-27
 
 ### Changed

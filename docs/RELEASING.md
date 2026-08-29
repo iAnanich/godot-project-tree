@@ -30,23 +30,23 @@ Run `tools/run_validation.py` independently on every claimed Godot version. Use 
 ```sh
 python tools/build_release.py --output dist-first
 python tools/build_release.py --output dist-second
-cmp dist-first/script-dependency-inspector-addon-v0.3.0.zip dist-second/script-dependency-inspector-addon-v0.3.0.zip
-cmp dist-first/script-dependency-inspector-godot4-project-v0.3.0.zip dist-second/script-dependency-inspector-godot4-project-v0.3.0.zip
-cmp dist-first/script-dependency-inspector-asset-store-media-v0.3.0.zip dist-second/script-dependency-inspector-asset-store-media-v0.3.0.zip
+cmp dist-first/script-dependency-inspector-addon-v0.3.1.zip dist-second/script-dependency-inspector-addon-v0.3.1.zip
+cmp dist-first/script-dependency-inspector-godot4-project-v0.3.1.zip dist-second/script-dependency-inspector-godot4-project-v0.3.1.zip
+cmp dist-first/script-dependency-inspector-asset-store-media-v0.3.1.zip dist-second/script-dependency-inspector-asset-store-media-v0.3.1.zip
 ```
 
-Only call an archive reproducible when the controlled second-build comparison succeeds for that artifact.
+A byte-identical second build by the same operator/environment supports a same-environment repeatability claim for that artifact. Do not call it reproducible without an independent operator or independently controlled build service recreating the specified artifact from the declared source, environment, and instructions.
 
 ## 4. Verify the archives and installed add-on
 
 ```sh
 python tools/verify_release_artifacts.py \
-  --addon dist-first/script-dependency-inspector-addon-v0.3.0.zip \
-  --project dist-first/script-dependency-inspector-godot4-project-v0.3.0.zip \
-  --media dist-first/script-dependency-inspector-asset-store-media-v0.3.0.zip
+  --addon dist-first/script-dependency-inspector-addon-v0.3.1.zip \
+  --project dist-first/script-dependency-inspector-godot4-project-v0.3.1.zip \
+  --media dist-first/script-dependency-inspector-asset-store-media-v0.3.1.zip
 
 python tools/verify_packaged_addon.py \
-  --addon dist-first/script-dependency-inspector-addon-v0.3.0.zip \
+  --addon dist-first/script-dependency-inspector-addon-v0.3.1.zip \
   --godot /path/to/Godot_v4.7-stable_linux.x86_64
 ```
 
@@ -57,7 +57,7 @@ Use a supported Godot build for the package smoke check. This gate supplements, 
 Tag the exact preceding release before generating the normal patch. Then use:
 
 ```sh
-python tools/build_patch.py --base-ref v0.2.4 --target-ref HEAD --output dist-first
+python tools/build_patch.py --base-ref v0.3.0 --target-ref HEAD --output dist-first
 ```
 
 The reconstruction artifact is binary-capable. Apply it from a clean v0.2.4 checkout with:

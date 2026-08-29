@@ -357,9 +357,7 @@ func _test_exporter_contracts(valid_snapshot: Dictionary, failures: Array[String
 		)
 
 
-func _test_export_replacement_recovery(
-	valid_snapshot: Dictionary, failures: Array[String]
-) -> void:
+func _test_export_replacement_recovery(valid_snapshot: Dictionary, failures: Array[String]) -> void:
 	var service = _new_script_instance(FAILING_COMMIT_SERVICE_PATH, failures)
 	if service == null:
 		return
@@ -380,7 +378,11 @@ func _test_export_replacement_recovery(
 		failures
 	)
 	var restored_file: FileAccess = FileAccess.open(destination, FileAccess.READ)
-	_check(restored_file != null, "The previous export must remain readable after commit failure.", failures)
+	_check(
+		restored_file != null,
+		"The previous export must remain readable after commit failure.",
+		failures
+	)
 	if restored_file != null:
 		var restored_text: String = restored_file.get_as_text()
 		restored_file.close()
@@ -397,13 +399,16 @@ func _test_source_only_scan(failures: Array[String]) -> void:
 		return
 	if FileAccess.file_exists(STATIC_EXECUTION_MARKER):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(STATIC_EXECUTION_MARKER))
-	var result: Dictionary = scanner.scan(
-		STATIC_EXECUTION_FIXTURE_ROOT,
-		{
-			"use_runtime_reflection": true,
-			"include_scene_usages": false,
-			"excluded_path_prefixes": PackedStringArray(),
-		}
+	var result: Dictionary = (
+		scanner
+		. scan(
+			STATIC_EXECUTION_FIXTURE_ROOT,
+			{
+				"use_runtime_reflection": true,
+				"include_scene_usages": false,
+				"excluded_path_prefixes": PackedStringArray(),
+			}
+		)
 	)
 	_check(
 		result.get("errors", []).is_empty(),
@@ -483,10 +488,14 @@ func _test_visual_decoding_summary(valid_snapshot: Dictionary, failures: Array[S
 	Engine.get_main_loop().root.add_child(dock)
 	var invalid_candidate: Dictionary = valid_snapshot.duplicate(true)
 	invalid_candidate["nodes"][0].erase("methods")
-	var candidate_validation: Dictionary = dock.call("_validate_snapshot_candidate", invalid_candidate)
+	var candidate_validation: Dictionary = dock.call(
+		"_validate_snapshot_candidate", invalid_candidate
+	)
 	_check(
-		not candidate_validation.get("ok", true)
-		and _has_issue_code(candidate_validation.get("errors", []), "missing_node_field"),
+		(
+			not candidate_validation.get("ok", true)
+			and _has_issue_code(candidate_validation.get("errors", []), "missing_node_field")
+		),
 		"Dock scan lifecycle must reject a structurally invalid snapshot candidate before acceptance.",
 		failures
 	)

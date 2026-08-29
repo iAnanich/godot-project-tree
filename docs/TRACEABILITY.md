@@ -1,12 +1,12 @@
 # Script Dependency Inspector — requirements traceability
 
-Artifact identity: `script-dependency-inspector-traceability`  
-Version: `0.2.0-alpha.1`  
-Release state at issue: Accepted for v0.3.0 implementation  
-Issue date: 2026-08-27
+Artifact identity: `script-dependency-inspector-traceability`
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: proposed successor traceability baseline  
+Status: proposed successor traceability baseline
 Purpose: connect user outcomes, product requirements, design boundaries, and required evidence without treating planned checks as completed verification
 
 ## 1. Traceability rules
@@ -81,6 +81,12 @@ Purpose: connect user outcomes, product requirements, design boundaries, and req
 | `REL-MEDIA-*` | `docs/asset_store`, media build/validation scripts | final-file dimension/size/format checks plus rendered review |
 | `REL-STORE-*` | Asset Library description | source-analysis/compatibility/export-message consistency check |
 | `REL-VERIFY-*` | validation harness and release evidence | fresh release-specific execution with environment and limitation record |
+
+| `REQ-VALID-005` | filtered endpoint-member provenance | UC-01, UC-02, UC-16 | `GraphBuilder`, `SnapshotValidator` | hidden-member selected-root regression; baseline sensitivity demonstration |
+| `REQ-UI-005` | connection-specific evidence tooltip | UC-14 | `DependencyGraphEdit`, dock rendered-edge evidence registry | connection evidence aggregation/tooltip behavioral test; rendered inspection |
+| `REQ-UI-006` | full member/evidence tooltip | UC-15 | `DependencyGraphNode`, dock member evidence index | compact-row/full-tooltip behavioral test |
+| `REQ-DIAG-003` | actionable validator rejection | UC-16 | dock validation/status/Log rendering | stable code/root/context UI log test |
+| `REL-PKG-006` | MIT license consistency | release/package surfaces | root/add-on licenses, current notices/store copy | static license consistency; packaged add-on inspection |
 
 ## 6. Quality-scenario mapping
 

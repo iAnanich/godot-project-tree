@@ -219,7 +219,9 @@ func _initialize_dependencies() -> bool:
 	var scanner_script = _load_required_script(SCANNER_SCRIPT_PATH, "project scanner")
 	var builder_script = _load_required_script(GRAPH_BUILDER_SCRIPT_PATH, "graph builder")
 	var scope_script = _load_required_script(SNAPSHOT_SCOPE_SCRIPT_PATH, "snapshot scope projector")
-	var validator_script = _load_required_script(SNAPSHOT_VALIDATOR_SCRIPT_PATH, "snapshot validator")
+	var validator_script = _load_required_script(
+		SNAPSHOT_VALIDATOR_SCRIPT_PATH, "snapshot validator"
+	)
 	var graph_query_script = _load_required_script(GRAPH_QUERY_SCRIPT_PATH, "graph query service")
 	var export_service_script = _load_required_script(EXPORT_SERVICE_SCRIPT_PATH, "export service")
 	var state_store_script = _load_required_script(
@@ -366,16 +368,30 @@ func scan_project() -> void:
 	var candidate_snapshot: Dictionary = _scope_projector.call("project", full_snapshot, _scan_root)
 	var validation: Dictionary = _validate_snapshot_candidate(candidate_snapshot)
 	if not validation.get("ok", false):
-		for issue_value in validation.get("errors", []):
+		var validation_errors: Array = validation.get("errors", [])
+		var first_code: String = "invalid_snapshot"
+		for issue_index in range(validation_errors.size()):
+			var issue_value = validation_errors[issue_index]
 			var issue: Dictionary = issue_value if issue_value is Dictionary else {}
-			_logger.error(
-				str(issue.get("message", "Snapshot validation failed.")),
-				{
-					"code": str(issue.get("code", "invalid_snapshot")),
-					"context": issue.get("context", {}),
-				}
-			)
-		_finish_scan_failure("Snapshot validation failed; see the Log tab.")
+			var code: String = str(issue.get("code", "invalid_snapshot"))
+			if issue_index == 0:
+				first_code = code
+			var log_context: Dictionary = {
+				"code": code,
+				"scan_root": _scan_root,
+				"issue_index": issue_index,
+			}
+			var issue_context = issue.get("context", {})
+			if issue_context is Dictionary:
+				var context_keys: Array = issue_context.keys()
+				context_keys.sort()
+				for context_key_value in context_keys.slice(0, 8):
+					var context_key: String = str(context_key_value)
+					log_context[context_key] = _bounded_log_value(issue_context[context_key_value])
+			_logger.error(str(issue.get("message", "Snapshot validation failed.")), log_context)
+		_finish_scan_failure(
+			"Snapshot validation failed [%s] for %s; see Log." % [first_code, _scan_root]
+		)
 		return
 	_snapshot = candidate_snapshot
 	if not _focused_node_id.is_empty() and not _snapshot_has_node(_focused_node_id):
@@ -415,7 +431,8 @@ func _validate_snapshot_candidate(candidate_snapshot: Dictionary) -> Dictionary:
 	if _snapshot_validator == null or not _snapshot_validator.has_method("validate"):
 		return {
 			"ok": false,
-			"errors": [
+			"errors":
+			[
 				{
 					"code": "validator_unavailable",
 					"message": "Snapshot validator is unavailable.",
@@ -613,6 +630,8 @@ func _clear_rendered_graph() -> void:
 	if graph_edit == null:
 		return
 	graph_edit.clear_connections()
+	if graph_edit.has_method("clear_connection_evidence"):
+		graph_edit.call("clear_connection_evidence")
 	for graph_node in _graph_nodes:
 		if is_instance_valid(graph_node):
 			if graph_node.get_parent() == graph_edit:
@@ -1362,6 +1381,7 @@ func _render_snapshot() -> void:
 	var style: Dictionary = settings.call("to_style_dictionary")
 	var display_options = _display_options()
 	var member_port_usage_by_node = _member_port_usage_by_node(_snapshot)
+	var member_evidence_by_node = _member_evidence_by_node(_snapshot)
 	var relationship_occurrences_by_node = _relationship_occurrences_by_node(_snapshot)
 	var descendant_counts: Dictionary = _graph_query.call("descendant_counts", _snapshot)
 	var size_by_id: Dictionary = {}
@@ -1373,6 +1393,7 @@ func _render_snapshot() -> void:
 		node_display_data["relationship_occurrences"] = relationship_occurrences_by_node.get(
 			node_id, []
 		)
+		node_display_data["member_evidence"] = member_evidence_by_node.get(node_id, {})
 		var graph_node = _graph_node_scene.instantiate()
 		var graph_name = "DependencyNode_%s" % index
 		graph_node.name = graph_name
@@ -1431,6 +1452,63 @@ func _member_port_usage_by_node(snapshot: Dictionary) -> Dictionary:
 				relation_kind
 			)
 	return usage_by_node
+
+
+func _member_evidence_by_node(snapshot: Dictionary) -> Dictionary:
+	var evidence_by_node: Dictionary = {}
+	for edge_value in snapshot.get("edges", []):
+		if not edge_value is Dictionary:
+			continue
+		var edge: Dictionary = edge_value
+		var relation_kind: String = str(edge.get("kind", "uses"))
+		for link_value in edge.get("member_links", []):
+			if not link_value is Dictionary:
+				continue
+			var link: Dictionary = link_value
+			_register_member_evidence(
+				evidence_by_node,
+				str(edge.get("source", "")),
+				link.get("source_member", {}),
+				"outgoing",
+				relation_kind
+			)
+			_register_member_evidence(
+				evidence_by_node,
+				str(edge.get("target", "")),
+				link.get("target_member", {}),
+				"incoming",
+				relation_kind
+			)
+	return evidence_by_node
+
+
+func _register_member_evidence(
+	evidence_by_node: Dictionary,
+	node_id: String,
+	member_value,
+	direction: String,
+	relation_kind: String
+) -> void:
+	if node_id.is_empty() or not member_value is Dictionary:
+		return
+	var member: Dictionary = member_value
+	var kind: String = str(member.get("kind", ""))
+	var name: String = str(member.get("name", ""))
+	if kind.is_empty() or name.is_empty():
+		return
+	var node_values: Dictionary = evidence_by_node.get(node_id, {})
+	var key: String = kind + ":" + name
+	var record: Dictionary = node_values.get(
+		key, {"incoming": 0, "outgoing": 0, "relationship_kinds": []}
+	)
+	record[direction] = int(record.get(direction, 0)) + 1
+	var relationship_kinds: Array = record.get("relationship_kinds", [])
+	if not relationship_kinds.has(relation_kind):
+		relationship_kinds.append(relation_kind)
+		relationship_kinds.sort()
+	record["relationship_kinds"] = relationship_kinds
+	node_values[key] = record
+	evidence_by_node[node_id] = node_values
 
 
 func _relationship_occurrences_by_node(snapshot: Dictionary) -> Dictionary:
@@ -1530,7 +1608,9 @@ func _render_edge(edge: Dictionary, rendered_connections: Dictionary) -> void:
 	var fallback_port = _port_for_edge(edge_kind)
 	var member_links: Array = edge.get("member_links", [])
 	if not bool(settings.get("show_member_dependency_edges")) or member_links.is_empty():
-		_connect_rendered_edge(edge, fallback_port, fallback_port, rendered_connections)
+		_connect_rendered_edge(
+			edge, fallback_port, fallback_port, rendered_connections, member_links
+		)
 		return
 	for link_value in member_links:
 		var link: Dictionary = link_value
@@ -1554,17 +1634,33 @@ func _render_edge(edge: Dictionary, rendered_connections: Dictionary) -> void:
 					"port_for_member", link.get("source_member", {}), edge_kind, fallback_port
 				)
 			)
-		_connect_rendered_edge(edge, from_port, to_port, rendered_connections)
+		_connect_rendered_edge(edge, from_port, to_port, rendered_connections, [link])
 
 
 func _connect_rendered_edge(
-	edge: Dictionary, from_port: int, to_port: int, rendered_connections: Dictionary
+	edge: Dictionary,
+	from_port: int,
+	to_port: int,
+	rendered_connections: Dictionary,
+	link_values: Array = []
 ) -> void:
 	# Canonical edges point dependent -> dependency. GraphEdit's arranger interprets
 	# incoming nodes as the previous layer, so render dependency -> dependent to
 	# place Object/base classes before their descendants when Arrange is pressed.
 	var from_name = str(_id_to_graph_name[edge["target"]])
 	var to_name = str(_id_to_graph_name[edge["source"]])
+	var evidence_links: Array = link_values if not link_values.is_empty() else [{}]
+	if graph_edit.has_method("register_connection_evidence"):
+		for link_value in evidence_links:
+			var link: Dictionary = link_value if link_value is Dictionary else {}
+			graph_edit.call(
+				"register_connection_evidence",
+				StringName(from_name),
+				from_port,
+				StringName(to_name),
+				to_port,
+				_connection_tooltip_evidence(edge, link)
+			)
 	var connection_key = "%s|%s|%s|%s" % [from_name, from_port, to_name, to_port]
 	if rendered_connections.has(connection_key):
 		return
@@ -1575,6 +1671,19 @@ func _connect_rendered_edge(
 		context["from_port"] = from_port
 		context["to_port"] = to_port
 		_logger.warning("Could not render graph connection.", context)
+
+
+func _connection_tooltip_evidence(edge: Dictionary, link: Dictionary) -> Dictionary:
+	var kind: String = str(edge.get("kind", "uses"))
+	return {
+		"kind": kind,
+		"dependent": str(edge.get("source", "")),
+		"dependency": str(edge.get("target", "")),
+		"source_member": link.get("source_member", {}).duplicate(true),
+		"target_member": link.get("target_member", {}).duplicate(true),
+		"source_location": link.get("source_location", {}).duplicate(true),
+		"evidence": str(link.get("evidence", "extends" if kind == "extends" else "relationship")),
+	}
 
 
 func _port_for_edge(edge_kind: String) -> int:
@@ -2115,6 +2224,8 @@ func _apply_node_presentation_states(
 
 func _render_visible_edges() -> void:
 	graph_edit.clear_connections()
+	if graph_edit.has_method("clear_connection_evidence"):
+		graph_edit.call("clear_connection_evidence")
 	var rendered_connections: Dictionary = {}
 	for edge_value in _snapshot.get("edges", []):
 		if not edge_value is Dictionary:
@@ -2146,3 +2257,22 @@ func _on_log_entry(entry: Dictionary) -> void:
 	log_view.append_text(
 		"[%s] %s\n" % [str(entry.get("level", "info")).to_upper(), str(entry.get("message", ""))]
 	)
+	var context = entry.get("context", {})
+	if not context is Dictionary or context.is_empty():
+		return
+	var keys: Array = context.keys()
+	keys.sort()
+	for key_value in keys.slice(0, 10):
+		var key: String = str(key_value)
+		log_view.append_text("  %s: %s\n" % [key, _bounded_log_value(context[key_value])])
+	if keys.size() > 10:
+		log_view.append_text("  … %s additional context fields\n" % (keys.size() - 10))
+
+
+func _bounded_log_value(value) -> String:
+	var rendered: String = (
+		JSON.stringify(value) if value is Dictionary or value is Array else str(value)
+	)
+	if rendered.length() > 180:
+		return rendered.substr(0, 177) + "…"
+	return rendered

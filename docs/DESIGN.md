@@ -1,12 +1,12 @@
 # Script Dependency Inspector — product design
 
 Artifact identity: `script-dependency-inspector-product-design`
-Version: `0.2.0-alpha.1`
-Release state at issue: Accepted for v0.3.0 implementation
-Issue date: 2026-08-27
+Version: `0.2.1-alpha.1`
+Release state at issue: Accepted for v0.3.1 implementation
+Issue date: 2026-08-29
 
 
-Status: accepted implementation design for v0.3.0; release-specific verification remains separate
+Status: accepted implementation design for v0.3.1; release-specific verification remains separate
 Requirements: `REQUIREMENTS.md`
 Release process: `RELEASE-REQUIREMENTS.md`
 Use-case layer: `USE_CASES.md`, with cross-artifact mapping in `TRACEABILITY.md`
@@ -123,6 +123,10 @@ Missing edges are not negative evidence of runtime independence. User-facing doc
 
 A claimed exact location uses one-based line/column semantics. Missing location means the analyzer does not claim exact navigation.
 
+### 5.5 Filtered member provenance
+
+`GraphBuilder` is responsible for making member provenance self-contained after content filtering. Before writing a member endpoint into `member_links`, it resolves that member against the already-filtered endpoint node. If the member category is hidden, the link retains its evidence kind and exact occurrence location but omits the invalid member reference. `SnapshotValidator` remains strict and does not repair this contradiction after the fact.
+
 ## 6. Scope projection design
 
 ### 6.1 Root canonicalization
@@ -233,6 +237,10 @@ The dock may suppress filesystem events only around a known project-local export
 | One-format export failure | directory/write/format failure | report format result; continue other enabled formats |
 | Replacement commit failure | final file replacement fails | preserve/restore prior destination where possible; report final state |
 
+### 8.2 Validator failure diagnostics
+
+A rejected candidate remains rejected. The dock reports the first stable issue code and selected scan root in immediate status, then writes every validator issue to Log with its code, root, issue index, and a sorted bounded subset of structured context. Log rendering exposes structured context instead of discarding it.
+
 ### 8.2 Partial-result rule
 
 A snapshot with diagnostics is publishable only when `SnapshotValidator` accepts its structural invariants. The validator is not a repair engine.
@@ -292,6 +300,10 @@ Layout exists to improve readability and grouping only.
 Search, focus, isolation, zoom, arrange, and fold/overflow behavior should support named tasks. Interaction must not change the canonical snapshot.
 
 Important meaning must remain available through labels, summary, diagnostics, or exports when the graph is hidden or too zoomed out for details.
+
+Connection hover is implemented by a dedicated `GraphEdit` subclass. The dock registers canonical edge/member occurrence evidence against each rendered `from_node/from_port/to_node/to_port` connection. The subclass resolves the nearest connection at pointer position and formats a bounded tooltip. Duplicate canonical occurrences that collapse onto one rendered line are aggregated rather than replaced arbitrarily.
+
+Member-row hover is built from canonical member declarations plus a dock-derived static evidence index keyed by endpoint member. Compact visible labels do not control tooltip detail; full stored signatures/declarations remain available even when the row displays only the member name.
 
 ### 9.5 External renderers
 
@@ -464,7 +476,8 @@ The implementation and release workflow keep these claims separate:
 - a packaged add-on initialized and performed representative behavior;
 - a compatibility run passed on one claimed Godot version;
 - all required release gates passed;
-- a second controlled build reproduced a specified archive;
+- a second controlled same-environment build repeated a specified archive;
+- an independent operator or build service reproduced a specified archive;
 - a checksum matched a final artifact.
 
 No one claim implies the others.
