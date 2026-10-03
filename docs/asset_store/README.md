@@ -31,6 +31,6 @@ python tools/capture_asset_store_media.py \
   --godot /path/to/Godot_v4.7-stable_linux.x86_64
 ```
 
-The current v0.4.0 set also includes dedicated member-evidence and connection-evidence hover captures.
+The v0.5.1 publication set reuses the validated v0.5.0 captures because this release only normalizes source formatting and release metadata; product UI behavior is unchanged.
 
 The capture command uses the small `examples/media_showcase` fixture for focused images, the broader existing showcase for the complex view, and a temporary editor-only helper plugin for the source-navigation image. The helper is not enabled in the development project or distributed add-on.

@@ -2,7 +2,7 @@
 
 Godot 4 editor add-on for deterministic GDScript inheritance/dependency analysis, scoped architectural inspection, editor navigation, exact text-scene usage, and JSON/Mermaid/PlantUML export.
 
-Release `0.4.0` targets the supplied Linux x86_64 editor builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7. Release-specific verification results are delivered outside the source repository.
+Release `0.5.1` targets the supplied Linux x86_64 editor builds of Godot 4.3, 4.4.1, 4.5.2, 4.6.3, and 4.7. Release-specific verification results are delivered outside the source repository.
 
 ## Install
 

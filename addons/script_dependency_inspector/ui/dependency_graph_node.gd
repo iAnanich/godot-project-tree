@@ -11,10 +11,6 @@ signal scene_requested(path: String, line: int, column: int)
 @export var dependency_port_color: Color = Color("e69f00")
 @export var type_dependency_port_color: Color = Color("56b4e9")
 
-@onready var metadata_content: VBoxContainer = %MetadataContent
-@onready var member_scroll: ScrollContainer = %MemberScroll
-@onready var member_content: VBoxContainer = %MemberContent
-
 var _layout_size: Vector2 = Vector2(230.0, 37.0)
 var _dynamic_rows: Array[Control] = []
 var _member_ports: Dictionary = {}
@@ -22,6 +18,10 @@ var _next_member_port_index: int = 3
 var _next_direct_slot_index: int = 4
 var _source_path: String = ""
 var _scope_role: String = "in_scope"
+
+@onready var metadata_content: VBoxContainer = %MetadataContent
+@onready var member_scroll: ScrollContainer = %MemberScroll
+@onready var member_content: VBoxContainer = %MemberContent
 
 
 ## Rebuilds this graph node from canonical graph-node data.
@@ -89,7 +89,7 @@ func configure(node_data: Dictionary, style: Dictionary, display_options: Dictio
 					_add_scrolled_descriptor(descriptor_value)
 				member_height = maximum_member_height
 
-	var width = _estimated_width(kind, longest_text, style)
+	var width = _estimated_width(kind, longest_text)
 	custom_minimum_size.x = width
 	var base_height = 37.0 if compact_native else 65.0
 	_layout_size = Vector2(width, base_height + member_height)
@@ -222,7 +222,9 @@ func _add_metadata(node_data: Dictionary, style: Dictionary) -> int:
 			"Descendants: %s direct · %s total" % [direct_count, transitive_count],
 			Color(str(style.get("metadata_color", "bec4ce")))
 		)
-		descendants_label.tooltip_text = ("Direct children and all transitive descendants in the current scoped snapshot.")
+		descendants_label.tooltip_text = (
+			"Direct children and all transitive descendants " + "in the current scoped snapshot."
+		)
 		metadata_content.add_child(descendants_label)
 
 	var scene_usages: Array = node_data.get("scene_usages", [])
@@ -642,33 +644,30 @@ func _new_compact_label(text: String, color: Color) -> Label:
 
 
 func _member_text(member: Dictionary, member_kind: String, display_options: Dictionary) -> String:
+	var text: String = str(member.get("name", member_kind))
 	match member_kind:
 		"property":
-			var property_name = str(member.get("name", "property"))
-			if not bool(display_options.get("show_property_types", false)):
-				return property_name
-			var property_type = str(member.get("type", ""))
-			return property_name + (": " + property_type if not property_type.is_empty() else "")
+			if bool(display_options.get("show_property_types", false)):
+				var property_type: String = str(member.get("type", ""))
+				if not property_type.is_empty():
+					text += ": " + property_type
 		"signal":
-			var signal_name = str(member.get("name", "signal"))
-			if not bool(display_options.get("show_signal_signatures", false)):
-				return signal_name
-			return "signal %s(%s)" % [signal_name, member.get("arguments", "")]
+			if bool(display_options.get("show_signal_signatures", false)):
+				text = "signal %s(%s)" % [text, member.get("arguments", "")]
 		"inner_class":
-			return str(member.get("name", "inner class"))
+			pass
 		_:
-			var method_name = str(member.get("name", "method"))
-			if not bool(display_options.get("show_method_signatures", false)):
-				return method_name
-			var return_type = str(member.get("return_type", ""))
-			return (
-				"%s(%s)%s"
-				% [
-					method_name,
-					member.get("arguments", ""),
-					" -> " + return_type if not return_type.is_empty() else ""
-				]
-			)
+			if bool(display_options.get("show_method_signatures", false)):
+				var return_type: String = str(member.get("return_type", ""))
+				text = (
+					"%s(%s)%s"
+					% [
+						text,
+						member.get("arguments", ""),
+						" -> " + return_type if not return_type.is_empty() else "",
+					]
+				)
+	return text
 
 
 func _member_color(member_kind: String, style: Dictionary) -> Color:
@@ -687,7 +686,7 @@ func _member_key(kind: String, name: String) -> String:
 	return kind + ":" + name
 
 
-func _estimated_width(kind: String, longest_text: int, style: Dictionary) -> float:
+func _estimated_width(kind: String, longest_text: int) -> float:
 	if kind == "native":
 		return maxf(compact_native_width, minf(maximum_node_width, float(longest_text * 8 + 34)))
 	var estimated = float(longest_text * 7 + 42)
@@ -709,21 +708,21 @@ func _set_titlebar_tooltip(full_name: String, path: String, family: String) -> v
 
 
 func _family_display_name(family: String) -> String:
+	var display_name: String = "Other family"
 	match family:
 		"object":
-			return "Object family"
+			display_name = "Object family"
 		"ref_counted":
-			return "RefCounted family"
+			display_name = "RefCounted family"
 		"node":
-			return "Node family"
+			display_name = "Node family"
 		"node_2d":
-			return "Node2D family"
+			display_name = "Node2D family"
 		"node_3d":
-			return "Node3D family"
+			display_name = "Node3D family"
 		"control":
-			return "Control family"
-		_:
-			return "Other family"
+			display_name = "Control family"
+	return display_name
 
 
 func _truncate(value: String, maximum_characters: int) -> String:

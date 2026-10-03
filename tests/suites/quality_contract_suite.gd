@@ -9,12 +9,20 @@ const GRAPH_QUERY_PATH: String = ADDON_ROOT + "core/graph_query.gd"
 const EXPORT_SERVICE_PATH: String = ADDON_ROOT + "export/export_service.gd"
 const DOCK_SCENE_PATH: String = ADDON_ROOT + "ui/dependency_dock.tscn"
 const EXPORTER_CONTRACT_PATH: String = "res://tests/contracts/exporter_contract.gd"
-const MISSING_CAPABILITY_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/missing_capability_exporter.gd"
-const UPPERCASE_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/uppercase_exporter.gd"
-const EMPTY_OUTPUT_EXPORTER_PATH: String = "res://tests/contract_fixtures/exporters/empty_output_exporter.gd"
+const MISSING_CAPABILITY_EXPORTER_PATH: String = (
+	"res://tests/contract_fixtures/exporters/" + "missing_capability_exporter.gd"
+)
+const UPPERCASE_EXPORTER_PATH: String = (
+	"res://tests/contract_fixtures/exporters/" + "uppercase_exporter.gd"
+)
+const EMPTY_OUTPUT_EXPORTER_PATH: String = (
+	"res://tests/contract_fixtures/exporters/" + "empty_output_exporter.gd"
+)
 const STATIC_EXECUTION_FIXTURE_ROOT: String = "res://tests/security_fixtures"
 const STATIC_EXECUTION_MARKER: String = "user://sdi_static_analysis_execution_marker.txt"
-const FAILING_COMMIT_SERVICE_PATH: String = "res://tests/contract_fixtures/services/failing_commit_export_service.gd"
+const FAILING_COMMIT_SERVICE_PATH: String = (
+	"res://tests/contract_fixtures/services/" + "failing_commit_export_service.gd"
+)
 
 
 ## Runs quality-boundary, extension-contract, and non-visual-access tests.
@@ -417,7 +425,10 @@ func _test_source_only_scan(failures: Array[String]) -> void:
 	)
 	_check(
 		not FileAccess.file_exists(STATIC_EXECUTION_MARKER),
-		"Dependency discovery must not execute a scanned script static initializer, even when the legacy reflection option is true.",
+		(
+			"Dependency discovery must not execute a scanned script static initializer, "
+			+ "even when the legacy reflection option is true."
+		),
 		failures
 	)
 
@@ -1040,8 +1051,11 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 		failures
 	)
 
-	# Schema 1 remains readable and receives schema-4 synchronization, scope, focus, view, and fold defaults.
-	var legacy_path: String = "user://script_dependency_inspector/state_round_trip/editor_state_v1.json"
+	# Schema 1 remains readable and receives schema-4 synchronization, scope, focus,
+	# view, and fold defaults.
+	var legacy_path: String = (
+		"user://script_dependency_inspector/state_round_trip/" + "editor_state_v1.json"
+	)
 	var legacy_file := FileAccess.open(legacy_path, FileAccess.WRITE)
 	if legacy_file == null:
 		failures.append("Could not create legacy editor-state migration fixture.")
@@ -1077,7 +1091,9 @@ func _test_editor_state_round_trip(failures: Array[String]) -> void:
 		failures
 	)
 
-	var invalid_schema_path: String = "user://script_dependency_inspector/state_round_trip/editor_state_invalid_schema.json"
+	var invalid_schema_path: String = (
+		"user://script_dependency_inspector/state_round_trip/" + "editor_state_invalid_schema.json"
+	)
 	var invalid_schema_file: FileAccess = FileAccess.open(invalid_schema_path, FileAccess.WRITE)
 	if invalid_schema_file == null:
 		failures.append("Could not create invalid editor-state schema fixture.")

@@ -157,9 +157,15 @@ func _configure_state(state: String) -> void:
 		(_dock.get_node("%AutoExportJson") as CheckBox).button_pressed = true
 		(_dock.get_node("%AutoExportMermaid") as CheckBox).button_pressed = true
 		(_dock.get_node("%AutoExportPlantUML") as CheckBox).button_pressed = true
-		(_dock.get_node("%AutoExportJsonPath") as LineEdit).text = "user://script_dependency_inspector/visual_showcase/script_dependencies.json"
-		(_dock.get_node("%AutoExportMermaidPath") as LineEdit).text = "user://script_dependency_inspector/visual_showcase/script_dependencies.mmd"
-		(_dock.get_node("%AutoExportPlantUMLPath") as LineEdit).text = "user://script_dependency_inspector/visual_showcase/script_dependencies.puml"
+		(_dock.get_node("%AutoExportJsonPath") as LineEdit).text = (
+			"user://script_dependency_inspector/visual_showcase/" + "script_dependencies.json"
+		)
+		(_dock.get_node("%AutoExportMermaidPath") as LineEdit).text = (
+			"user://script_dependency_inspector/visual_showcase/" + "script_dependencies.mmd"
+		)
+		(_dock.get_node("%AutoExportPlantUMLPath") as LineEdit).text = (
+			"user://script_dependency_inspector/visual_showcase/" + "script_dependencies.puml"
+		)
 	_dock.set("_suppress_control_events", false)
 
 
@@ -186,7 +192,13 @@ func _configure_after_scan(state: String) -> void:
 		"media_tab_content":
 			split.split_offset = 500
 			tabs.current_tab = 0
-		"media_overview", "media_max_info", "media_complex", "media_navigation", "media_scope", "media_search", "media_member_tooltip", "media_connection_tooltip", "media_stale":
+		"media_overview", "media_max_info", "media_complex":
+			split.split_offset = 125
+			tabs.current_tab = 0
+		"media_navigation", "media_scope", "media_search":
+			split.split_offset = 125
+			tabs.current_tab = 0
+		"media_member_tooltip", "media_connection_tooltip", "media_stale":
 			split.split_offset = 125
 			tabs.current_tab = 0
 		_:

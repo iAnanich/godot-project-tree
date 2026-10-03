@@ -106,24 +106,15 @@ func _relationship_label(kind: String) -> String:
 
 
 func _evidence_label(evidence: String) -> String:
-	match evidence:
-		"preload":
-			return "preload()"
-		"load":
-			return "load()"
-		"class_member_access":
-			return "class-member access"
-		"method_parameter_type":
-			return "method parameter type"
-		"method_return_type":
-			return "method return type"
-		"property_type":
-			return "property type"
-		"signal_parameter_type":
-			return "signal parameter type"
-		"local_variable_type":
-			return "local variable type"
-		"extends":
-			return "extends"
-		_:
-			return evidence.replace("_", " ")
+	var labels: Dictionary = {
+		"preload": "preload()",
+		"load": "load()",
+		"class_member_access": "class-member access",
+		"method_parameter_type": "method parameter type",
+		"method_return_type": "method return type",
+		"property_type": "property type",
+		"signal_parameter_type": "signal parameter type",
+		"local_variable_type": "local variable type",
+		"extends": "extends",
+	}
+	return str(labels.get(evidence, evidence.replace("_", " ")))

@@ -456,27 +456,26 @@ func _resolve_type_target(
 	global_classes: Dictionary,
 	options: Dictionary
 ) -> String:
+	var resolved_target: String = ""
 	if class_index.has(symbol):
-		return str(class_index[symbol])
-	if global_classes.has(symbol):
+		resolved_target = str(class_index[symbol])
+	elif global_classes.has(symbol):
 		var entry: Dictionary = global_classes[symbol]
-		var path = str(entry.get("path", ""))
+		var path: String = str(entry.get("path", ""))
 		if node_index.has(path):
-			return path
-		if not options["include_external_bases"]:
-			return ""
-		var external_id = path if not path.is_empty() else "external://type/" + symbol
-		_add_node(snapshot, node_index, _external_node(external_id, symbol, "external", path))
-		return external_id
-	if ClassDB.class_exists(symbol):
+			resolved_target = path
+		elif options["include_external_bases"]:
+			resolved_target = path if not path.is_empty() else "external://type/" + symbol
+			_add_node(
+				snapshot, node_index, _external_node(resolved_target, symbol, "external", path)
+			)
+	elif ClassDB.class_exists(symbol):
 		if options["include_native_bases"]:
-			return _ensure_native_chain(snapshot, node_index, symbol)
-		return ""
-	if options["include_external_bases"] and _looks_like_class_symbol(symbol):
-		var external_id = "external://type/" + symbol
-		_add_node(snapshot, node_index, _external_node(external_id, symbol, "external"))
-		return external_id
-	return ""
+			resolved_target = _ensure_native_chain(snapshot, node_index, symbol)
+	elif options["include_external_bases"] and _looks_like_class_symbol(symbol):
+		resolved_target = "external://type/" + symbol
+		_add_node(snapshot, node_index, _external_node(resolved_target, symbol, "external"))
+	return resolved_target
 
 
 func _looks_like_class_symbol(symbol: String) -> bool:
@@ -574,24 +573,24 @@ func _terminal_native_class(
 
 
 func _classify_native_family(native_class_name: String) -> String:
-	if native_class_name.is_empty() or not ClassDB.class_exists(native_class_name):
-		return "other"
-	if native_class_name == "Control" or ClassDB.is_parent_class(native_class_name, "Control"):
-		return "control"
-	if native_class_name == "Node2D" or ClassDB.is_parent_class(native_class_name, "Node2D"):
-		return "node_2d"
-	if native_class_name == "Node3D" or ClassDB.is_parent_class(native_class_name, "Node3D"):
-		return "node_3d"
-	if native_class_name == "Node" or ClassDB.is_parent_class(native_class_name, "Node"):
-		return "node"
-	if (
-		native_class_name == "RefCounted"
-		or ClassDB.is_parent_class(native_class_name, "RefCounted")
-	):
-		return "ref_counted"
-	if native_class_name == "Object" or ClassDB.is_parent_class(native_class_name, "Object"):
-		return "object"
-	return "other"
+	var family: String = "other"
+	if not native_class_name.is_empty() and ClassDB.class_exists(native_class_name):
+		if native_class_name == "Control" or ClassDB.is_parent_class(native_class_name, "Control"):
+			family = "control"
+		elif native_class_name == "Node2D" or ClassDB.is_parent_class(native_class_name, "Node2D"):
+			family = "node_2d"
+		elif native_class_name == "Node3D" or ClassDB.is_parent_class(native_class_name, "Node3D"):
+			family = "node_3d"
+		elif native_class_name == "Node" or ClassDB.is_parent_class(native_class_name, "Node"):
+			family = "node"
+		elif (
+			native_class_name == "RefCounted"
+			or ClassDB.is_parent_class(native_class_name, "RefCounted")
+		):
+			family = "ref_counted"
+		elif native_class_name == "Object" or ClassDB.is_parent_class(native_class_name, "Object"):
+			family = "object"
+	return family
 
 
 func _add_node(snapshot: Dictionary, node_index: Dictionary, node: Dictionary) -> void:

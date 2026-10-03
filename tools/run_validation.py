@@ -59,7 +59,7 @@ def parse_args() -> argparse.Namespace:
 
 def copy_project(source: Path, destination: Path) -> None:
     def ignore(_directory: str, names: list[str]) -> set[str]:
-        generated_directories = {".godot", "validation-artifacts", "__pycache__"}
+        generated_directories = {".godot", ".sdi-dev.json", "validation-artifacts", "__pycache__"}
         return {name for name in names if name in generated_directories}
 
     shutil.copytree(source, destination, ignore=ignore)

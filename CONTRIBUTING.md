@@ -24,6 +24,10 @@ godot --headless --editor --path . --quit-after 5
 godot --headless --path . --script tests/test_runner.gd
 ```
 
+## Local developer workflow
+
+Install `requirements-dev.txt`, then configure Godot paths once with `python tools/dev.py configure --godot VERSION=/path ...`. Run `python tools/dev.py doctor` to diagnose the active Python/Pillow/gdtoolkit/Godot environment. Use `python tools/dev.py quality` for formatting plus all-version checks, `python tools/dev.py assets`, `python tools/dev.py package`, and `python tools/dev.py handoff`. Use `quality --check` for non-mutating CI/review validation.
+
 ## Commit-time formatting and linting
 
 Install the pinned development tools and Git hook once per clone:

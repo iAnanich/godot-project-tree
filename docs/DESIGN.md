@@ -1,12 +1,12 @@
 # Script Dependency Inspector — product design
 
 Artifact identity: `script-dependency-inspector-product-design`
-Version: `0.3.0-alpha.1`
-Release state at issue: Accepted for v0.4.0 implementation
-Issue date: 2026-08-29
+Version: `0.4.0-alpha.1`
+Release state at issue: Accepted for v0.5.0 implementation
+Issue date: 2026-08-30
 
 
-Status: accepted implementation design for v0.4.0; release-specific verification remains separate
+Status: accepted implementation design for v0.5.0; release-specific verification remains separate
 Requirements: `REQUIREMENTS.md`
 Release process: `RELEASE-REQUIREMENTS.md`
 Use-case layer: `USE_CASES.md`, with cross-artifact mapping in `TRACEABILITY.md`
@@ -509,3 +509,9 @@ Accepted on 2026-08-29. See `REQUIREMENTS.md` and section 8.3 for the retained s
 - main-screen editor placement.
 
 These items require new owner scope before design work continues.
+
+## Developer workflow orchestration
+
+`tools/dev.py` is the supported human-facing orchestration layer. Local Godot paths are stored in ignored `.sdi-dev.json`. `doctor` diagnoses the active Python/Pillow/gdtoolkit/Godot environment; `quality` runs formatting, lint, static contracts, and all configured Godot versions; `assets` owns media generation; `package` builds and verifies the distributable add-on on all configured engines; `handoff` invokes the exact-baseline handoff builder. Chained Python tools reuse `sys.executable`.
+
+The project sets 100 columns for gdformat/gdlint and a 2500-line gdlint ceiling for existing large composition/test files. The file-line threshold is a bounded maintainability signal, not proof that a file below it is maintainable.

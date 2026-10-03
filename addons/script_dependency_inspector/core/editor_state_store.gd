@@ -11,48 +11,52 @@ const STATE_SCHEMA_VERSION: int = 4
 ## Returns a validated state merged with defaults and optional warning text.
 func load_state(path: String, defaults: Dictionary) -> Dictionary:
 	var state: Dictionary = defaults.duplicate(true)
+	var result: Dictionary = {"ok": true, "state": state, "warning": ""}
 	if not FileAccess.file_exists(path):
-		return {"ok": true, "state": state, "warning": ""}
+		return result
+
 	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		return {
-			"ok": false,
-			"state": state,
-			"warning": "Could not read editor state: %s" % path,
-		}
-	var text: String = file.get_as_text()
-	file.close()
-	var parsed = JSON.parse_string(text)
-	if not parsed is Dictionary:
-		return {
-			"ok": false,
-			"state": state,
-			"warning": "Editor state is not a JSON object; defaults were used.",
-		}
-	var loaded: Dictionary = parsed
+		result["ok"] = false
+		result["warning"] = "Could not read editor state: %s" % path
+	else:
+		var text: String = file.get_as_text()
+		file.close()
+		var parsed = JSON.parse_string(text)
+		if not parsed is Dictionary:
+			result["ok"] = false
+			result["warning"] = "Editor state is not a JSON object; defaults were used."
+		else:
+			var loaded: Dictionary = parsed
+			var schema_validation: Dictionary = _validate_loaded_schema(loaded)
+			if not schema_validation.get("ok", false):
+				result["ok"] = false
+				result["warning"] = str(schema_validation.get("warning", ""))
+			else:
+				_merge_known_fields(state, loaded)
+	return result
+
+
+func _validate_loaded_schema(loaded: Dictionary) -> Dictionary:
 	var loaded_schema_value = loaded.get("schema_version", null)
 	if not loaded_schema_value is int and not loaded_schema_value is float:
 		return {
 			"ok": false,
-			"state": state,
 			"warning": "Editor state schema must be an integer; defaults were used.",
 		}
 	var loaded_schema_number: float = float(loaded_schema_value)
 	if not is_equal_approx(loaded_schema_number, floorf(loaded_schema_number)):
 		return {
 			"ok": false,
-			"state": state,
 			"warning": "Editor state schema must be an integer; defaults were used.",
 		}
 	var loaded_schema: int = int(loaded_schema_number)
 	if loaded_schema not in [1, 2, 3, STATE_SCHEMA_VERSION]:
 		return {
 			"ok": false,
-			"state": state,
 			"warning": "Editor state has an unsupported schema; defaults were used.",
 		}
-	_merge_known_fields(state, loaded)
-	return {"ok": true, "state": state, "warning": ""}
+	return {"ok": true, "warning": ""}
 
 
 ## Atomically writes validated editor-only state with same-directory rollback.

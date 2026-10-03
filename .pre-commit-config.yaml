@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: gdformat
         name: gdformat
-        entry: gdformat
+        entry: gdformat -l 100
         language: system
         files: \.gd$
       - id: gdlint

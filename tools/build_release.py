@@ -55,6 +55,7 @@ def is_release_file(path: Path) -> bool:
     if path.suffix == ".import" or path.name in {
         "MANIFEST.sha256",
         ".DS_Store",
+        ".sdi-dev.json",
     }:
         return False
     return True

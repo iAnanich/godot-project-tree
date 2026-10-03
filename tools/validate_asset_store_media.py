@@ -4,9 +4,22 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-from PIL import Image
+from build_release import release_version
+
+try:
+    from PIL import Image
+except ModuleNotFoundError as error:
+    if error.name != "PIL":
+        raise
+    raise SystemExit(
+        "Pillow is unavailable for this Python interpreter: "
+        f"{sys.executable}\n"
+        "Install development requirements with that same interpreter: "
+        f"{sys.executable} -m pip install -r requirements-dev.txt"
+    ) from error
 
 ROOT = Path(__file__).resolve().parents[1]
 MEDIA = ROOT / "docs/asset_store/current"
@@ -49,7 +62,7 @@ def main() -> int:
             errors.append(f"below 1280x720: {name} ({w}x{h})")
         if tuple(entry.get("dimensions", [])) != (w, h):
             errors.append(f"manifest dimensions mismatch: {name}")
-        if entry.get("release") != "0.4.0":
+        if entry.get("release") != release_version():
             errors.append(f"wrong release in manifest: {name}")
     actual = {p.name for p in MEDIA.glob("*.webp")}
     if actual != declared:

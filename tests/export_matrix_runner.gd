@@ -289,7 +289,9 @@ func _validate_all_on_regression(export_service, snapshot: Dictionary) -> void:
 		"plantuml", snapshot, {"include_colors": true}
 	)
 	var expected_mermaid: String = "+export_text(_snapshot: Dictionary, _options: Dictionary) String"
-	var expected_plantuml: String = "+export_text(_snapshot: Dictionary, _options: Dictionary) : String"
+	var expected_plantuml: String = (
+		"+export_text(_snapshot: Dictionary, _options: Dictionary) " + ": String"
+	)
 	_check(
 		str(mermaid.get("text", "")).contains(expected_mermaid),
 		"All-on Mermaid export must retain typed parameters while omitting dictionary defaults."

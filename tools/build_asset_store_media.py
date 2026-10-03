@@ -4,12 +4,25 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from build_release import release_version
+
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ModuleNotFoundError as error:
+    if error.name != "PIL":
+        raise
+    raise SystemExit(
+        "Pillow is unavailable for this Python interpreter: "
+        f"{sys.executable}\n"
+        "Install development requirements with that same interpreter: "
+        f"{sys.executable} -m pip install -r requirements-dev.txt"
+    ) from error
 
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "docs/asset_store/source-captures/v0.4.0/raw"
+RAW = ROOT / f"docs/asset_store/source-captures/v{release_version()}/raw"
 CURRENT = ROOT / "docs/asset_store/current"
 MAPPING = {
     "featured-01-default-overview.webp": "overview.png",

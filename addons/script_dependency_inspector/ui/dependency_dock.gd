@@ -371,52 +371,13 @@ func scan_project() -> void:
 	status_label.text = "Scanning…"
 	_logger.clear()
 	log_view.clear()
-	var scope_validation: Dictionary = _scanner.call("validate_root", _scan_root)
-	if not scope_validation.get("ok", false):
-		_finish_scan_failure(str(scope_validation.get("error", "Invalid scan root.")))
+
+	var scan_attempt: Dictionary = _build_scan_candidate()
+	if not scan_attempt.get("ok", false):
+		_finish_scan_failure(str(scan_attempt.get("message", "Dependency scan failed.")))
 		return
-	_scan_root = str(scope_validation.get("root", "res://"))
-	var scan_result: Dictionary = _scanner.scan("res://", settings.call("to_scan_options"))
-	if not scan_result.get("errors", []).is_empty():
-		for error_value in scan_result.get("errors", []):
-			_logger.error(str(error_value))
-		_finish_scan_failure("Dependency scan failed; see the Log tab.")
-		return
-	var full_snapshot: Dictionary = _builder.build(scan_result, settings.call("to_graph_options"))
-	if not full_snapshot.get("errors", []).is_empty():
-		for error_value in full_snapshot.get("errors", []):
-			_logger.error(str(error_value))
-		_finish_scan_failure("Dependency graph construction failed; see the Log tab.")
-		return
-	var candidate_snapshot: Dictionary = _scope_projector.call("project", full_snapshot, _scan_root)
-	var validation: Dictionary = _validate_snapshot_candidate(candidate_snapshot)
-	if not validation.get("ok", false):
-		var validation_errors: Array = validation.get("errors", [])
-		var first_code: String = "invalid_snapshot"
-		for issue_index in range(validation_errors.size()):
-			var issue_value = validation_errors[issue_index]
-			var issue: Dictionary = issue_value if issue_value is Dictionary else {}
-			var code: String = str(issue.get("code", "invalid_snapshot"))
-			if issue_index == 0:
-				first_code = code
-			var log_context: Dictionary = {
-				"code": code,
-				"scan_root": _scan_root,
-				"issue_index": issue_index,
-			}
-			var issue_context = issue.get("context", {})
-			if issue_context is Dictionary:
-				var context_keys: Array = issue_context.keys()
-				context_keys.sort()
-				for context_key_value in context_keys.slice(0, 8):
-					var context_key: String = str(context_key_value)
-					log_context[context_key] = _bounded_log_value(issue_context[context_key_value])
-			_logger.error(str(issue.get("message", "Snapshot validation failed.")), log_context)
-		_finish_scan_failure(
-			"Snapshot validation failed [%s] for %s; see Log." % [first_code, _scan_root]
-		)
-		return
-	_snapshot = candidate_snapshot
+
+	_snapshot = scan_attempt.get("snapshot", {})
 	_mark_snapshot_current()
 	if not _focused_node_id.is_empty() and not _snapshot_has_node(_focused_node_id):
 		_focused_node_id = ""
@@ -432,9 +393,6 @@ func scan_project() -> void:
 		_logger.warning(str(warning_value))
 	for error_value in _snapshot.get("errors", []):
 		_logger.error(str(error_value))
-	# Suppress editor refresh notifications only when an enabled automatic export
-	# writes below res://. v0.2.0 opened this blind window after every scan,
-	# including scans that performed no writes.
 	if _automatic_exports_touch_resource_filesystem():
 		_ignore_filesystem_events_until_msec = Time.get_ticks_msec() + 2000
 	else:
@@ -449,6 +407,59 @@ func scan_project() -> void:
 		_start_editor_change_timer()
 	else:
 		_update_refresh_schedules()
+
+
+func _build_scan_candidate() -> Dictionary:
+	var scope_validation: Dictionary = _scanner.call("validate_root", _scan_root)
+	if not scope_validation.get("ok", false):
+		return {"ok": false, "message": str(scope_validation.get("error", "Invalid scan root."))}
+	_scan_root = str(scope_validation.get("root", "res://"))
+	var scan_result: Dictionary = _scanner.scan("res://", settings.call("to_scan_options"))
+	if not scan_result.get("errors", []).is_empty():
+		for error_value in scan_result.get("errors", []):
+			_logger.error(str(error_value))
+		return {"ok": false, "message": "Dependency scan failed; see the Log tab."}
+	var full_snapshot: Dictionary = _builder.build(scan_result, settings.call("to_graph_options"))
+	if not full_snapshot.get("errors", []).is_empty():
+		for error_value in full_snapshot.get("errors", []):
+			_logger.error(str(error_value))
+		return {
+			"ok": false,
+			"message": "Dependency graph construction failed; see the Log tab.",
+		}
+	var candidate_snapshot: Dictionary = _scope_projector.call("project", full_snapshot, _scan_root)
+	var validation: Dictionary = _validate_snapshot_candidate(candidate_snapshot)
+	if not validation.get("ok", false):
+		var first_code: String = _log_snapshot_validation_errors(validation)
+		return {
+			"ok": false,
+			"message":
+			"Snapshot validation failed [%s] for %s; see Log." % [first_code, _scan_root],
+		}
+	return {"ok": true, "snapshot": candidate_snapshot}
+
+
+func _log_snapshot_validation_errors(validation: Dictionary) -> String:
+	var validation_errors: Array = validation.get("errors", [])
+	var first_code: String = "invalid_snapshot"
+	for issue_index in range(validation_errors.size()):
+		var issue_value = validation_errors[issue_index]
+		var issue: Dictionary = issue_value if issue_value is Dictionary else {}
+		var code: String = str(issue.get("code", "invalid_snapshot"))
+		if issue_index == 0:
+			first_code = code
+		var log_context: Dictionary = {
+			"code": code, "scan_root": _scan_root, "issue_index": issue_index
+		}
+		var issue_context = issue.get("context", {})
+		if issue_context is Dictionary:
+			var context_keys: Array = issue_context.keys()
+			context_keys.sort()
+			for context_key_value in context_keys.slice(0, 8):
+				var context_key: String = str(context_key_value)
+				log_context[context_key] = _bounded_log_value(issue_context[context_key_value])
+		_logger.error(str(issue.get("message", "Snapshot validation failed.")), log_context)
+	return first_code
 
 
 func _validate_snapshot_candidate(candidate_snapshot: Dictionary) -> Dictionary:
@@ -1383,7 +1394,11 @@ func _update_summary() -> void:
 		lines
 		. append_array(
 			[
-				"[b]How to read it[/b]: solid = inheritance; orange = load/preload or direct member use; blue = type-only use. Node border colors identify the most specific inheritance family.",
+				(
+					"[b]How to read it[/b]: solid = inheritance; orange = load/preload or "
+					+ "direct member use; blue = type-only use. Node border colors identify the "
+					+ "most specific inheritance family."
+				),
 				"Selected scope: %s" % str(metadata.get("root_path", "res://")),
 				(
 					"Indexed root: %s"

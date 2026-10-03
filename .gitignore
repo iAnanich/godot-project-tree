@@ -17,3 +17,6 @@ tools/dist/
 validation-artifacts/
 
 .idea/
+
+# Local Script Dependency Inspector developer workflow configuration
+.sdi-dev.json

@@ -9,7 +9,7 @@ The handoff builder records the exact Git baseline, includes tracked changes and
 From the repository root:
 
 ```sh
-python tools/build_handoff.py
+python tools/dev.py handoff
 ```
 
 The default patch baseline is `HEAD`. If the local work must be described relative to another exact commit or tag, name it explicitly:

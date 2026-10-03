@@ -7,11 +7,14 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
+from build_release import release_version
+
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "docs/asset_store/source-captures/v0.4.0/raw"
+RAW = ROOT / f"docs/asset_store/source-captures/v{release_version()}/raw"
 STATES = {
     "overview": "media_overview",
     "max_info": "media_max_info",
@@ -102,7 +105,7 @@ def main() -> int:
                 ROOT,
                 project,
                 ignore=shutil.ignore_patterns(
-                    ".git", ".godot", "dist", "validation-artifacts", "__pycache__"
+                    ".git", ".godot", ".sdi-dev.json", "dist", "validation-artifacts", "__pycache__"
                 ),
             )
             enable_capture_plugin(project)
@@ -144,13 +147,13 @@ def main() -> int:
         shutil.copy2(RAW / f"tab_{name}.png", documentation / f"tab_{name}.png")
     run(
         [
-            shutil.which("python3") or "python3",
+            sys.executable,
             str(ROOT / "tools/build_asset_store_media.py"),
         ]
     )
     run(
         [
-            shutil.which("python3") or "python3",
+            sys.executable,
             str(ROOT / "tools/validate_asset_store_media.py"),
         ]
     )

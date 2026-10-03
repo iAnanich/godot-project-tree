@@ -1,0 +1,6 @@
+# Project lint contract for gdtoolkit 4.5.0.
+# The 2500-line ceiling preserves max-file-lines as an omission/maintainability
+# signal without adopting gdtoolkit's uncalibrated 1000-line default as a
+# release requirement for existing composition roots and behavioral suites.
+max-line-length: 100
+max-file-lines: 2500

@@ -691,7 +691,10 @@ func _test_graph_presentation() -> void:
 			and compact_method_label.tooltip_text.contains("not runtime call counts")
 			and compact_method_label.tooltip_text.contains("open the declaration")
 		),
-		"Member actions should retain full declarations and bounded static-evidence context in their tooltips."
+		(
+			"Member actions should retain full declarations and bounded static-evidence "
+			+ "context in their tooltips."
+		)
 	)
 	if compact_method_label != null:
 		compact_method_label.pressed.emit()
@@ -711,7 +714,10 @@ func _test_graph_presentation() -> void:
 			and int(source_request.get("line", 0)) == 12
 			and int(source_request.get("column", 0)) == 5
 		),
-		"Relationship actions must open the exact dependency occurrence rather than only the member declaration."
+		(
+			"Relationship actions must open the exact dependency occurrence rather than "
+			+ "only the member declaration."
+		)
 	)
 	var scene_button: Button = _find_button(
 		compact_node, "↗ presentation_scene.tscn · Root/Consumer"
@@ -1051,7 +1057,10 @@ func _test_rendered_connection_direction() -> void:
 				str(connection.get("from_node", "")) == str(names["native://Object"])
 				and str(connection.get("to_node", "")) == str(names["res://a.gd"])
 			),
-			"Rendered connection direction should place dependencies/bases before dependents in GraphEdit arrangement."
+			(
+				"Rendered connection direction should place dependencies/bases before dependents "
+				+ "in GraphEdit arrangement."
+			)
 		)
 	graph_edit.arrange_nodes()
 	var object_node: GraphNode = graph_edit.get_node(str(names["native://Object"]))
@@ -1175,7 +1184,10 @@ func _test_connection_tooltip_evidence() -> void:
 				and tooltip.contains("target method make")
 				and tooltip.contains("line 14:3")
 			),
-			"Connection tooltip should explain the exact canonical relationship and bounded occurrence evidence."
+			(
+				"Connection tooltip should explain the exact canonical relationship and bounded "
+				+ "occurrence evidence."
+			)
 		)
 	graph_edit.queue_free()
 
@@ -1246,7 +1258,10 @@ func _test_hidden_member_scope_validation() -> void:
 					continue
 				_check(
 					(link_value as Dictionary).get("source_member", {}).is_empty(),
-					"Hidden methods must be omitted from source-member provenance while exact location/evidence is retained."
+					(
+						"Hidden methods must be omitted from source-member provenance while exact "
+						+ "location/evidence is retained."
+					)
 				)
 
 
@@ -1285,7 +1300,10 @@ func _test_validator_log_rendering() -> void:
 			and rendered_log.contains("consume")
 			and rendered_log.contains("Edge source member does not exist")
 		),
-		"Validator Log rendering should retain the stable code, selected root, affected context, and message."
+		(
+			"Validator Log rendering should retain the stable code, selected root, affected "
+			+ "context, and message."
+		)
 	)
 	dock.queue_free()
 

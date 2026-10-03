@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.1 — 2026-10-04
+
+- Normalize six GDScript files with the pinned gdformat 4.5.0 configuration. No product behavior change is intended.
+
+## 0.5.0 — 2026-08-30
+
+- Add `tools/dev.py` for configured multi-version quality, assets, packaging/verification, environment diagnosis, and handoff.
+- Fix GitHub Actions pip-cache dependency discovery and Python/Pillow interpreter mismatches.
+- Align gdformat/gdlint at 100 columns and resolve the reported lint findings; use a documented 2500-line file-size ceiling for existing large composition/test files.
+
+
 ## 0.4.0 — 2026-08-29
 
 ### Fixed

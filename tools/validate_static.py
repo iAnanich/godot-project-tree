@@ -12,11 +12,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "addons" / "script_dependency_inspector"
+CURRENT_RELEASE = "0.5.1"
 
 EXPECTED = [
     ROOT / "project.godot",
     ROOT / ".gitignore",
     ROOT / ".pre-commit-config.yaml",
+    ROOT / ".gdlintrc",
+    ROOT / "gdformatrc",
     ROOT / "requirements-dev.txt",
     ROOT / ".github" / "workflows" / "quality.yml",
     ROOT / ".github" / "workflows" / "release.yml",
@@ -89,6 +92,7 @@ EXPECTED = [
     / "contract_fixtures"
     / "services"
     / "failing_commit_export_service.gd",
+    ROOT / "tools" / "dev.py",
     ROOT / "tools" / "run_validation.py",
     ROOT / "tools" / "run_gdscript_quality.py",
     ROOT / "tools" / "verify_packaged_addon.py",
@@ -116,7 +120,7 @@ EXPECTED = [
     / "asset_store"
     / "current"
     / "featured-09-connection-evidence-tooltip.webp",
-    ROOT / "docs" / "asset_store" / "source-captures" / "v0.4.0" / "notes.md",
+    ROOT / "docs" / "asset_store" / "source-captures" / f"v{CURRENT_RELEASE}" / "notes.md",
     ROOT / "docs" / "INTERFACE_GALLERY.md",
     ROOT / "examples" / "showcase" / "README.md",
     ROOT / "examples" / "showcase" / "services" / "targeting_service.gd",
@@ -442,7 +446,7 @@ def validate_release_regressions() -> None:
         )
 
     plugin_cfg = (PLUGIN / "plugin.cfg").read_text(encoding="utf-8")
-    check('version="0.4.0"' in plugin_cfg, "plugin.cfg version is not 0.4.0.")
+    check(f'version="{CURRENT_RELEASE}"' in plugin_cfg, f"plugin.cfg version is not {CURRENT_RELEASE}.")
 
     release_builder = (ROOT / "tools" / "build_release.py").read_text(encoding="utf-8")
     check(
@@ -459,6 +463,19 @@ def validate_release_regressions() -> None:
         and "script-dependency-inspector-asset-store-media-v" in release_builder,
         "Release builder must package the exact current Asset Library upload media.",
     )
+    quality_workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+    release_workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    capture_media = (ROOT / "tools" / "capture_asset_store_media.py").read_text(encoding="utf-8")
+    gdformat_config = (ROOT / "gdformatrc").read_text(encoding="utf-8")
+    gdlint_config = (ROOT / ".gdlintrc").read_text(encoding="utf-8")
+    check(
+        "cache-dependency-path: requirements-dev.txt" in quality_workflow
+        and "cache-dependency-path: requirements-dev.txt" in release_workflow,
+        "GitHub setup-python pip caching must use requirements-dev.txt explicitly.",
+    )
+    check("sys.executable" in capture_media, "Media capture must reuse the invoking Python interpreter.")
+    check("line_length: 100" in gdformat_config and "max-line-length: 100" in gdlint_config, "Formatter/linter line length contract mismatch.")
+    check("max-file-lines: 2500" in gdlint_config, "gdlint project file-line ceiling is missing.")
 
     showcase_json = ROOT / "examples" / "showcase" / "representations" / "showcase.json"
     if showcase_json.is_file():
@@ -978,9 +995,14 @@ def validate_v030_feature_contracts(*, allow_root_manifest: bool = False) -> Non
         "Scanner and graph builder must expose transitive initialization failures.",
     )
     validation_pos = dock.find("_validate_snapshot_candidate(candidate_snapshot)")
-    accept_pos = dock.find("_snapshot = candidate_snapshot")
+    validated_return_pos = dock.find('return {"ok": true, "snapshot": candidate_snapshot}')
+    candidate_build_pos = dock.find("_build_scan_candidate()")
+    accept_pos = dock.find('_snapshot = scan_attempt.get("snapshot", {})')
     check(
-        validation_pos >= 0 and accept_pos > validation_pos,
+        validation_pos >= 0
+        and validated_return_pos > validation_pos
+        and candidate_build_pos >= 0
+        and accept_pos > candidate_build_pos,
         "Dock must validate a candidate snapshot before accepting it as current.",
     )
     check(
@@ -1015,9 +1037,11 @@ def validate_v030_feature_contracts(*, allow_root_manifest: bool = False) -> Non
         and "cmp " in release_workflow,
         "GitHub release workflow must perform a controlled second archive build before reproducibility claims.",
     )
+    dev_tool = (ROOT / "tools" / "dev.py").read_text(encoding="utf-8")
     check(
-        "run_gdscript_quality.py" in release_workflow
-        and "run_gdscript_quality.py" in quality_workflow,
+        "tools/dev.py quality --check --skip-godot" in release_workflow
+        and "tools/dev.py quality --check --skip-godot" in quality_workflow
+        and "run_gdscript_quality.py" in dev_tool,
         "GitHub quality/release workflows must run the fail-closed GDScript quality gate.",
     )
     for removed in [
@@ -1065,7 +1089,7 @@ def validate_v031_feature_contracts() -> None:
     )
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 
-    check('version="0.4.0"' in plugin_config, "Plugin version must be 0.4.0.")
+    check(f'version="{CURRENT_RELEASE}"' in plugin_config, f"Plugin version must be {CURRENT_RELEASE}.")
     check(
         "MIT License" in root_license, "Repository LICENSE must use MIT License text."
     )
@@ -1082,13 +1106,7 @@ def validate_v031_feature_contracts() -> None:
         "README must expose the current MIT license.",
     )
 
-    for req in (
-        "REQ-VALID-005",
-        "REQ-UI-005",
-        "REQ-UI-006",
-        "REQ-DIAG-003",
-        "REQ-VALID-006",
-    ):
+    for req in ("REQ-VALID-005", "REQ-UI-005", "REQ-UI-006", "REQ-DIAG-003", "REQ-VALID-006"):
         check(req in requirements, f"Missing v0.4.0 requirement: {req}")
         check(req in traceability, f"Missing v0.4.0 traceability mapping: {req}")
     for use_case in ("UC-14", "UC-15", "UC-16", "UC-17"):
@@ -1156,23 +1174,15 @@ def validate_v031_feature_contracts() -> None:
         "prepare_for_shutdown",
         "not auto_rescan_timer.is_inside_tree()",
     ]:
-        check(
-            token in dock,
-            f"Missing stale-snapshot/validator lifecycle implementation token: {token}",
-        )
+        check(token in dock, f"Missing stale-snapshot/validator lifecycle implementation token: {token}")
     for token in [
         "forced_validation_failure",
         "stale-must-not-export.json",
         "validator_unavailable",
         "STALE SNAPSHOT",
     ]:
-        check(
-            token in automation, f"Missing lifecycle regression coverage token: {token}"
-        )
-    check(
-        "REQ-VALID-006" in requirements and "RESOLVED-OPEN-001" in requirements,
-        "OPEN-001 must be resolved into the accepted stale-snapshot requirement.",
-    )
+        check(token in automation, f"Missing lifecycle regression coverage token: {token}")
+    check("REQ-VALID-006" in requirements and "RESOLVED-OPEN-001" in requirements, "OPEN-001 must be resolved into the accepted stale-snapshot requirement.")
 
     check(
         "source/{PROJECT_ARCHIVE_ROOT}/{record['path']}" in handoff,
@@ -1422,7 +1432,7 @@ def validate_documentation_contract() -> None:
             required_reference in readme,
             f"README does not link to {required_reference}.",
         )
-    check("0.4.0" in readme, "README release identifier is not 0.4.0.")
+    check(CURRENT_RELEASE in readme, f"README release identifier is not {CURRENT_RELEASE}.")
 
 
 def validate_quality_contracts() -> None:
@@ -1540,9 +1550,12 @@ def validate_exporter_contracts() -> None:
 
 
 def validate_asset_store_media_contract() -> None:
+    environment = dict(__import__("os").environ)
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
     result = subprocess.run(
         [sys.executable, "tools/validate_asset_store_media.py"],
         cwd=ROOT,
+        env=environment,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,

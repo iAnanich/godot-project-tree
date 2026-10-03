@@ -100,54 +100,68 @@ func register_exporter(exporter) -> bool:
 
 
 func _validate_exporter_contract(exporter) -> Dictionary:
+	var failure: Dictionary = {}
 	if exporter == null:
-		return _exporter_validation_failure("invalid_exporter", "Exporter instance is null.")
-	for method_name in [
-		"format_id", "display_name", "file_extension", "capabilities", "export_text"
-	]:
-		if not exporter.has_method(method_name):
-			return _exporter_validation_failure(
-				"missing_exporter_method",
-				"Exporter is missing required method: %s" % method_name,
-				{"method": method_name}
-			)
+		failure = _exporter_validation_failure("invalid_exporter", "Exporter instance is null.")
+	else:
+		for method_name in [
+			"format_id", "display_name", "file_extension", "capabilities", "export_text"
+		]:
+			if not exporter.has_method(method_name):
+				failure = _exporter_validation_failure(
+					"missing_exporter_method",
+					"Exporter is missing required method: %s" % method_name,
+					{"method": method_name}
+				)
+				break
+
+	if not failure.is_empty():
+		return failure
+
 	var raw_format_id: String = str(exporter.call("format_id")).strip_edges()
 	var display_name: String = str(exporter.call("display_name")).strip_edges()
 	var extension: String = str(exporter.call("file_extension")).strip_edges()
 	var capabilities_value = exporter.call("capabilities")
 	if raw_format_id.is_empty() or raw_format_id != raw_format_id.to_lower():
-		return _exporter_validation_failure(
+		failure = _exporter_validation_failure(
 			"invalid_exporter_id",
 			"Exporter format_id must be non-empty lowercase text.",
 			{"format_id": raw_format_id}
 		)
-	if display_name.is_empty():
-		return _exporter_validation_failure(
+	elif display_name.is_empty():
+		failure = _exporter_validation_failure(
 			"invalid_exporter_name", "Exporter display_name must not be empty."
 		)
-	if (
+	elif (
 		extension.is_empty()
 		or extension.begins_with(".")
 		or extension.contains("/")
 		or extension.contains("\\")
 	):
-		return _exporter_validation_failure(
+		failure = _exporter_validation_failure(
 			"invalid_exporter_extension",
 			"Exporter file_extension must omit the period and path separators.",
 			{"extension": extension}
 		)
-	if not capabilities_value is Dictionary:
-		return _exporter_validation_failure(
+	elif not capabilities_value is Dictionary:
+		failure = _exporter_validation_failure(
 			"invalid_exporter_capabilities", "Exporter capabilities must be a dictionary."
 		)
-	var capabilities: Dictionary = capabilities_value
-	for capability in _required_capabilities():
-		if not capabilities.has(capability) or not capabilities[capability] is bool:
-			return _exporter_validation_failure(
-				"invalid_exporter_capability",
-				"Exporter capability '%s' must be declared as a boolean." % capability,
-				{"capability": capability}
-			)
+
+	var capabilities: Dictionary = {}
+	if failure.is_empty():
+		capabilities = capabilities_value
+		for capability in _required_capabilities():
+			if not capabilities.has(capability) or not capabilities[capability] is bool:
+				failure = _exporter_validation_failure(
+					"invalid_exporter_capability",
+					"Exporter capability '%s' must be declared as a boolean." % capability,
+					{"capability": capability}
+				)
+				break
+
+	if not failure.is_empty():
+		return failure
 	return {
 		"ok": true,
 		"code": "ok",
@@ -293,12 +307,21 @@ func export_to_string(
 func export_to_file(
 	format_id: String, destination: String, snapshot: Dictionary, options: Dictionary = {}
 ) -> Dictionary:
+	var result: Dictionary = {}
 	if destination.strip_edges().is_empty():
-		return _failure("empty_destination", "Export destination is empty.", destination)
-	var serialization: Dictionary = export_to_string(format_id, snapshot, options)
-	if not serialization.get("ok", false):
-		return serialization
+		result = _failure("empty_destination", "Export destination is empty.", destination)
+	else:
+		var serialization: Dictionary = export_to_string(format_id, snapshot, options)
+		if not serialization.get("ok", false):
+			result = serialization
+		else:
+			result = _write_export_file(format_id, destination, serialization)
+	return result
 
+
+func _write_export_file(
+	format_id: String, destination: String, serialization: Dictionary
+) -> Dictionary:
 	var path: String = _ensure_extension(destination, extension_for(format_id))
 	var directory_result: Dictionary = _ensure_parent_directory(path)
 	if not directory_result.get("ok", false):
@@ -306,24 +329,20 @@ func export_to_file(
 	var operation_id: String = "%s_%s" % [get_instance_id(), Time.get_ticks_usec()]
 	var temporary_path: String = path + ".sdi_%s.tmp" % operation_id
 	var backup_path: String = path + ".sdi_%s.bak" % operation_id
-
 	var write_result: Dictionary = _write_temporary_file(
 		temporary_path, str(serialization["text"]), path
 	)
 	if not write_result.get("ok", false):
 		return write_result
-
 	var had_existing: bool = FileAccess.file_exists(path)
 	var stage_result: Dictionary = _stage_existing_destination(path, backup_path, temporary_path)
 	if not stage_result.get("ok", false):
 		return stage_result
-
 	var commit_result: Dictionary = _commit_temporary_file(
 		temporary_path, path, backup_path, had_existing
 	)
 	if not commit_result.get("ok", false):
 		return commit_result
-
 	_remove_if_present(backup_path)
 	_log_info("Dependency graph exported.", {"format": format_id, "path": path})
 	return {"ok": true, "code": "ok", "error": "", "path": path}

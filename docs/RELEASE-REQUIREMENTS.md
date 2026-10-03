@@ -1,12 +1,12 @@
 # Script Dependency Inspector — repository and release requirements
 
 Artifact identity: `script-dependency-inspector-release-requirements`
-Version: `0.3.0-alpha.1`
-Release state at issue: Accepted for v0.4.0 implementation
-Issue date: 2026-08-29
+Version: `0.4.0-alpha.1`
+Release state at issue: Accepted for v0.5.0 implementation
+Issue date: 2026-08-30
 
 
-Status: proposed successor baseline for owner review
+Status: accepted repository and release requirements for v0.5.0; release-specific verification remains separate
 Scope: repository knowledge, packaging, release automation, patching, quality gates, AI disclosure, and Godot Asset Library media
 
 ## 1. Purpose and separation from product behavior
@@ -95,6 +95,14 @@ Formatting changes must remain visible for developer review and staging. The hoo
 GitHub CI should run the same material formatting/lint configuration used by local pre-commit hooks so local and remote gates do not intentionally disagree.
 
 When a tool cannot run in an offline or constrained environment, release documentation must record the check as unavailable rather than claiming it passed.
+
+### REL-DEV-004 — Unified local workflow
+
+The repository must provide one documented local command surface for Godot-path configuration, environment diagnosis, all-version quality validation, media, package verification, and handoff. The quality action must have a non-mutating CI/review mode.
+
+### REL-DEV-005 — Python interpreter consistency
+
+Repository Python tools that invoke another repository Python tool must reuse the current interpreter unless a different environment is explicitly required. CI pip caching must name `requirements-dev.txt` when it is the dependency authority.
 
 ## 6. Packaging requirements
 

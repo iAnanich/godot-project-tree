@@ -189,7 +189,7 @@ func _run() -> void:
 	dock.call("_set_scan_root", "res://tests/contract_fixtures/hidden_member_scope/feature")
 	_check(
 		str(dock.get("_snapshot_state")) == "stale",
-		"A fatal rescan must mark the retained snapshot stale."
+		"A fatal rescan must mark the retained snapshot stale.",
 	)
 	_check(
 		JSON.stringify(dock.get("_snapshot")) == previous_snapshot_text,
@@ -204,7 +204,7 @@ func _run() -> void:
 	)
 	_check(
 		status.text.begins_with("STALE"),
-		"The visible scan status must identify retained data as stale."
+		"The visible scan status must identify retained data as stale.",
 	)
 	_check(
 		status.text.contains("forced_validation_failure"),
@@ -216,7 +216,7 @@ func _run() -> void:
 	)
 	_check(
 		export_button.disabled,
-		"Manual export must remain disabled while the retained snapshot is stale."
+		"Manual export must remain disabled while the retained snapshot is stale.",
 	)
 	_check(
 		not FileAccess.file_exists(json_path.text),
@@ -228,11 +228,11 @@ func _run() -> void:
 	dock.call("scan_project")
 	_check(
 		str(dock.get("_snapshot_state")) == "current",
-		"A successful rescan must clear stale snapshot state."
+		"A successful rescan must clear stale snapshot state.",
 	)
 	_check(
 		status.text.begins_with("Current"),
-		"A successful rescan must be presented as the current result."
+		"A successful rescan must be presented as the current result.",
 	)
 	_check(
 		FileAccess.file_exists(json_path.text),
