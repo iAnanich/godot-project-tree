@@ -1,4 +1,4 @@
 # Pinned development tooling for reproducible local hooks and CI.
 gdtoolkit==4.5.0
 pre-commit==4.6.0
-Pillow==12.2.0  # Distribution name; imports use `from PIL import Image`.
+Pillow==12.3.0  # Distribution name; imports use `from PIL import Image`.
